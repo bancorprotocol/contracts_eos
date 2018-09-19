@@ -2,8 +2,8 @@
 NETWORK=bancorxoneos
 NETWORK_TOKEN=BBNT
 NETWORK_TOKEN_CONTRACT=bnttoken4eos
-TEST_USER=uritheliont1
-TEST_USER2=uritheliont2
+TEST_USER=uritheliont5
+TEST_USER2=uritheliont6
 SYSTEM_TOKEN=EOS
 SYSTEM_TOKEN_CONTRACT=eosio.token
 RLY=RLY
@@ -12,7 +12,7 @@ MAIN_RELAY=bncrcnvrt111
 MAIN_RELAY_TOKEN_CONTRACT=bncrbrly1111
 
 set -x
-set -e
+# set -e
 
 function setPerms(){
     PKEY=$(cat $PREFIX_ACCOUNT$1.pub)
@@ -75,11 +75,6 @@ function generateRelay(){
   
 }
 
-generateContract $NETWORK /root/BancorNetwork
-$cleos push action $NETWORK clear {} -p $NETWORK 
-
-generateRelay $MAIN_RELAY $MAIN_RELAY_TOKEN_CONTRACT 1000000000.0000 $MAIN_RELAY_TOKEN_SYMBOL 10000.0000 $NETWORK_TOKEN_CONTRACT 1000000000.0000 $NETWORK_TOKEN 1000.0000 $SYSTEM_TOKEN_CONTRACT 1000.0000 $SYSTEM_TOKEN 0
-
 I=0
 function genAdditionalRelay(){
     TOKEN=$3$RLY
@@ -93,25 +88,36 @@ function gen(){
     I=$(($I+1))
 }
 
-gen BIQ 0
-gen BATD 0
-gen BHORUS 0
-gen BPRA 0
-gen BONO 0
-gen BYAIR 0
-gen BRIDL 0
-gen BKARMA 0
-gen BEON 0
-gen BBET 0
+function init(){
+    generateContract $NETWORK /root/BancorNetwork
+    $cleos push action $NETWORK clear {} -p $NETWORK 
+    generateRelay $MAIN_RELAY $MAIN_RELAY_TOKEN_CONTRACT 1000000000.0000 $MAIN_RELAY_TOKEN_SYMBOL 10000.0000 $NETWORK_TOKEN_CONTRACT 1000000000.0000 $NETWORK_TOKEN 1000.0000 $SYSTEM_TOKEN_CONTRACT 1000.0000 $SYSTEM_TOKEN 0
+    gen BIQ 0
+    gen BATD 0
+    gen BHORUS 0
+    gen BPRA 0
+    gen BONO 0
+    gen BYAIR 0
+    gen BRIDL 0
+    gen BKARMA 0
+    gen BEON 0
+    gen BBET 0
+}
+
+
 
 generateUser $TEST_USER
 generateUser $TEST_USER2
 
+$cleos push action $SYSTEM_TOKEN_CONTRACT transfer "[ \"$TEST_USER\", \"$MAIN_RELAY\", \"100.0000 $SYSTEM_TOKEN\" , \"initial\"]" -p $TEST_USER
+
+
 if [ "$ROOT_ACCOUNT" == "eosio" ]
 then
     $cleos push action $SYSTEM_TOKEN_CONTRACT issue "[ \"$TEST_USER\",\"1000.0000 $SYSTEM_TOKEN\", \"initial\" ]" -p $SYSTEM_TOKEN_CONTRACT
-    
+    init
 fi
+init
 $cleos push action $SYSTEM_TOKEN_CONTRACT transfer "[ \"$TEST_USER\", \"$NETWORK\", \"100.0000 $SYSTEM_TOKEN\" , \"1,$MAIN_RELAY $MAIN_RELAY_TOKEN_SYMBOL $NETWORK_TOKEN,0.500,$TEST_USER\"]" -p $TEST_USER
 
 $cleos push action $NETWORK_TOKEN_CONTRACT transfer "[ \"$TEST_USER\", \"$NETWORK\", \"10.0000 $NETWORK_TOKEN\" , \"1,bncrcnvrt11b BATDRLY BATD,0.100,$TEST_USER\"]" -p $TEST_USER

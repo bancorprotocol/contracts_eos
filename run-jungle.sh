@@ -19,6 +19,7 @@ function generateUser(){
         cat $PREFIX_ACCOUNT$1.full | grep "Public" | cut -d " " -f 3 > ./$PREFIX_ACCOUNT$1.pub
         cat $PREFIX_ACCOUNT$1.full | grep "Private" | cut -d " " -f 3 > ./$PREFIX_ACCOUNT$1.private
         $cleos wallet import `cat $PREFIX_ACCOUNT$1.private` -n $1
+        echo $1
         $cleos system newaccount $ROOT_ACCOUNT $1 `cat $PREFIX_ACCOUNT$1.pub` `cat $PREFIX_ACCOUNT$1.pub` --stake-net "10.0000 EOS" --stake-cpu "10.0000 EOS" --buy-ram "100 EOS"
     else
         $cleos wallet import `cat $PREFIX_ACCOUNT$1.private` -n $1
