@@ -2,8 +2,7 @@
 NETWORK=bancorxoneos
 NETWORK_TOKEN=BBNT
 NETWORK_TOKEN_CONTRACT=bnttoken4eos
-TEST_USER=uritheliont5
-TEST_USER2=uritheliont6
+TEST_USER=urithelionta
 SYSTEM_TOKEN=EOS
 SYSTEM_TOKEN_CONTRACT=eosio.token
 RLY=RLY
@@ -107,10 +106,8 @@ function init(){
 
 
 generateUser $TEST_USER
-generateUser $TEST_USER2
 
 $cleos push action $SYSTEM_TOKEN_CONTRACT transfer "[ \"$TEST_USER\", \"$MAIN_RELAY\", \"100.0000 $SYSTEM_TOKEN\" , \"initial\"]" -p $TEST_USER
-
 
 if [ "$ROOT_ACCOUNT" == "eosio" ]
 then
@@ -120,6 +117,6 @@ fi
 init
 $cleos push action $SYSTEM_TOKEN_CONTRACT transfer "[ \"$TEST_USER\", \"$NETWORK\", \"100.0000 $SYSTEM_TOKEN\" , \"1,$MAIN_RELAY $MAIN_RELAY_TOKEN_SYMBOL $NETWORK_TOKEN,0.500,$TEST_USER\"]" -p $TEST_USER
 
-$cleos push action $NETWORK_TOKEN_CONTRACT transfer "[ \"$TEST_USER\", \"$NETWORK\", \"10.0000 $NETWORK_TOKEN\" , \"1,bncrcnvrt11b BATDRLY BATD,0.100,$TEST_USER\"]" -p $TEST_USER
+$cleos push action $NETWORK_TOKEN_CONTRACT transfer "[ \"$TEST_USER\", \"$NETWORK\", \"10.0000 $NETWORK_TOKEN\" , \"1,bncrcnvrt11b BATDRLY BATD bncrcnvrt11b BATDRLY BBNT,0.100,$TEST_USER\"]" -p $TEST_USER
 
 $cleos push action $NETWORK_TOKEN_CONTRACT transfer "[ \"$TEST_USER\", \"$NETWORK\", \"10.0000 $NETWORK_TOKEN\" , \"1,bncrcnvrt11a BIQRLY BIQ,0.100,$TEST_USER\"]" -p $TEST_USER
