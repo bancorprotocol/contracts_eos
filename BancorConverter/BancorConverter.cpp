@@ -145,7 +145,7 @@ void BancorConverter::convert( account_name from, eosio::asset quantity, std::st
     eosio_assert( toConnector.enabled, "'to' connector disabled" );
     eosio_assert( fromConnector.enabled, "'from' connector disabled" );
     eosio_assert( code == baseContract, "unknown 'from' contract" );
-    auto currentBaseBalance = ((get_balance(baseContract, _self, baseCurrency.symbol.name())).amount + baseCurrency.amount) / pow(10,baseCurrency.symbol.precision()); 
+    auto currentBaseBalance = ((get_balance(baseContract, _self, baseCurrency.symbol.name())).amount + baseCurrency.amount - quantity.amount) / pow(10,baseCurrency.symbol.precision()); 
     auto currentTargetBalance = ((get_balance(targetContract, _self, targetCurrency.symbol.name())).amount + targetCurrency.amount) / pow(10,targetCurrency.symbol.precision());
     auto currentSmartSupply = ((get_supply(converter_state.smart_contract, converter_state.smart_currency.symbol.name())).amount + converter_state.smart_currency.amount)  / pow(10,converter_state.smart_currency.symbol.precision());
     
