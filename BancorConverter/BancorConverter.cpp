@@ -161,6 +161,7 @@ void BancorConverter::convert( account_name from, eosio::asset quantity, std::st
             std::make_tuple(quantity,std::string("destroy on conversion"))
         ).send();
         smartTokens = baseAmount;
+        currentSmartSupply -= smartTokens;
     }
     else if(!incomingSmartToken && !outgoingSmartToken && (baseWeight == targetWeight) && (fromConnector.fee + toConnector.fee == 0)){
         targetTokens = quick_convert(currentBaseBalance, baseAmount, currentTargetBalance);    
@@ -168,6 +169,7 @@ void BancorConverter::convert( account_name from, eosio::asset quantity, std::st
     }
     else{
         smartTokens = convert_to_exchange(currentBaseBalance, baseAmount, currentSmartSupply, baseWeight);
+        currentSmartSupply += smartTokens;
         if(fromConnector.fee){
             real_type ffee = (1.0 * fromConnector.fee / 1000.0);
             auto fee = smartTokens * ffee;
