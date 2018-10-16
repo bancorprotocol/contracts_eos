@@ -2,20 +2,16 @@
 
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/transaction.hpp>
-#include <eosiolib/types.hpp>
 #include <eosiolib/asset.hpp>
 #include <eosiolib/symbol.hpp>
-#include <eosiolib/currency.hpp>
-#include <eosio.system/eosio.system.hpp>
-#include <string>
-#include <vector>
 
 #include <string>
-#include <sstream>
 #include <vector>
 #include <iterator>
+#include "events.hpp"
 
-
+using std::string;
+using std::vector;
 vector<string> split(const string& str, const string& delim)
 {
     vector<string> tokens;
