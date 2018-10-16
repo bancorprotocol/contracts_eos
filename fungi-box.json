@@ -1,0 +1,15 @@
+{
+  "ignore": [
+    "README.md",
+    "fungi-config.js",
+    ".git"
+  ],
+  "commands": {
+    "Compile contracts": "fungi compile",
+    "Migrate contracts": "fungi migrate",
+    "Test all": "fungi test"
+  },
+  "hooks": {
+    "post-unpack": "npm install"
+  }
+}
