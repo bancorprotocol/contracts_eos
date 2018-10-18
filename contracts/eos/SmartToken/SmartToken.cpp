@@ -2,7 +2,7 @@
 
 namespace eosio {
 
-ACTION SmartToken::create(name issuer, asset maximum_supply, bool enabled) {
+ACTION SmartToken::create(name issuer, asset maximum_supply) {
     require_auth(_self);
 
     auto sym = maximum_supply.symbol;
@@ -12,20 +12,12 @@ ACTION SmartToken::create(name issuer, asset maximum_supply, bool enabled) {
 
     stats statstable(_self, sym.code().raw());
     auto existing = statstable.find(sym.code().raw());
-    
-    if (existing != statstable.end()) {
-        statstable.modify(existing, _self, [&](auto& s) {
-            s.supply.symbol = maximum_supply.symbol;
-            s.max_supply    = maximum_supply;
-            s.issuer        = issuer;
-            s.enabled       = enabled;
-        });
-    }
-    else statstable.emplace(_self, [&](auto& s) {
+    eosio_assert(existing == statstable.end(), "token with symbol already exists");
+
+    statstable.emplace(_self, [&](auto& s) {
         s.supply.symbol = maximum_supply.symbol;
         s.max_supply    = maximum_supply;
         s.issuer        = issuer;
-        s.enabled       = enabled;
     });
 }
 
@@ -39,7 +31,6 @@ ACTION SmartToken::issue(name to, asset quantity, string memo) {
     auto existing = statstable.find(sym_name);
     eosio_assert(existing != statstable.end(), "token with symbol does not exist, create token before issue");
     const auto& st = *existing;
-    eosio_assert(st.enabled, "token transfers disabled");
     require_auth(st.issuer);
     eosio_assert(quantity.is_valid(), "invalid quantity");
     eosio_assert(quantity.amount > 0, "must issue positive quantity");
@@ -68,7 +59,6 @@ ACTION SmartToken::retire(asset quantity, string memo) {
     auto existing = statstable.find(sym_name);
     eosio_assert(existing != statstable.end(), "token with symbol does not exist");
     const auto& st = *existing;
-    eosio_assert(st.enabled, "token transfers disabled");
     require_auth(st.issuer);
     eosio_assert(quantity.is_valid(), "invalid quantity");
     eosio_assert(quantity.amount > 0, "must retire positive quantity");
@@ -89,7 +79,6 @@ ACTION SmartToken::transfer(name from, name to, asset quantity, string memo) {
     auto sym = quantity.symbol.code().raw();
     stats statstable(_self, sym);
     const auto& st = statstable.get(sym);
-    eosio_assert(st.enabled, "token transfers disabled");
 
     require_recipient(from);
     require_recipient(to);
@@ -130,7 +119,27 @@ ACTION SmartToken::add_balance(name owner, asset value, name ram_payer) {
     }
 }
 
+ACTION SmartToken::open(name owner, symbol_code symbol, name ram_payer) {
+    require_auth(ram_payer);
+
+    auto sym = symbol.raw();
+
+    stats statstable(_self, sym);
+    const auto& st = statstable.get(sym, "symbol does not exist");
+    eosio_assert(st.supply.symbol.code().raw() == sym, "symbol precision mismatch");
+
+    accounts acnts(_self, owner.value);
+    auto it = acnts.find(sym);
+    if (it == acnts.end()) {
+        acnts.emplace(ram_payer, [&](auto& a) {
+            a.balance = asset{0, st.supply.symbol};
+        });
+    }
+}
+
 ACTION SmartToken::close(name owner, symbol_code symbol) {
+    require_auth(owner);
+
     accounts acnts(_self, owner.value);
     auto it = acnts.find(symbol.raw());
     eosio_assert(it != acnts.end(), "Balance row already deleted or never existed. Action won't have any effect.");
@@ -140,4 +149,4 @@ ACTION SmartToken::close(name owner, symbol_code symbol) {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH(eosio::SmartToken, (create)(issue)(transfer)(close)(retire))
+EOSIO_DISPATCH(eosio::SmartToken, (create)(issue)(transfer)(open)(close)(retire))

@@ -10,22 +10,21 @@ using namespace eosio;
 using std::string;
 using std::vector;
 
-#define EMIT_CONVERT_EVENT(memo, currentBaseBalance, currentTargetBalance, currentSmartSupply, baseAmount, smartTokens, targetAmount, baseWeight, targetWeight, toConnectorMaxfee,fromConnectorMaxfee, toConnectorFee, fromConnectorFee) \
+#define EMIT_CONVERT_EVENT(memo, current_base_balance, current_target_balance, current_smart_supply, base_amount, smart_tokens, target_amount, base_weight, target_weight, to_connector_max_fee, from_connector_max_fee, to_connector_fee, from_connector_fee) \
     START_EVENT("convert", "1.1") \
-    EVENTKV("memo",memo) \
-    EVENTKV("currentBaseBalance",currentBaseBalance) \
-    EVENTKV("currentTargetBalance",currentTargetBalance) \
-    EVENTKV("currentSmartSupply",currentSmartSupply) \
-    EVENTKV("baseAmount",baseAmount) \
-    EVENTKV("smartTokens",smartTokens) \
-    EVENTKV("targetAmount",targetAmount) \
-    EVENTKV("baseWeight",baseWeight) \
-    EVENTKV("targetWeight",targetWeight) \
-    EVENTKV("toConnectorMaxfee",toConnectorMaxfee) \
-    EVENTKV("fromConnectorMaxfee",fromConnectorMaxfee) \
-    EVENTKV("toConnectorFee",toConnectorFee) \
-    EVENTKV("currentTargetBalance",currentTargetBalance) \
-    EVENTKVL("fromConnectorFee", fromConnectorFee) \
+    EVENTKV("memo", memo) \
+    EVENTKV("current_base_balance", current_base_balance) \
+    EVENTKV("current_target_balance", current_target_balance) \
+    EVENTKV("current_smart_supply", current_smart_supply) \
+    EVENTKV("base_amount", base_amount) \
+    EVENTKV("smart_tokens", smart_tokens) \
+    EVENTKV("target_amount", target_amount) \
+    EVENTKV("base_weight", base_weight) \
+    EVENTKV("target_weight", target_weight) \
+    EVENTKV("to_connector_max_fee", to_connector_max_fee) \
+    EVENTKV("from_connector_max_fee", from_connector_max_fee) \
+    EVENTKV("to_connector_fee", to_connector_fee) \
+    EVENTKVL("from_connector_fee", from_connector_fee) \
     END_EVENT()
 
 CONTRACT BancorConverter : public eosio::contract {
@@ -33,14 +32,14 @@ CONTRACT BancorConverter : public eosio::contract {
     public:
 
         TABLE connector_t {
-            name contract;
-            asset       currency;
-            uint64_t    weight;
-            bool        enabled;
-            uint64_t    fee;
-            name        feeaccount;
-            uint64_t    maxfee;        
-            uint64_t    primary_key() const { return currency.symbol.code().raw(); }
+            name     contract;
+            asset    currency;
+            uint64_t weight;
+            bool     enabled;
+            uint64_t fee;
+            name     fee_account;
+            uint64_t max_fee;        
+            uint64_t primary_key() const { return currency.symbol.code().raw(); }
         };
     
         TABLE cstate_t {
@@ -50,7 +49,7 @@ CONTRACT BancorConverter : public eosio::contract {
             bool    smart_enabled;
             bool    enabled;
             name    network;
-            bool    verifyram;
+            bool    verify_ram;
             uint64_t primary_key() const { return manager.value; }
         };
 
@@ -64,16 +63,16 @@ CONTRACT BancorConverter : public eosio::contract {
                       bool  smart_enabled,
                       bool  enabled,
                       name  network,
-                      bool  verifyram);
+                      bool  verify_ram);
         
         ACTION setconnector(name contract,
-                            asset       currency,
-                            uint64_t    weight,
-                            bool        enabled,
-                            uint64_t    fee,
-                            name        feeaccount,
-                            uint64_t    maxfee );
+                            asset    currency,
+                            uint64_t weight,
+                            bool     enabled,
+                            uint64_t fee,
+                            name     fee_account,
+                            uint64_t max_fee );
     private:
         void convert( name from, eosio::asset quantity, std::string memo, name code);
-        const connector_t& lookupConnector(uint64_t name, cstate_t state );
+        const connector_t& lookup_connector(uint64_t name, cstate_t state );
 };

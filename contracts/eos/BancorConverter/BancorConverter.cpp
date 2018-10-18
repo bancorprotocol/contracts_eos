@@ -11,10 +11,9 @@ struct account {
 };
 
 TABLE currency_stats {
-    asset        supply;
-    asset        max_supply;
-    name         issuer;
-    bool         enabled;
+    asset   supply;
+    asset   max_supply;
+    name    issuer;
     uint64_t primary_key() const { return supply.symbol.code().raw(); }
 };
 
@@ -33,22 +32,22 @@ asset get_supply(name contract, symbol_code sym) {
     return st.supply;
 }
 
-real_type convert_to_exchange(real_type balance, real_type in, real_type supply, int64_t weight) {
+real_type calculate_purchase_return(real_type balance, real_type deposit_amount, real_type supply, int64_t weight) {
     real_type R(supply);
-    real_type C(balance+in);
-    real_type F(weight/1000.0);
-    real_type T(in);
+    real_type C(balance + deposit_amount);
+    real_type F(weight / 1000.0);
+    real_type T(deposit_amount);
     real_type ONE(1.0);
 
     real_type E = -R * (ONE - pow(ONE + T / C, F));
     return E;
 }
 
-real_type convert_from_exchange(real_type balance, real_type in, real_type supply, int64_t weight) {
-    real_type R(supply - in);
+real_type calculate_sale_return(real_type balance, real_type sell_amount, real_type supply, int64_t weight) {
+    real_type R(supply - sell_amount);
     real_type C(balance);
-    real_type F(1000.0/weight);
-    real_type E(in);
+    real_type F(1000.0 / weight);
+    real_type E(sell_amount);
     real_type ONE(1.0);
 
     real_type T = C * (pow(ONE + E/R, F) - ONE);
@@ -82,27 +81,27 @@ float stof(const char* s) {
     return rez * fact;
 };
 
-void verifyEntry(name account, name currency_contact, eosio::asset currency) {
+void verify_entry(name account, name currency_contact, eosio::asset currency) {
     accounts accountstable(currency_contact, account.value);
     auto ac = accountstable.find(currency.symbol.code().raw());
     eosio_assert(ac != accountstable.end() , "must have entry for token. (claim token first)");
 }
 
-void verifyMinReturn(eosio::asset quantity, std::string min_return) {
+void verify_min_return(eosio::asset quantity, std::string min_return) {
 	float ret = stof(min_return.c_str());
-    int64_t retAmount = (ret * pow(10,quantity.symbol.precision()));
-    eosio_assert(quantity.amount >= retAmount, "below min return");
+    int64_t ret_amount = (ret * pow(10, quantity.symbol.precision()));
+    eosio_assert(quantity.amount >= ret_amount, "below min return");
 }
 
-const BancorConverter::connector_t& BancorConverter::lookupConnector(uint64_t name, cstate_t state) {
+const BancorConverter::connector_t& BancorConverter::lookup_connector(uint64_t name, cstate_t state) {
     if (state.smart_currency.symbol.code().raw() == name) {
-        static connector_t tempConnector;
-        tempConnector.weight = 0;
-        tempConnector.fee = 0;
-        tempConnector.contract = state.smart_contract;
-        tempConnector.currency = state.smart_currency;
-        tempConnector.enabled = state.smart_enabled;
-        return tempConnector;
+        static connector_t temp_connector;
+        temp_connector.weight = 0;
+        temp_connector.fee = 0;
+        temp_connector.contract = state.smart_contract;
+        temp_connector.currency = state.smart_currency;
+        temp_connector.enabled = state.smart_enabled;
+        return temp_connector;
     }
     
     connectors connectors_table(_self, _self.value);
@@ -114,9 +113,9 @@ const BancorConverter::connector_t& BancorConverter::lookupConnector(uint64_t na
 void BancorConverter::convert(name from, eosio::asset quantity, std::string memo, name code) {
     eosio_assert(quantity.is_valid(), "invalid quantity");
     eosio_assert(quantity.amount != 0, "zero quantity is disallowed");
-    auto baseAmount = quantity.amount / pow(10,quantity.symbol.precision());
-    auto memoObject = parseMemo(memo);
-    eosio_assert(memoObject.path.size() > 2, "invalid memo format");
+    auto base_amount = quantity.amount / pow(10,quantity.symbol.precision());
+    auto memo_object = parse_memo(memo);
+    eosio_assert(memo_object.path.size() > 2, "invalid memo format");
     converters cstates(_self, _self.value);
     auto converter_state_ptr = cstates.find(_self.value);
     eosio_assert(converter_state_ptr != cstates.end(), "converter not created yet");
@@ -124,123 +123,124 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     eosio_assert(converter_state.enabled, "converter is disabled");
     eosio_assert(converter_state.network == from, "converter can only receive from network contract");
 
-    auto contractName = name(memoObject.path[0].c_str());
-    eosio_assert(contractName == _self, "wrong converter");
-    auto basePathCurrency = quantity.symbol.code().raw();
-    auto middlePathCurrency = symbol_code(memoObject.path[1].c_str()).raw();
-    auto targetPathCurrency = symbol_code(memoObject.path[2].c_str()).raw();
-    eosio_assert(basePathCurrency != targetPathCurrency, "cannot convert to self");
-    auto smartSymbolName = converter_state.smart_currency.symbol.code().raw();
-    eosio_assert(middlePathCurrency == smartSymbolName, "must go through the relay token");
-    auto fromConnector =  lookupConnector(basePathCurrency, converter_state);
-    auto toConnector = lookupConnector(targetPathCurrency, converter_state);
+    auto contract_name = name(memo_object.path[0].c_str());
+    eosio_assert(contract_name == _self, "wrong converter");
+    auto base_path_currency = quantity.symbol.code().raw();
+    auto middle_path_currency = symbol_code(memo_object.path[1].c_str()).raw();
+    auto target_path_currency = symbol_code(memo_object.path[2].c_str()).raw();
+    eosio_assert(base_path_currency != target_path_currency, "cannot convert to self");
+    auto smart_symbol_name = converter_state.smart_currency.symbol.code().raw();
+    eosio_assert(middle_path_currency == smart_symbol_name, "must go through the relay token");
+    auto from_connector =  lookup_connector(base_path_currency, converter_state);
+    auto to_connector = lookup_connector(target_path_currency, converter_state);
 
     
-    auto baseCurrency = fromConnector.currency;
-    auto targetCurrency = toConnector.currency;
+    auto base_currency = from_connector.currency;
+    auto target_currency = to_connector.currency;
     
-    auto targetContract = toConnector.contract;
-    auto baseContract = fromConnector.contract;
+    auto target_contract = to_connector.contract;
+    auto base_contract = from_connector.contract;
 
-    bool incomingSmartToken = (baseCurrency.symbol.code().raw() == smartSymbolName);
-    bool outgoingSmartToken = (targetCurrency.symbol.code().raw() == smartSymbolName);
+    bool incoming_smart_token = (base_currency.symbol.code().raw() == smart_symbol_name);
+    bool outgoing_smart_token = (target_currency.symbol.code().raw() == smart_symbol_name);
     
-    auto baseWeight = fromConnector.weight;
-    auto targetWeight = toConnector.weight;
+    auto base_weight = from_connector.weight;
+    auto target_weight = to_connector.weight;
     
-    eosio_assert(toConnector.enabled, "'to' connector disabled");
-    eosio_assert(fromConnector.enabled, "'from' connector disabled");
-    eosio_assert(code == baseContract, "unknown 'from' contract");
-    auto currentBaseBalance = ((get_balance(baseContract, _self, baseCurrency.symbol.code())).amount + baseCurrency.amount - quantity.amount) / pow(10,baseCurrency.symbol.precision()); 
-    auto currentTargetBalance = ((get_balance(targetContract, _self, targetCurrency.symbol.code())).amount + targetCurrency.amount) / pow(10,targetCurrency.symbol.precision());
-    auto currentSmartSupply = ((get_supply(converter_state.smart_contract, converter_state.smart_currency.symbol.code())).amount + converter_state.smart_currency.amount)  / pow(10,converter_state.smart_currency.symbol.precision());
+    eosio_assert(to_connector.enabled, "'to' connector disabled");
+    eosio_assert(from_connector.enabled, "'from' connector disabled");
+    eosio_assert(code == base_contract, "unknown 'from' contract");
+    auto current_base_balance = ((get_balance(base_contract, _self, base_currency.symbol.code())).amount + base_currency.amount - quantity.amount) / pow(10, base_currency.symbol.precision()); 
+    auto current_target_balance = ((get_balance(target_contract, _self, target_currency.symbol.code())).amount + target_currency.amount) / pow(10, target_currency.symbol.precision());
+    auto current_smart_supply = ((get_supply(converter_state.smart_contract, converter_state.smart_currency.symbol.code())).amount + converter_state.smart_currency.amount)  / pow(10, converter_state.smart_currency.symbol.precision());
 
-    name finalTo = name(memoObject.target.c_str());
-    real_type smartTokens = 0;
-    real_type targetTokens = 0;
+    name final_to = name(memo_object.target.c_str());
+    real_type smart_tokens = 0;
+    real_type target_tokens = 0;
     bool quick = false;
-    if (incomingSmartToken) {
+    if (incoming_smart_token) {
         // destory received token
         action(
             permission_level{ _self, "active"_n },
             converter_state.smart_contract, "retire"_n,
-            std::make_tuple(quantity,std::string("destroy on conversion"))
+            std::make_tuple(quantity, std::string("destroy on conversion"))
         ).send();
-        smartTokens = baseAmount;
-        currentSmartSupply -= smartTokens;
+        smart_tokens = base_amount;
+        current_smart_supply -= smart_tokens;
     }
-    else if (!incomingSmartToken && !outgoingSmartToken && (baseWeight == targetWeight) && (fromConnector.fee + toConnector.fee == 0)) {
-        targetTokens = quick_convert(currentBaseBalance, baseAmount, currentTargetBalance);    
+    else if (!incoming_smart_token && !outgoing_smart_token && (base_weight == target_weight) && (from_connector.fee + to_connector.fee == 0)) {
+        target_tokens = quick_convert(current_base_balance, base_amount, current_target_balance);    
         quick = true;
     }
     else {
-        smartTokens = convert_to_exchange(currentBaseBalance, baseAmount, currentSmartSupply, baseWeight);
-        currentSmartSupply += smartTokens;
-        if (fromConnector.fee) {
-            real_type ffee = (1.0 * fromConnector.fee / 1000.0);
-            auto fee = smartTokens * ffee;
-            if (fromConnector.maxfee > 0 && fee > fromConnector.maxfee)
-                fee = fromConnector.maxfee;
+        smart_tokens = calculate_purchase_return(current_base_balance, base_amount, current_smart_supply, base_weight);
+        current_smart_supply += smart_tokens;
+        if (from_connector.fee) {
+            real_type ffee = (1.0 * from_connector.fee / 1000.0);
+            auto fee = smart_tokens * ffee;
+            if (from_connector.max_fee > 0 && fee > from_connector.max_fee)
+                fee = from_connector.max_fee;
             int64_t feeAmount = (fee * pow(10,converter_state.smart_currency.symbol.precision()));
             if (feeAmount > 0) {
                 action(
                     permission_level{_self, "active"_n},
                     converter_state.smart_contract, "issue"_n,
-                    std::make_tuple(fromConnector.feeaccount, asset(feeAmount, converter_state.smart_currency.symbol), std::string("conversion fee"))
+                    std::make_tuple(from_connector.fee_account, asset(feeAmount, converter_state.smart_currency.symbol), std::string("conversion fee"))
                 ).send();
-                smartTokens = smartTokens - fee;
+                smart_tokens = smart_tokens - fee;
             }
         }
     }
 
     auto issue = false;
-    if (outgoingSmartToken) {
-        eosio_assert(memoObject.path.size() == 3, "smarttoken must be final currency");
-        targetTokens = smartTokens;
+    if (outgoing_smart_token) {
+        eosio_assert(memo_object.path.size() == 3, "smarttoken must be final currency");
+        target_tokens = smart_tokens;
         issue = true;
     }
     else if (!quick) {
-        if (toConnector.fee) {
-            real_type ffee = (1.0 * toConnector.fee / 1000.0);
-            auto fee = smartTokens * ffee;
-            if (toConnector.maxfee > 0 && fee > toConnector.maxfee)
-                fee = toConnector.maxfee;
-            int64_t feeAmount = (fee * pow(10,converter_state.smart_currency.symbol.precision()));
+        if (to_connector.fee) {
+            real_type ffee = (1.0 * to_connector.fee / 1000.0);
+            auto fee = smart_tokens * ffee;
+            if (to_connector.max_fee > 0 && fee > to_connector.max_fee)
+                fee = to_connector.max_fee;
+            int64_t feeAmount = (fee * pow(10, converter_state.smart_currency.symbol.precision()));
             if (feeAmount > 0) {
                 action(
                     permission_level{ _self, "active"_n },
                     converter_state.smart_contract, "issue"_n,
-                    std::make_tuple(toConnector.feeaccount, asset(feeAmount, converter_state.smart_currency.symbol), std::string("conversion fee"))
+                    std::make_tuple(to_connector.fee_account, asset(feeAmount, converter_state.smart_currency.symbol), std::string("conversion fee"))
                 ).send();
-                smartTokens = smartTokens - fee;
+                smart_tokens = smart_tokens - fee;
             }
         }
-        targetTokens = convert_from_exchange(currentTargetBalance, smartTokens, currentSmartSupply, targetWeight);    
+        target_tokens = calculate_sale_return(current_target_balance, smart_tokens, current_smart_supply, target_weight);    
     }
-    int64_t targetAmount = (targetTokens * pow(10,targetCurrency.symbol.precision()));
-    EMIT_CONVERT_EVENT(memo, currentBaseBalance, currentTargetBalance, currentSmartSupply, baseAmount, smartTokens, targetAmount, baseWeight, targetWeight, toConnector.maxfee, fromConnector.maxfee, toConnector.fee, fromConnector.fee)
-    auto nextHopMemo = nextHop(memoObject);
-    auto newMemo = buildMemo(nextHopMemo);
-    auto newAsset = asset(targetAmount,targetCurrency.symbol);
+
+    int64_t target_amount = (target_tokens * pow(10, target_currency.symbol.precision()));
+    EMIT_CONVERT_EVENT(memo, current_base_balance, current_target_balance, current_smart_supply, base_amount, smart_tokens, target_amount, base_weight, target_weight, to_connector.max_fee, from_connector.max_fee, to_connector.fee, from_connector.fee)
+    auto next_hop_memo = next_hop(memo_object);
+    auto new_memo = build_memo(next_hop_memo);
+    auto new_asset = asset(target_amount,target_currency.symbol);
     name inner_to = converter_state.network;
-    if (nextHopMemo.path.size() == 0) {
-        inner_to = finalTo;
-        verifyMinReturn(newAsset, memoObject.min_return);
-        if (converter_state.verifyram)
-            verifyEntry(inner_to, targetContract ,newAsset);
-        newMemo = std::string("convert");
+    if (next_hop_memo.path.size() == 0) {
+        inner_to = final_to;
+        verify_min_return(new_asset, memo_object.min_return);
+        if (converter_state.verify_ram)
+            verify_entry(inner_to, target_contract ,new_asset);
+        new_memo = std::string("convert");
     }
     if (issue)
         action(
             permission_level{ _self, "active"_n },
-            targetContract, "issue"_n,
-            std::make_tuple(inner_to, newAsset, newMemo) 
+            target_contract, "issue"_n,
+            std::make_tuple(inner_to, new_asset, new_memo) 
         ).send();
     else
         action(
             permission_level{ _self, "active"_n },
-            targetContract, "transfer"_n,
-            std::make_tuple(_self, inner_to, newAsset, newMemo)
+            target_contract, "transfer"_n,
+            std::make_tuple(_self, inner_to, new_asset, new_memo)
         ).send();
 }
 
@@ -255,13 +255,12 @@ void BancorConverter::transfer(name from, name to, asset quantity, string memo){
     convert(from , quantity, memo, _code);
 }
 
-
 ACTION BancorConverter::create(name smart_contract,
-                                asset        smart_currency,
-                                bool         smart_enabled,
-                                bool         enabled,
-                                name network,
-                                bool         verifyram)
+                               asset smart_currency,
+                               bool  smart_enabled,
+                               bool  enabled,
+                               name  network,
+                               bool  verify_ram)
 {
     require_auth(_self);
     converters cstates(_self, _self.value);
@@ -273,7 +272,7 @@ ACTION BancorConverter::create(name smart_contract,
           s.smart_enabled   = smart_enabled;
           s.enabled         = enabled;
           s.network         = network;
-          s.verifyram       = verifyram;
+          s.verify_ram      = verify_ram;
           s.manager         = _self;
       });
     }
@@ -283,18 +282,18 @@ ACTION BancorConverter::create(name smart_contract,
       s.smart_enabled   = smart_enabled;
       s.enabled         = enabled;
       s.network         = network;
-      s.verifyram       = verifyram;
+      s.verify_ram      = verify_ram;
       s.manager         = _self;
     });
 }
 
 ACTION BancorConverter::setconnector(name contract,
-                    asset        currency,
-                    uint64_t     weight,
-                    bool         enabled,
-                    uint64_t     fee,
-                    name feeaccount,
-                    uint64_t     maxfee )
+                                     asset      currency,
+                                     uint64_t   weight,
+                                     bool       enabled,
+                                     uint64_t   fee,
+                                     name       fee_account,
+                                     uint64_t   max_fee)
 {
     require_auth(_self);   
     eosio_assert(fee < 1000, "must be under 1000");
@@ -307,8 +306,8 @@ ACTION BancorConverter::setconnector(name contract,
           s.weight      = weight;
           s.enabled     = enabled;
           s.fee         = fee;
-          s.feeaccount  = feeaccount;
-          s.maxfee      = maxfee;
+          s.fee_account = fee_account;
+          s.max_fee     = max_fee;
       });
     }
     else connectors_table.emplace(_self, [&](auto& s) {
@@ -317,8 +316,8 @@ ACTION BancorConverter::setconnector(name contract,
         s.weight      = weight;
         s.enabled     = enabled;
         s.fee         = fee;
-        s.feeaccount  = feeaccount;
-        s.maxfee      = maxfee;
+        s.fee_account = fee_account;
+        s.max_fee     = max_fee;
     });
 }
 

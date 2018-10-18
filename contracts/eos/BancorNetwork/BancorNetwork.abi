@@ -1,0 +1,22 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Oct 18 21:58:19 2018",
+    "version": "eosio::abi/1.0",
+    "structs": [
+        {
+            "name": "init",
+            "base": "",
+            "fields": []
+        }
+    ],
+    "types": [],
+    "actions": [
+        {
+            "name": "init",
+            "type": "init",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [],
+    "ricardian_clauses": [],
+    "abi_extensions": []
+}

@@ -1,13 +1,10 @@
 {
-  "name": "scatter-hackathon",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "bancor-contracts-eos",
+  "version": "0.0.2",
+  "author": "Tal Muskal",
   "scripts": {
     "test": "mocha --require babel-core/register --require=dotenv/config --require babel-polyfill --exit --timeout 1000000"
   },
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "dotenv": "^6.1.0",
     "eosjs": "^16.0.9",
@@ -28,7 +25,7 @@
     "file-loader": "^1.1.11",
     "ignore-emit-webpack-plugin": "^0.2.1",
     "mocha": "^4.1.0",
-    "node-sass": "^4.9.0",
+    "node-sass": "^4.9.4",
     "sass-loader": "^6.0.7",
     "uglifyjs-webpack-plugin": "^1.2.5",
     "vue-loader": "^13.7.0",

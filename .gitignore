@@ -1,5 +1,11 @@
-.DS_STORE
-.vscode
-node_modules
-npm-debug.log
-*.pyc
+node_modules/
+**/node_modules/
+**/dist/
+**/build/
+**/*.wasm
+
+**/Makefile
+**/CMakeCache.txt
+**/CMakeFiles/**
+**/CMakeFiles
+**/cmake_install.cmake

@@ -1,8 +1,6 @@
 require("babel-core/register");
 require("babel-polyfill");
 import Eos from 'eosjs';
-import ecc from 'eosjs-ecc';
-import { assert } from 'chai';
 import 'mocha';
 const fs = require('fs');
 const path = require('path');
@@ -15,9 +13,8 @@ const host = () => {
 
 describe('BancorConverter Contract', () => {
     const code = 'bancornetwrk';
-    const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH,`${code}.json`)).toString());
+    const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${code}.json`)).toString());
     const codekey = keyFile.privateKey;
-    const _self = Eos({httpEndpoint:host(), keyProvider:codekey});
-    const _selfopts = {authorization:[`${code}@active`]};
-    
+    const _self = Eos({ httpEndpoint:host(), keyProvider:codekey });
+    const _selfopts = { authorization:[`${code}@active`] };
 });

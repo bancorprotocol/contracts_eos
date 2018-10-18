@@ -1,7 +1,6 @@
 require("babel-core/register");
 require("babel-polyfill");
 import Eos from 'eosjs';
-import ecc from 'eosjs-ecc';
 import { assert } from 'chai';
 import 'mocha';
 const fs = require('fs');
@@ -23,42 +22,41 @@ describe('BancorNetwork Contract', () => {
     const tokenSymbol2 = "TKNB";
     const testUser = 'test1';
     const tokenContract= 'aa';
-    const tokenContract2= 'bb';
     const relayTokenSymbol = networkTokenSymbol + tokenSymbol;
     const relayTokenSymbol2 = networkTokenSymbol + tokenSymbol2;
-    const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH,`${testUser}.json`)).toString());
+    const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${testUser}.json`)).toString());
     const codekey = keyFile.privateKey;
-    const _self = Eos({httpEndpoint:host(), keyProvider:codekey});
-    const _selfopts = {authorization:[`${testUser}@active`]};
+    const _self = Eos({ httpEndpoint:host(), keyProvider:codekey });
+    const _selfopts = { authorization:[`${testUser}@active`] };
     
     it('simple convert', done => {
         var minReturn = 0.100;
         _self.contract(networkToken).then(async token => {
-    
-                return await token.transfer({from:testUser,to:networkContract,quantity:`2.0000 ${networkTokenSymbol}`,memo:`1,${converter} ${relayTokenSymbol} ${tokenSymbol},${minReturn},${testUser}`},_selfopts);
-    
-        }).then((res)=>{
+            return await token.transfer({ from: testUser, to: networkContract, quantity: `2.0000 ${networkTokenSymbol}`, memo: `1,${converter} ${relayTokenSymbol} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
+        }).then((res) => {
             var json = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console;
             var convertEvent = JSON.parse(json);
-            assert.equal(convertEvent.targetAmount, "19999", "unexpected conversion result");
-            // console.log("result",jObj.targetAmount);
+            console.log(convertEvent)
+            assert.equal(convertEvent.target_amount, "19999", "unexpected conversion result");
+            // console.log("result",jObj.target_amount);
             done();
-        }).catch((err)=>done(err));
+        }).catch((err) => done(err));
     });
+
     it('2 hop convert', done => {
         var minReturn = 0.100;
         _self.contract(tokenContract).then(async token => {
-                return await token.transfer({from:testUser,to:networkContract,quantity:`1.0000 ${tokenSymbol}`,memo:`1,${converter} ${relayTokenSymbol} ${networkTokenSymbol} ${converter2} ${relayTokenSymbol2} ${tokenSymbol2},${minReturn},${testUser}`},_selfopts);
-        }).then((res)=>{
+            return await token.transfer({ from: testUser, to: networkContract, quantity: `1.0000 ${tokenSymbol}`, memo: `1,${converter} ${relayTokenSymbol} ${networkTokenSymbol} ${converter2} ${relayTokenSymbol2} ${tokenSymbol2},${minReturn},${testUser}` }, _selfopts);
+        }).then((res) => {
             var json = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console;
             var convertEvent = JSON.parse(json);
             
-            assert.equal(convertEvent.targetAmount, "10000", "unexpected conversion result");
+            assert.equal(convertEvent.target_amount, "10000", "unexpected conversion result");
             // console.log("action console", res.processed.action_traces[0].inline_traces);
             var json2 = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[2].inline_traces[1].console;
             var convertEvent2 = JSON.parse(json2);
-            assert.equal(convertEvent2.targetAmount, "9999", "unexpected conversion result");
+            assert.equal(convertEvent2.target_amount, "9999", "unexpected conversion result");
             done();
-        }).catch((err)=>done(err));
+        }).catch((err) => done(err));
     });
 });

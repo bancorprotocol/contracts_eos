@@ -1,0 +1,169 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Oct 18 21:58:23 2018",
+    "version": "eosio::abi/1.0",
+    "structs": [
+        {
+            "name": "connector_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "weight",
+                    "type": "uint64"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                },
+                {
+                    "name": "fee_account",
+                    "type": "name"
+                },
+                {
+                    "name": "max_fee",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "create",
+            "base": "",
+            "fields": [
+                {
+                    "name": "smart_contract",
+                    "type": "name"
+                },
+                {
+                    "name": "smart_currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "smart_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "network",
+                    "type": "name"
+                },
+                {
+                    "name": "verify_ram",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "cstate_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "manager",
+                    "type": "name"
+                },
+                {
+                    "name": "smart_contract",
+                    "type": "name"
+                },
+                {
+                    "name": "smart_currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "smart_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "network",
+                    "type": "name"
+                },
+                {
+                    "name": "verify_ram",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "setconnector",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "weight",
+                    "type": "uint64"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                },
+                {
+                    "name": "fee_account",
+                    "type": "name"
+                },
+                {
+                    "name": "max_fee",
+                    "type": "uint64"
+                }
+            ]
+        }
+    ],
+    "types": [],
+    "actions": [
+        {
+            "name": "create",
+            "type": "create",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setconnector",
+            "type": "setconnector",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "connector",
+            "type": "connector_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "cstate",
+            "type": "cstate_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "abi_extensions": []
+}

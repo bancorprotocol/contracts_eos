@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <eosiolib/asset.hpp>
@@ -16,23 +15,33 @@ CONTRACT SmartToken : public contract {
     using contract::contract;
     public:
         struct transfer_args {
-            name  from;
-            name  to;
-            asset         quantity;
-            string        memo;
+            name    from;
+            name    to;
+            asset   quantity;
+            string  memo;
         };
 
-        ACTION create(name issuer, asset maximum_supply, bool enabled);
+        ACTION create(name issuer, asset maximum_supply);
 
         ACTION issue(name to, asset quantity, string memo);
         ACTION retire(asset quantity, string memo);
 
         ACTION transfer(name from, name to, asset quantity, string memo);
 
+        ACTION open(name owner, symbol_code symbol, name ram_payer);
         ACTION close(name owner, symbol_code symbol);
 
-        inline asset get_supply(symbol_code sym) const;
-        inline asset get_balance(name owner, symbol_code sym) const;
+        static asset get_supply(name token_contract_account, symbol_code sym) {
+            stats statstable(token_contract_account, sym.raw());
+            const auto& st = statstable.get(sym.raw());
+            return st.supply;
+        }
+
+        static asset get_balance(name token_contract_account, name owner, symbol_code sym) {
+            accounts accountstable(token_contract_account, owner.value);
+            const auto& ac = accountstable.get(sym.raw());
+            return ac.balance;
+        }
 
     private:
         TABLE account {
@@ -41,10 +50,9 @@ CONTRACT SmartToken : public contract {
         };
 
         TABLE currency_stats {
-            asset        supply;
-            asset        max_supply;
-            name         issuer;
-            bool         enabled;
+            asset   supply;
+            asset   max_supply;
+            name    issuer;
             uint64_t primary_key() const { return supply.symbol.code().raw(); }
         };
 
@@ -54,17 +62,5 @@ CONTRACT SmartToken : public contract {
         void sub_balance(name owner, asset value);
         void add_balance(name owner, asset value, name ram_payer);
 };
-
-asset SmartToken::get_supply(symbol_code sym) const {
-    stats statstable(_self, sym.raw());
-    const auto& st = statstable.get(sym.raw());
-    return st.supply;
-}
-
-asset SmartToken::get_balance(name owner, symbol_code sym) const {
-    accounts accountstable(_self, owner.value);
-    const auto& ac = accountstable.get(sym.raw());
-    return ac.balance;
-}
 
 } /// namespace eosio
