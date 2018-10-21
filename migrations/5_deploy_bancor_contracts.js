@@ -43,25 +43,25 @@ async function regConverter(deployer, token, symbol, networkContract, networkTok
         currency: `0.0000 ${symbol}`,
         ratio: 500,
         p_enabled: 1
-    }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });        
+    }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });
 
     // issue 3 tokens types to converter
     await tknContract.contractInstance.issue({
         to: converter.contract.address,
         quantity: `100000.0000 ${symbol}`,
-        memo: "initial"
+        memo: "setup"
     }, { authorization: `${tknContract.contract.address}@active`, broadcast: true, sign: true });
       
     await tknrlyContract.contractInstance.issue({
         to: converter.contract.address,
         quantity: `100000.0000 ${networkTokenSymbol + symbol}`,
-        memo: "initial"  
+        memo: "setup"  
     }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true, keyProvider: converter.keys.privateKey });
       
     await networkToken.contractInstance.issue({
         to: converter.contract.address,
         quantity: `100000.0000 ${networkTokenSymbol}`,
-        memo: "initial"
+        memo: "setup"
     }, { authorization: `${networkToken.contract.address}@active`, broadcast: true, sign: true });
 }
 

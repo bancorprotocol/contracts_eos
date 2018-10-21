@@ -60,8 +60,6 @@ CONTRACT BancorConverter : public eosio::contract {
         typedef eosio::singleton<"settings"_n, settingstype> settings;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
 
-        void transfer(name from, name to, asset quantity, string memo);
-
         ACTION create(name smart_contract,
                       asset smart_currency,
                       bool  smart_enabled,
@@ -76,7 +74,22 @@ CONTRACT BancorConverter : public eosio::contract {
                           uint64_t ratio,
                           bool     p_enabled);
 
+        void transfer(name from, name to, asset quantity, string memo);
+
     private:
         void convert(name from, eosio::asset quantity, std::string memo, name code);
-        const reserve_t& lookup_reserve(uint64_t name, const settingstype& settings);
+        const reserve_t& get_reserve(uint64_t name, const settingstype& settings);
+
+        asset get_balance(name contract, name owner, symbol_code sym);
+        uint64_t get_balance_amount(name contract, name owner, symbol_code sym);
+        asset get_supply(name contract, symbol_code sym);
+
+        void verify_entry(name account, name currency_contact, eosio::asset currency);
+        void verify_min_return(eosio::asset quantity, std::string min_return);
+
+        double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);
+        double calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio);
+        double quick_convert(double balance, double in, double toBalance);
+
+        float stof(const char* s);
 };
