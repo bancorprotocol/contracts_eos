@@ -38,7 +38,7 @@ CONTRACT BancorConverter : public eosio::contract {
             bool     verify_ram;
             uint64_t max_fee;
             uint64_t fee;
-            EOSLIB_SERIALIZE(settingstype, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(verify_ram))
+            EOSLIB_SERIALIZE(settingstype, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(verify_ram)(max_fee)(fee))
         };
 
         TABLE reserve_t {
