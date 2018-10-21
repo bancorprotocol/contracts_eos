@@ -25,28 +25,24 @@ async function regConverter(deployer, network, accounts, token, symbol, networkC
         smart_enabled: 0,
         enabled: 1,
         network: networkContract.contract.address,
-        verify_ram: 0
+        verify_ram: 0,
+        max_fee: 0,
+        fee: 0
     }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });        
 
-    // converter setconnectors
-    await converter.contractInstance.setconnector({
+    // converter set reserves
+    await converter.contractInstance.setreserve({
         contract:networkToken.contract.address,
         currency: `0.0000 ${networkTokenSymbol}`,
-        weight: 500,
-        enabled: 1,
-        fee: 0,
-        fee_account: converter.contract.address,
-        max_fee:0,
+        ratio: 500,
+        p_enabled: 1
     }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });
         
-    await converter.contractInstance.setconnector({
+    await converter.contractInstance.setreserve({
         contract:tknContract.contract.address,
         currency: `0.0000 ${symbol}`,
-        weight: 500,
-        enabled: 1,
-        fee: 0,
-        fee_account: converter.contract.address,
-        max_fee:0,
+        ratio: 500,
+        p_enabled: 1
     }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });        
 
     // issue 3 tokens types to converter

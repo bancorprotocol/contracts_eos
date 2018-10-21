@@ -4,14 +4,15 @@
 #include <eosiolib/transaction.hpp>
 #include <eosiolib/asset.hpp>
 #include <eosiolib/symbol.hpp>
+#include <eosiolib/singleton.hpp>
 #include "../Common/common.hpp"
 
 using namespace eosio;
 using std::string;
 using std::vector;
 
-#define EMIT_CONVERT_EVENT(memo, current_base_balance, current_target_balance, current_smart_supply, base_amount, smart_tokens, target_amount, base_weight, target_weight, to_connector_max_fee, from_connector_max_fee, to_connector_fee, from_connector_fee) \
-    START_EVENT("convert", "1.1") \
+#define EMIT_CONVERSION_EVENT(memo, current_base_balance, current_target_balance, current_smart_supply, base_amount, smart_tokens, target_amount, base_ratio, target_ratio, fee_amount) \
+    START_EVENT("conversion", "1.1") \
     EVENTKV("memo", memo) \
     EVENTKV("current_base_balance", current_base_balance) \
     EVENTKV("current_target_balance", current_target_balance) \
@@ -19,42 +20,37 @@ using std::vector;
     EVENTKV("base_amount", base_amount) \
     EVENTKV("smart_tokens", smart_tokens) \
     EVENTKV("target_amount", target_amount) \
-    EVENTKV("base_weight", base_weight) \
-    EVENTKV("target_weight", target_weight) \
-    EVENTKV("to_connector_max_fee", to_connector_max_fee) \
-    EVENTKV("from_connector_max_fee", from_connector_max_fee) \
-    EVENTKV("to_connector_fee", to_connector_fee) \
-    EVENTKVL("from_connector_fee", from_connector_fee) \
+    EVENTKV("base_ratio", base_ratio) \
+    EVENTKV("target_ratio", target_ratio) \
+    EVENTKVL("fee_amount", fee_amount) \
     END_EVENT()
 
 CONTRACT BancorConverter : public eosio::contract {
     using contract::contract;
     public:
 
-        TABLE connector_t {
-            name     contract;
-            asset    currency;
-            uint64_t weight;
+        TABLE settingstype {
+            name     smart_contract;
+            asset    smart_currency;
+            bool     smart_enabled;
             bool     enabled;
+            name     network;
+            bool     verify_ram;
+            uint64_t max_fee;
             uint64_t fee;
-            name     fee_account;
-            uint64_t max_fee;        
-            uint64_t primary_key() const { return currency.symbol.code().raw(); }
-        };
-    
-        TABLE cstate_t {
-            name    manager;
-            name    smart_contract;
-            asset   smart_currency;
-            bool    smart_enabled;
-            bool    enabled;
-            name    network;
-            bool    verify_ram;
-            uint64_t primary_key() const { return manager.value; }
+            EOSLIB_SERIALIZE(settingstype, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(verify_ram))
         };
 
-        typedef eosio::multi_index<"cstate"_n, cstate_t> converters;
-        typedef eosio::multi_index<"connector"_n, connector_t> connectors;
+        TABLE reserve_t {
+            name     contract;
+            asset    currency;
+            uint64_t ratio;
+            bool     p_enabled;
+            uint64_t primary_key() const { return currency.symbol.code().raw(); }
+        };
+
+        typedef eosio::singleton<"settings"_n, settingstype> settings;
+        typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
 
         void transfer(name from, name to, asset quantity, string memo);
 
@@ -63,16 +59,16 @@ CONTRACT BancorConverter : public eosio::contract {
                       bool  smart_enabled,
                       bool  enabled,
                       name  network,
-                      bool  verify_ram);
+                      bool  verify_ram,
+                      uint64_t max_fee,
+                      uint64_t fee);
         
-        ACTION setconnector(name contract,
-                            asset    currency,
-                            uint64_t weight,
-                            bool     enabled,
-                            uint64_t fee,
-                            name     fee_account,
-                            uint64_t max_fee );
+        ACTION setreserve(name contract,
+                          asset    currency,
+                          uint64_t ratio,
+                          bool     p_enabled);
+
     private:
         void convert(name from, eosio::asset quantity, std::string memo, name code);
-        const connector_t& lookup_connector(uint64_t name, cstate_t state );
+        const reserve_t& lookup_reserve(uint64_t name, const settingstype& settings);
 };

@@ -1,41 +1,7 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Oct 21 08:41:00 2018",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Oct 21 15:11:32 2018",
     "version": "eosio::abi/1.0",
     "structs": [
-        {
-            "name": "connector_t",
-            "base": "",
-            "fields": [
-                {
-                    "name": "contract",
-                    "type": "name"
-                },
-                {
-                    "name": "currency",
-                    "type": "asset"
-                },
-                {
-                    "name": "weight",
-                    "type": "uint64"
-                },
-                {
-                    "name": "enabled",
-                    "type": "bool"
-                },
-                {
-                    "name": "fee",
-                    "type": "uint64"
-                },
-                {
-                    "name": "fee_account",
-                    "type": "name"
-                },
-                {
-                    "name": "max_fee",
-                    "type": "uint64"
-                }
-            ]
-        },
         {
             "name": "create",
             "base": "",
@@ -63,17 +29,65 @@
                 {
                     "name": "verify_ram",
                     "type": "bool"
+                },
+                {
+                    "name": "max_fee",
+                    "type": "uint64"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
                 }
             ]
         },
         {
-            "name": "cstate_t",
+            "name": "reserve_t",
             "base": "",
             "fields": [
                 {
-                    "name": "manager",
+                    "name": "contract",
                     "type": "name"
                 },
+                {
+                    "name": "currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "ratio",
+                    "type": "uint64"
+                },
+                {
+                    "name": "p_enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "setreserve",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "ratio",
+                    "type": "uint64"
+                },
+                {
+                    "name": "p_enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "settingstype",
+            "base": "",
+            "fields": [
                 {
                     "name": "smart_contract",
                     "type": "name"
@@ -97,39 +111,13 @@
                 {
                     "name": "verify_ram",
                     "type": "bool"
-                }
-            ]
-        },
-        {
-            "name": "setconnector",
-            "base": "",
-            "fields": [
-                {
-                    "name": "contract",
-                    "type": "name"
-                },
-                {
-                    "name": "currency",
-                    "type": "asset"
-                },
-                {
-                    "name": "weight",
-                    "type": "uint64"
-                },
-                {
-                    "name": "enabled",
-                    "type": "bool"
-                },
-                {
-                    "name": "fee",
-                    "type": "uint64"
-                },
-                {
-                    "name": "fee_account",
-                    "type": "name"
                 },
                 {
                     "name": "max_fee",
+                    "type": "uint64"
+                },
+                {
+                    "name": "fee",
                     "type": "uint64"
                 }
             ]
@@ -143,22 +131,22 @@
             "ricardian_contract": ""
         },
         {
-            "name": "setconnector",
-            "type": "setconnector",
+            "name": "setreserve",
+            "type": "setreserve",
             "ricardian_contract": ""
         }
     ],
     "tables": [
         {
-            "name": "connector",
-            "type": "connector_t",
+            "name": "reserves",
+            "type": "reserve_t",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
         },
         {
-            "name": "cstate",
-            "type": "cstate_t",
+            "name": "settingstype",
+            "type": "settingstype",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
