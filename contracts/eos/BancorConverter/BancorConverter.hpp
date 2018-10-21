@@ -73,6 +73,6 @@ CONTRACT BancorConverter : public eosio::contract {
                             name     fee_account,
                             uint64_t max_fee );
     private:
-        void convert( name from, eosio::asset quantity, std::string memo, name code);
+        void convert(name from, eosio::asset quantity, std::string memo, name code);
         const connector_t& lookup_connector(uint64_t name, cstate_t state );
 };
