@@ -36,9 +36,9 @@ typedef std::vector<std::string> path;
 
 struct memo_convert_structure {
     path    path;
-    std::string   version;
-    std::string   target;
-    std::string   min_return;
+    std::string version;
+    std::string to_token;
+    std::string min_return;
 };
     
 std::string build_memo(memo_convert_structure data) {
@@ -56,7 +56,7 @@ std::string build_memo(memo_convert_structure data) {
     memo.append(",");
     memo.append(data.min_return);
     memo.append(",");
-    memo.append(data.target);
+    memo.append(data.to_token);
     return memo;
 }
 
@@ -72,7 +72,7 @@ memo_convert_structure parse_memo(std::string memo){
         res.path = split(parts[1], " ");
 
     res.min_return = parts[2];
-    res.target = parts[3];
+    res.to_token = parts[3];
     return res;
 }
 
@@ -82,6 +82,6 @@ memo_convert_structure next_hop(memo_convert_structure data){
     res.path.erase(res.path.begin(), res.path.begin() + 3);
     res.version = data.version;
     res.min_return = data.min_return;
-    res.target = data.target;
+    res.to_token = data.to_token;
     return res;
 }

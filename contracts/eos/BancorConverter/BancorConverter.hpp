@@ -11,18 +11,26 @@ using namespace eosio;
 using std::string;
 using std::vector;
 
-#define EMIT_CONVERSION_EVENT(memo, current_base_balance, current_target_balance, current_smart_supply, base_amount, smart_tokens, target_amount, base_ratio, target_ratio, fee_amount) \
+// events
+#define EMIT_CONVERSION_EVENT(memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount) \
     START_EVENT("conversion", "1.1") \
     EVENTKV("memo", memo) \
-    EVENTKV("current_base_balance", current_base_balance) \
-    EVENTKV("current_target_balance", current_target_balance) \
-    EVENTKV("current_smart_supply", current_smart_supply) \
-    EVENTKV("base_amount", base_amount) \
-    EVENTKV("smart_tokens", smart_tokens) \
-    EVENTKV("target_amount", target_amount) \
-    EVENTKV("base_ratio", base_ratio) \
-    EVENTKV("target_ratio", target_ratio) \
-    EVENTKVL("fee_amount", fee_amount) \
+    EVENTKV("from_contract", from_contract) \
+    EVENTKV("from_symbol", from_symbol) \
+    EVENTKV("to_contract", to_contract) \
+    EVENTKV("to_symbol", to_symbol) \
+    EVENTKV("amount", from_amount) \
+    EVENTKV("return", to_amount) \
+    EVENTKVL("conversion_fee", fee_amount) \
+    END_EVENT()
+
+#define EMIT_PRICE_DATA_EVENT(memo, smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) \
+    START_EVENT("price_data", "1.1") \
+    EVENTKV("smart_supply", smart_supply) \
+    EVENTKV("reserve_contract", reserve_contract) \
+    EVENTKV("reserve_symbol", reserve_symbol) \
+    EVENTKV("reserve_balance", reserve_balance) \
+    EVENTKVL("reserve_ratio", reserve_ratio) \
     END_EVENT()
 
 CONTRACT BancorConverter : public eosio::contract {

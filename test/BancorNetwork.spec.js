@@ -37,7 +37,7 @@ describe('BancorNetwork Contract', () => {
             var json = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console;
             var convertEvent = JSON.parse(json);
             console.log(convertEvent)
-            assert.equal(convertEvent.target_amount, "19999", "unexpected conversion result");
+            assert.equal(convertEvent.return, "19999", "unexpected conversion result");
             // console.log("result",jObj.target_amount);
             done();
         }).catch((err) => done(err));
@@ -51,11 +51,11 @@ describe('BancorNetwork Contract', () => {
             var json = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console;
             var convertEvent = JSON.parse(json);
             
-            assert.equal(convertEvent.target_amount, "10000", "unexpected conversion result");
+            assert.equal(convertEvent.return, "10000", "unexpected conversion result");
             // console.log("action console", res.processed.action_traces[0].inline_traces);
             var json2 = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[2].inline_traces[1].console;
             var convertEvent2 = JSON.parse(json2);
-            assert.equal(convertEvent2.target_amount, "9999", "unexpected conversion result");
+            assert.equal(convertEvent2.return, "9999", "unexpected conversion result");
             done();
         }).catch((err) => done(err));
     });

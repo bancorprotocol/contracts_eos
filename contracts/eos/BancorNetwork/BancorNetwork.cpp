@@ -28,8 +28,7 @@ ACTION BancorNetwork::init() {
 
 extern "C" {
     [[noreturn]] void apply(uint64_t receiver, uint64_t code, uint64_t action) {
-        
-        
+
         if (action == "transfer"_n.value && code != receiver) {
             eosio::execute_action( eosio::name(receiver), eosio::name(code), &BancorNetwork::transfer );
         }

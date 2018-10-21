@@ -2,7 +2,7 @@ var SmartToken = artifacts.require("./SmartToken/");
 var BancorNetwork = artifacts.require("./BancorNetwork/");
 var BancorConverter = artifacts.require("./BancorConverter/");
 
-async function regConverter(deployer, network, accounts, token, symbol, networkContract, networkToken, networkTokenSymbol) {
+async function regConverter(deployer, token, symbol, networkContract, networkToken, networkTokenSymbol) {
     const converter = await deployer.deploy(BancorConverter, `cnvt${token}`);
 
     const tknContract = await deployer.deploy(SmartToken, token);
@@ -76,7 +76,7 @@ module.exports = async function(deployer, network, accounts) {
 
     for (var i = 0; i < tkns.length; i++) {
         const { contract, symbol } = tkns[i];
-        await regConverter(deployer, network, accounts, contract, symbol, networkContract, tknbntContract, networkTokenSymbol);    
+        await regConverter(deployer, contract, symbol, networkContract, tknbntContract, networkTokenSymbol);    
     }
   
     var test1User = 'test1';

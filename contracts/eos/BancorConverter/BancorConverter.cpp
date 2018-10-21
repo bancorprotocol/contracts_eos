@@ -54,8 +54,8 @@ real_type calculate_sale_return(real_type balance, real_type sell_amount, real_t
     return T;
 }
 
-real_type quick_convert(real_type balance, real_type in, real_type targetBalance) {
-    return in / (balance + in) * targetBalance;
+real_type quick_convert(real_type balance, real_type in, real_type toBalance) {
+    return in / (balance + in) * toBalance;
 }
    
 float stof(const char* s) {
@@ -112,7 +112,7 @@ const BancorConverter::reserve_t& BancorConverter::lookup_reserve(uint64_t name,
 void BancorConverter::convert(name from, eosio::asset quantity, std::string memo, name code) {
     eosio_assert(quantity.is_valid(), "invalid quantity");
     eosio_assert(quantity.amount != 0, "zero quantity is disallowed");
-    auto base_amount = quantity.amount / pow(10, quantity.symbol.precision());
+    auto from_amount = quantity.amount / pow(10, quantity.symbol.precision());
     auto memo_object = parse_memo(memo);
     eosio_assert(memo_object.path.size() > 2, "invalid memo format");
     settings settings_table(_self, _self.value);
@@ -122,36 +122,36 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
 
     auto contract_name = name(memo_object.path[0].c_str());
     eosio_assert(contract_name == _self, "wrong converter");
-    auto base_path_currency = quantity.symbol.code().raw();
+    auto from_path_currency = quantity.symbol.code().raw();
     auto middle_path_currency = symbol_code(memo_object.path[1].c_str()).raw();
-    auto target_path_currency = symbol_code(memo_object.path[2].c_str()).raw();
-    eosio_assert(base_path_currency != target_path_currency, "cannot convert to self");
+    auto to_path_currency = symbol_code(memo_object.path[2].c_str()).raw();
+    eosio_assert(from_path_currency != to_path_currency, "cannot convert to self");
     auto smart_symbol_name = converter_settings.smart_currency.symbol.code().raw();
     eosio_assert(middle_path_currency == smart_symbol_name, "must go through the relay token");
-    auto from_reserve =  lookup_reserve(base_path_currency, converter_settings);
-    auto to_reserve = lookup_reserve(target_path_currency, converter_settings);
+    auto from_token =  lookup_reserve(from_path_currency, converter_settings);
+    auto to_token = lookup_reserve(to_path_currency, converter_settings);
 
-    auto base_currency = from_reserve.currency;
-    auto target_currency = to_reserve.currency;
+    auto from_currency = from_token.currency;
+    auto to_currency = to_token.currency;
     
-    auto target_contract = to_reserve.contract;
-    auto base_contract = from_reserve.contract;
+    auto to_contract = to_token.contract;
+    auto from_contract = from_token.contract;
 
-    bool incoming_smart_token = (base_currency.symbol.code().raw() == smart_symbol_name);
-    bool outgoing_smart_token = (target_currency.symbol.code().raw() == smart_symbol_name);
+    bool incoming_smart_token = (from_currency.symbol.code().raw() == smart_symbol_name);
+    bool outgoing_smart_token = (to_currency.symbol.code().raw() == smart_symbol_name);
     
-    auto base_ratio = from_reserve.ratio;
-    auto target_ratio = to_reserve.ratio;
+    auto from_ratio = from_token.ratio;
+    auto to_ratio = to_token.ratio;
 
-    eosio_assert(from_reserve.p_enabled, "'from' reserve purchases disabled");
-    eosio_assert(code == base_contract, "unknown 'from' contract");
-    auto current_base_balance = ((get_balance(base_contract, _self, base_currency.symbol.code())).amount + base_currency.amount - quantity.amount) / pow(10, base_currency.symbol.precision()); 
-    auto current_target_balance = ((get_balance(target_contract, _self, target_currency.symbol.code())).amount + target_currency.amount) / pow(10, target_currency.symbol.precision());
+    eosio_assert(from_token.p_enabled, "'from' token purchases disabled");
+    eosio_assert(code == from_contract, "unknown 'from' contract");
+    auto current_from_balance = ((get_balance(from_contract, _self, from_currency.symbol.code())).amount + from_currency.amount - quantity.amount) / pow(10, from_currency.symbol.precision()); 
+    auto current_to_balance = ((get_balance(to_contract, _self, to_currency.symbol.code())).amount + to_currency.amount) / pow(10, to_currency.symbol.precision());
     auto current_smart_supply = ((get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount)  / pow(10, converter_settings.smart_currency.symbol.precision());
 
-    name final_to = name(memo_object.target.c_str());
+    name final_to = name(memo_object.to_token.c_str());
     real_type smart_tokens = 0;
-    real_type target_tokens = 0;
+    real_type to_tokens = 0;
     int64_t total_fee_amount = 0;
     bool quick = false;
     if (incoming_smart_token) {
@@ -162,15 +162,15 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
             std::make_tuple(quantity, std::string("destroy on conversion"))
         ).send();
 
-        smart_tokens = base_amount;
+        smart_tokens = from_amount;
         current_smart_supply -= smart_tokens;
     }
-    else if (!incoming_smart_token && !outgoing_smart_token && (base_ratio == target_ratio) && (converter_settings.fee == 0)) {
-        target_tokens = quick_convert(current_base_balance, base_amount, current_target_balance);    
+    else if (!incoming_smart_token && !outgoing_smart_token && (from_ratio == to_ratio) && (converter_settings.fee == 0)) {
+        to_tokens = quick_convert(current_from_balance, from_amount, current_to_balance);    
         quick = true;
     }
     else {
-        smart_tokens = calculate_purchase_return(current_base_balance, base_amount, current_smart_supply, base_ratio);
+        smart_tokens = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, from_ratio);
         current_smart_supply += smart_tokens;
         if (converter_settings.fee > 0) {
             real_type ffee = (1.0 * converter_settings.fee / 1000.0);
@@ -189,7 +189,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     auto issue = false;
     if (outgoing_smart_token) {
         eosio_assert(memo_object.path.size() == 3, "smart token must be final currency");
-        target_tokens = smart_tokens;
+        to_tokens = smart_tokens;
         issue = true;
     }
     else if (!quick) {
@@ -205,34 +205,34 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
             }
         }
 
-        target_tokens = calculate_sale_return(current_target_balance, smart_tokens, current_smart_supply, target_ratio);    
+        to_tokens = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_ratio);    
     }
 
-    int64_t target_amount = (target_tokens * pow(10, target_currency.symbol.precision()));
-    EMIT_CONVERSION_EVENT(memo, current_base_balance, current_target_balance, current_smart_supply, base_amount, smart_tokens, target_amount, base_ratio, target_ratio, total_fee_amount)
+    int64_t to_amount = (to_tokens * pow(10, to_currency.symbol.precision()));
+    EMIT_CONVERSION_EVENT(memo, from_token.contract, from_currency.symbol.code(), to_token.contract, to_currency.symbol.code(), from_amount, to_amount, total_fee_amount)
 
     auto next_hop_memo = next_hop(memo_object);
     auto new_memo = build_memo(next_hop_memo);
-    auto new_asset = asset(target_amount,target_currency.symbol);
+    auto new_asset = asset(to_amount, to_currency.symbol);
     name inner_to = converter_settings.network;
     if (next_hop_memo.path.size() == 0) {
         inner_to = final_to;
         verify_min_return(new_asset, memo_object.min_return);
         if (converter_settings.verify_ram)
-            verify_entry(inner_to, target_contract ,new_asset);
+            verify_entry(inner_to, to_contract ,new_asset);
         new_memo = std::string("convert");
     }
 
     if (issue)
         action(
             permission_level{ _self, "active"_n },
-            target_contract, "issue"_n,
+            to_contract, "issue"_n,
             std::make_tuple(inner_to, new_asset, new_memo) 
         ).send();
     else
         action(
             permission_level{ _self, "active"_n },
-            target_contract, "transfer"_n,
+            to_contract, "transfer"_n,
             std::make_tuple(_self, inner_to, new_asset, new_memo)
         ).send();
 }
