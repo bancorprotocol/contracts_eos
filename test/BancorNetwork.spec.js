@@ -34,9 +34,9 @@ describe('BancorNetwork Contract', () => {
         _self.contract(networkToken).then(async token => {
             return await token.transfer({ from: testUser, to: networkContract, quantity: `2.0000 ${networkTokenSymbol}`, memo: `1,${converter} ${relayTokenSymbol} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
         }).then((res) => {
-            var json = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console;
-            var convertEvent = JSON.parse(json);
-            console.log(convertEvent)
+            var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
+            console.log(events)
+            var convertEvent = JSON.parse(events[0]);
             assert.equal(convertEvent.return, "19999", "unexpected conversion result");
             // console.log("result",jObj.target_amount);
             done();
@@ -48,14 +48,16 @@ describe('BancorNetwork Contract', () => {
         _self.contract(tokenContract).then(async token => {
             return await token.transfer({ from: testUser, to: networkContract, quantity: `1.0000 ${tokenSymbol}`, memo: `1,${converter} ${relayTokenSymbol} ${networkTokenSymbol} ${converter2} ${relayTokenSymbol2} ${tokenSymbol2},${minReturn},${testUser}` }, _selfopts);
         }).then((res) => {
-            var json = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console;
-            var convertEvent = JSON.parse(json);
+            var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
+            console.log(events)
+            var convertEvent = JSON.parse(events[0]);
             
             assert.equal(convertEvent.return, "10000", "unexpected conversion result");
             // console.log("action console", res.processed.action_traces[0].inline_traces);
-            var json2 = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[2].inline_traces[1].console;
-            var convertEvent2 = JSON.parse(json2);
-            assert.equal(convertEvent2.return, "9999", "unexpected conversion result");
+            events = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[2].inline_traces[1].console.split("\n");
+            console.log(events)
+            convertEvent = JSON.parse(events[0]);
+            assert.equal(convertEvent.return, "9999", "unexpected conversion result");
             done();
         }).catch((err) => done(err));
     });

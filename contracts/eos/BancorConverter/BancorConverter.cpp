@@ -128,14 +128,14 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     eosio_assert(from_path_currency != to_path_currency, "cannot convert to self");
     auto smart_symbol_name = converter_settings.smart_currency.symbol.code().raw();
     eosio_assert(middle_path_currency == smart_symbol_name, "must go through the relay token");
-    auto from_token =  lookup_reserve(from_path_currency, converter_settings);
+    auto from_token = lookup_reserve(from_path_currency, converter_settings);
     auto to_token = lookup_reserve(to_path_currency, converter_settings);
 
     auto from_currency = from_token.currency;
     auto to_currency = to_token.currency;
     
-    auto to_contract = to_token.contract;
     auto from_contract = from_token.contract;
+    auto to_contract = to_token.contract;
 
     bool incoming_smart_token = (from_currency.symbol.code().raw() == smart_symbol_name);
     bool outgoing_smart_token = (to_currency.symbol.code().raw() == smart_symbol_name);
@@ -166,7 +166,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         current_smart_supply -= smart_tokens;
     }
     else if (!incoming_smart_token && !outgoing_smart_token && (from_ratio == to_ratio) && (converter_settings.fee == 0)) {
-        to_tokens = quick_convert(current_from_balance, from_amount, current_to_balance);    
+        to_tokens = quick_convert(current_from_balance, from_amount, current_to_balance);
         quick = true;
     }
     else {
@@ -205,11 +205,16 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
             }
         }
 
-        to_tokens = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_ratio);    
+        to_tokens = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_ratio);
     }
 
     int64_t to_amount = (to_tokens * pow(10, to_currency.symbol.precision()));
     EMIT_CONVERSION_EVENT(memo, from_token.contract, from_currency.symbol.code(), to_token.contract, to_currency.symbol.code(), from_amount, to_amount, total_fee_amount)
+
+    if (incoming_smart_token || !outgoing_smart_token)
+        EMIT_PRICE_DATA_EVENT(current_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_amount, to_ratio)
+    if (outgoing_smart_token || !incoming_smart_token)
+        EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance, from_ratio)
 
     auto next_hop_memo = next_hop(memo_object);
     auto new_memo = build_memo(next_hop_memo);

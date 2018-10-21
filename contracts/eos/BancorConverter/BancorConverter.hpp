@@ -24,7 +24,7 @@ using std::vector;
     EVENTKVL("conversion_fee", fee_amount) \
     END_EVENT()
 
-#define EMIT_PRICE_DATA_EVENT(memo, smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) \
+#define EMIT_PRICE_DATA_EVENT(smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) \
     START_EVENT("price_data", "1.1") \
     EVENTKV("smart_supply", smart_supply) \
     EVENTKV("reserve_contract", reserve_contract) \
