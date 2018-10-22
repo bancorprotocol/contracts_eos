@@ -12,6 +12,7 @@ using std::string;
 using std::vector;
 
 // events
+// triggered when a conversion between two tokens occurs
 #define EMIT_CONVERSION_EVENT(memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount) \
     START_EVENT("conversion", "1.1") \
     EVENTKV("memo", memo) \
@@ -24,6 +25,7 @@ using std::vector;
     EVENTKVL("conversion_fee", fee_amount) \
     END_EVENT()
 
+// triggered after a conversion with new tokens price data
 #define EMIT_PRICE_DATA_EVENT(smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) \
     START_EVENT("price_data", "1.1") \
     EVENTKV("smart_supply", smart_supply) \
@@ -33,6 +35,17 @@ using std::vector;
     EVENTKVL("reserve_ratio", reserve_ratio) \
     END_EVENT()
 
+/*
+    Bancor Converter
+
+    The Bancor converter allows conversions between a smart token and tokens
+    that are defined as its reserves and between the different reserves directly.
+
+    Reserve balance can be virtual, meaning that the calculations are based on
+    the virtual balance instead of relying on the actual reserve balance.
+    This is a security mechanism that prevents the need to keep a very large
+    (and valuable) balance in a single contract.
+*/
 CONTRACT BancorConverter : public eosio::contract {
     using contract::contract;
     public:
@@ -61,19 +74,23 @@ CONTRACT BancorConverter : public eosio::contract {
         typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
 
-        ACTION init(name smart_contract,
-                    asset smart_currency,
-                    bool  smart_enabled,
-                    bool  enabled,
-                    name  network,
-                    bool  verify_ram,
-                    uint64_t max_fee,
-                    uint64_t fee);
+        // initializes the converter settings
+        // can also be used to update the settings
+        ACTION init(name smart_contract,    // contract name of the smart token goverened by the converter
+                    asset smart_currency,   // currency of the smart token goverened by the converter
+                    bool  smart_enabled,    // true if the smart token can be converted to/from, false if not
+                    bool  enabled,          // true if conversions are enabled, false if not
+                    name  network,          // bancor network contract name
+                    bool  verify_ram,       // true if conversions that require creating new balance for the calling account should fail, false if not
+                    uint64_t max_fee,       // maximum conversion fee percentage, 0-1000
+                    uint64_t fee);          // conversion fee percentage, 0-1000
         
-        ACTION setreserve(name contract,
-                          asset    currency,
-                          uint64_t ratio,
-                          bool     p_enabled);
+        // initializes a new reserve in the converter
+        // can also be used to update an existing reserve
+        ACTION setreserve(name contract,        // reserve token contract name
+                          asset    currency,    // reserve token currency
+                          uint64_t ratio,       // reserve ratio, percentage, 0-1000
+                          bool     p_enabled);  // true if purchases are enabled with the reserve, false if not
 
         void transfer(name from, name to, asset quantity, string memo);
 

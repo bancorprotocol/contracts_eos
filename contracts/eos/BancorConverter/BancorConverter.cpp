@@ -208,6 +208,8 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         ).send();
 }
 
+ // returns a reserve object
+ // can also be called for the smart token itself
 const BancorConverter::reserve_t& BancorConverter::get_reserve(uint64_t name, const settings_t& settings) {
     if (settings.smart_currency.symbol.code().raw() == name) {
         static reserve_t temp_reserve;
@@ -224,12 +226,14 @@ const BancorConverter::reserve_t& BancorConverter::get_reserve(uint64_t name, co
     return *existing;
 }
 
+// returns the balance object for an account
 asset BancorConverter::get_balance(name contract, name owner, symbol_code sym) {
     accounts accountstable(contract, owner.value);
     const auto& ac = accountstable.get(sym.raw());
     return ac.balance;
 }
 
+// returns the balance amount for an account
 uint64_t BancorConverter::get_balance_amount(name contract, name owner, symbol_code sym) {
     accounts accountstable(contract, owner.value);
 
@@ -240,24 +244,29 @@ uint64_t BancorConverter::get_balance_amount(name contract, name owner, symbol_c
     return 0;
 }
 
+// returns a token supply
 asset BancorConverter::get_supply(name contract, symbol_code sym) {
     stats statstable(contract, sym.raw());
     const auto& st = statstable.get(sym.raw());
     return st.supply;
 }
 
+// asserts if the supplied account doesn't have an entry for a given token
 void BancorConverter::verify_entry(name account, name currency_contact, eosio::asset currency) {
     accounts accountstable(currency_contact, account.value);
     auto ac = accountstable.find(currency.symbol.code().raw());
     eosio_assert(ac != accountstable.end(), "must have entry for token (claim token first)");
 }
 
+// asserts if a conversion resulted in an amount lower than the minimum amount defined by the caller
 void BancorConverter::verify_min_return(eosio::asset quantity, std::string min_return) {
 	float ret = stof(min_return.c_str());
     int64_t ret_amount = (ret * pow(10, quantity.symbol.precision()));
     eosio_assert(quantity.amount >= ret_amount, "below min return");
 }
 
+// given a token supply, reserve balance, ratio and a input amount (in the reserve token),
+// calculates the return for a given conversion (in the main token)
 double BancorConverter::calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio) {
     double R(supply);
     double C(balance + deposit_amount);
@@ -269,6 +278,8 @@ double BancorConverter::calculate_purchase_return(double balance, double deposit
     return E;
 }
 
+// given a token supply, reserve balance, ratio and a input amount (in the main token),
+// calculates the return for a given conversion (in the reserve token)
 double BancorConverter::calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio) {
     double R(supply - sell_amount);
     double C(balance);
