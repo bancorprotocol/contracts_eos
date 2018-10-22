@@ -37,7 +37,7 @@ CONTRACT BancorConverter : public eosio::contract {
     using contract::contract;
     public:
 
-        TABLE settingstype {
+        TABLE settings_t {
             name     smart_contract;
             asset    smart_currency;
             bool     smart_enabled;
@@ -46,7 +46,7 @@ CONTRACT BancorConverter : public eosio::contract {
             bool     verify_ram;
             uint64_t max_fee;
             uint64_t fee;
-            EOSLIB_SERIALIZE(settingstype, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(verify_ram)(max_fee)(fee))
+            EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(verify_ram)(max_fee)(fee))
         };
 
         TABLE reserve_t {
@@ -57,7 +57,8 @@ CONTRACT BancorConverter : public eosio::contract {
             uint64_t primary_key() const { return currency.symbol.code().raw(); }
         };
 
-        typedef eosio::singleton<"settings"_n, settingstype> settings;
+        typedef eosio::singleton<"settings"_n, settings_t> settings;
+        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
 
         ACTION create(name smart_contract,
@@ -78,7 +79,7 @@ CONTRACT BancorConverter : public eosio::contract {
 
     private:
         void convert(name from, eosio::asset quantity, std::string memo, name code);
-        const reserve_t& get_reserve(uint64_t name, const settingstype& settings);
+        const reserve_t& get_reserve(uint64_t name, const settings_t& settings);
 
         asset get_balance(name contract, name owner, symbol_code sym);
         uint64_t get_balance_amount(name contract, name owner, symbol_code sym);

@@ -30,7 +30,7 @@ ACTION BancorConverter::create(name smart_contract,
     require_auth(_self);
     eosio_assert(fee < 1000, "must be under 1000");
 
-    settingstype new_settings;
+    settings_t new_settings;
     new_settings.smart_contract  = smart_contract;
     new_settings.smart_currency  = smart_currency;
     new_settings.smart_enabled   = smart_enabled;
@@ -208,7 +208,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         ).send();
 }
 
-const BancorConverter::reserve_t& BancorConverter::get_reserve(uint64_t name, const settingstype& settings) {
+const BancorConverter::reserve_t& BancorConverter::get_reserve(uint64_t name, const settings_t& settings) {
     if (settings.smart_currency.symbol.code().raw() == name) {
         static reserve_t temp_reserve;
         temp_reserve.ratio = 0;
