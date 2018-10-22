@@ -61,14 +61,14 @@ CONTRACT BancorConverter : public eosio::contract {
         typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
 
-        ACTION create(name smart_contract,
-                      asset smart_currency,
-                      bool  smart_enabled,
-                      bool  enabled,
-                      name  network,
-                      bool  verify_ram,
-                      uint64_t max_fee,
-                      uint64_t fee);
+        ACTION init(name smart_contract,
+                    asset smart_currency,
+                    bool  smart_enabled,
+                    bool  enabled,
+                    name  network,
+                    bool  verify_ram,
+                    uint64_t max_fee,
+                    uint64_t fee);
         
         ACTION setreserve(name contract,
                           asset    currency,

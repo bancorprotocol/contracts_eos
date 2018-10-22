@@ -1,9 +1,9 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Mon Oct 22 08:39:59 2018",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Mon Oct 22 09:05:45 2018",
     "version": "eosio::abi/1.0",
     "structs": [
         {
-            "name": "create",
+            "name": "init",
             "base": "",
             "fields": [
                 {
@@ -126,8 +126,8 @@
     "types": [],
     "actions": [
         {
-            "name": "create",
-            "type": "create",
+            "name": "init",
+            "type": "init",
             "ricardian_contract": ""
         },
         {

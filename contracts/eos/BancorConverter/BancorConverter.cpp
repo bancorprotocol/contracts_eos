@@ -19,14 +19,14 @@ TABLE currency_stats {
 typedef eosio::multi_index<"stat"_n, currency_stats> stats;
 typedef eosio::multi_index<"accounts"_n, account> accounts;
 
-ACTION BancorConverter::create(name smart_contract,
-                               asset smart_currency,
-                               bool  smart_enabled,
-                               bool  enabled,
-                               name  network,
-                               bool  verify_ram,
-                               uint64_t max_fee,
-                               uint64_t fee) {
+ACTION BancorConverter::init(name smart_contract,
+                             asset smart_currency,
+                             bool  smart_enabled,
+                             bool  enabled,
+                             name  network,
+                             bool  verify_ram,
+                             uint64_t max_fee,
+                             uint64_t fee) {
     require_auth(_self);
     eosio_assert(fee < 1000, "must be under 1000");
 
@@ -331,7 +331,7 @@ extern "C" {
         }
         if (code == receiver) {
             switch (action) { 
-                EOSIO_DISPATCH_HELPER(BancorConverter, (create)(setreserve)) 
+                EOSIO_DISPATCH_HELPER(BancorConverter, (init)(setreserve)) 
             }    
         }
         eosio_exit(0);

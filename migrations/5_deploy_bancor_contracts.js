@@ -19,7 +19,7 @@ async function regConverter(deployer, token, symbol, networkContract, networkTok
         { authorization: `${tknrlyContract.contract.address}@active`, broadcast: true, sign: true });
 
     // converter create
-    await converter.contractInstance.create({
+    await converter.contractInstance.init({
         smart_contract: tknrlyContract.contract.address,
         smart_currency: `0.0000 ${rlySymbol}`,
         smart_enabled: 0,
