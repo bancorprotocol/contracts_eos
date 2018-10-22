@@ -76,8 +76,8 @@ CONTRACT BancorConverter : public eosio::contract {
 
         // initializes the converter settings
         // can also be used to update the settings
-        ACTION init(name smart_contract,    // contract name of the smart token goverened by the converter
-                    asset smart_currency,   // currency of the smart token goverened by the converter
+        ACTION init(name smart_contract,    // contract name of the smart token governed by the converter
+                    asset smart_currency,   // currency of the smart token governed by the converter
                     bool  smart_enabled,    // true if the smart token can be converted to/from, false if not
                     bool  enabled,          // true if conversions are enabled, false if not
                     name  network,          // bancor network contract name
@@ -92,6 +92,12 @@ CONTRACT BancorConverter : public eosio::contract {
                           uint64_t ratio,       // reserve ratio, percentage, 0-1000
                           bool     p_enabled);  // true if purchases are enabled with the reserve, false if not
 
+        // transfer intercepts
+        // memo is in csv format, values -
+        // version          version number, currently 1
+        // path             conversion path, see conversion path in the BancorNetwork contract
+        // minimum return   conversion minimum return amount, the conversion will fail if the amount returned is lower than the given amount
+        // target account   account to receive the conversion return
         void transfer(name from, name to, asset quantity, string memo);
 
     private:
