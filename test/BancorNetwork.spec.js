@@ -32,7 +32,7 @@ describe('BancorNetwork Contract', () => {
     it('simple convert', done => {
         var minReturn = 0.100;
         _self.contract(networkToken).then(async token => {
-            return await token.transfer({ from: testUser, to: networkContract, quantity: `2.0000 ${networkTokenSymbol}`, memo: `1,${converter} ${relayTokenSymbol} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
+            return await token.transfer({ from: testUser, to: networkContract, quantity: `2.0000 ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
         }).then((res) => {
             var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
             console.log(events)
@@ -46,7 +46,7 @@ describe('BancorNetwork Contract', () => {
     it('2 hop convert', done => {
         var minReturn = 0.100;
         _self.contract(tokenContract).then(async token => {
-            return await token.transfer({ from: testUser, to: networkContract, quantity: `1.0000 ${tokenSymbol}`, memo: `1,${converter} ${relayTokenSymbol} ${networkTokenSymbol} ${converter2} ${relayTokenSymbol2} ${tokenSymbol2},${minReturn},${testUser}` }, _selfopts);
+            return await token.transfer({ from: testUser, to: networkContract, quantity: `1.0000 ${tokenSymbol}`, memo: `1,${converter} ${networkTokenSymbol} ${converter2} ${tokenSymbol2},${minReturn},${testUser}` }, _selfopts);
         }).then((res) => {
             var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
             console.log(events)

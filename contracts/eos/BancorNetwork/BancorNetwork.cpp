@@ -12,7 +12,7 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     eosio_assert(quantity.amount != 0, "zero quantity is disallowed in transfer");
     
     auto memo_object = parse_memo(memo);
-    eosio_assert(memo_object.path.size() >= 3, "bad path format");
+    eosio_assert(memo_object.path.size() >= 2, "bad path format");
     name convert_contract = eosio::name(memo_object.path[0].c_str());
 
     action(

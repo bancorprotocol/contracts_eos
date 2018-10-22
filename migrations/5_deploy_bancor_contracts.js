@@ -25,7 +25,7 @@ async function regConverter(deployer, token, symbol, networkContract, networkTok
         smart_enabled: 0,
         enabled: 1,
         network: networkContract.contract.address,
-        verify_ram: 0,
+        require_balance: 0,
         max_fee: 0,
         fee: 0
     }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });        

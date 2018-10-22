@@ -56,10 +56,10 @@ CONTRACT BancorConverter : public eosio::contract {
             bool     smart_enabled;
             bool     enabled;
             name     network;
-            bool     verify_ram;
+            bool     require_balance;
             uint64_t max_fee;
             uint64_t fee;
-            EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(verify_ram)(max_fee)(fee))
+            EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(require_balance)(max_fee)(fee))
         };
 
         TABLE reserve_t {
@@ -81,7 +81,7 @@ CONTRACT BancorConverter : public eosio::contract {
                     bool  smart_enabled,    // true if the smart token can be converted to/from, false if not
                     bool  enabled,          // true if conversions are enabled, false if not
                     name  network,          // bancor network contract name
-                    bool  verify_ram,       // true if conversions that require creating new balance for the calling account should fail, false if not
+                    bool  require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
                     uint64_t max_fee,       // maximum conversion fee percentage, 0-1000
                     uint64_t fee);          // conversion fee percentage, 0-1000
         

@@ -79,7 +79,7 @@ memo_convert_structure parse_memo(std::string memo){
 memo_convert_structure next_hop(memo_convert_structure data){
     auto res = memo_convert_structure();
     res.path = std::vector<std::string>(data.path);
-    res.path.erase(res.path.begin(), res.path.begin() + 3);
+    res.path.erase(res.path.begin(), res.path.begin() + 2);
     res.version = data.version;
     res.min_return = data.min_return;
     res.to_token = data.to_token;

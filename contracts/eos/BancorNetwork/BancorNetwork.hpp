@@ -19,12 +19,12 @@ using std::vector;
     when the conversion cannot necessarily be done by single converter and might require multiple 'hops'.
     The path defines which converters should be used and what kind of conversion should be done in each step.
 
-    The path format doesn't include complex structure and instead, it is represented by a single array
-    in which each 'hop' is represented by a 2-tuple - converter & 'to' token symbol.
+    The path format doesn't include complex structure and instead, it is represented by a space delimited
+    list of values in which each 'hop' is represented by a 2-tuple - converter & 'to' token symbol.
     The 'from' token is the token that was sent the the contract with the transfer action.
 
     Format:
-    [converter account name, to token symbol, converter account name, to token symbol...]
+    [converter account, to token symbol, converter account, to token symbol...]
 */
 CONTRACT BancorNetwork : public eosio::contract {
     using contract::contract;

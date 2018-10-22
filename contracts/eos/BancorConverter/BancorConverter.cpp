@@ -6,7 +6,7 @@ using namespace eosio;
 
 struct account {
     asset    balance;
-    uint64_t primary_key()const { return balance.symbol.code().raw(); }
+    uint64_t primary_key() const { return balance.symbol.code().raw(); }
 };
 
 TABLE currency_stats {
@@ -24,7 +24,7 @@ ACTION BancorConverter::init(name smart_contract,
                              bool  smart_enabled,
                              bool  enabled,
                              name  network,
-                             bool  verify_ram,
+                             bool  require_balance,
                              uint64_t max_fee,
                              uint64_t fee) {
     require_auth(_self);
@@ -36,7 +36,7 @@ ACTION BancorConverter::init(name smart_contract,
     new_settings.smart_enabled   = smart_enabled;
     new_settings.enabled         = enabled;
     new_settings.network         = network;
-    new_settings.verify_ram      = verify_ram;
+    new_settings.require_balance = require_balance;
     new_settings.max_fee         = max_fee;
     new_settings.fee             = fee;
 
@@ -80,7 +80,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     eosio_assert(quantity.amount != 0, "zero quantity is disallowed");
     auto from_amount = quantity.amount / pow(10, quantity.symbol.precision());
     auto memo_object = parse_memo(memo);
-    eosio_assert(memo_object.path.size() > 2, "invalid memo format");
+    eosio_assert(memo_object.path.size() > 1, "invalid memo format");
     settings settings_table(_self, _self.value);
     auto converter_settings = settings_table.get();
     eosio_assert(converter_settings.enabled, "converter is disabled");
@@ -89,11 +89,9 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     auto contract_name = name(memo_object.path[0].c_str());
     eosio_assert(contract_name == _self, "wrong converter");
     auto from_path_currency = quantity.symbol.code().raw();
-    auto middle_path_currency = symbol_code(memo_object.path[1].c_str()).raw();
-    auto to_path_currency = symbol_code(memo_object.path[2].c_str()).raw();
+    auto to_path_currency = symbol_code(memo_object.path[1].c_str()).raw();
     eosio_assert(from_path_currency != to_path_currency, "cannot convert to self");
     auto smart_symbol_name = converter_settings.smart_currency.symbol.code().raw();
-    eosio_assert(middle_path_currency == smart_symbol_name, "must go through the relay token");
     auto from_token = get_reserve(from_path_currency, converter_settings);
     auto to_token = get_reserve(to_path_currency, converter_settings);
 
@@ -189,7 +187,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     if (next_hop_memo.path.size() == 0) {
         inner_to = final_to;
         verify_min_return(new_asset, memo_object.min_return);
-        if (converter_settings.verify_ram)
+        if (converter_settings.require_balance)
             verify_entry(inner_to, to_contract, new_asset);
         new_memo = std::string("convert");
     }
