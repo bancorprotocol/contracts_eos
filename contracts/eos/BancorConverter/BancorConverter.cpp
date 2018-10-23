@@ -72,7 +72,7 @@ ACTION BancorConverter::setreserve(name contract,
                                    bool     p_enabled)
 {
     require_auth(_self);
-    eosio_assert(ratio <= 1000, "ratio must be lower or equal to 1000");
+    eosio_assert(ratio > 0 && ratio <= 1000, "ratio must be between 1 and 1000");
 
     reserves reserves_table(_self, _self.value);
     auto existing = reserves_table.find(currency.symbol.code().raw());
