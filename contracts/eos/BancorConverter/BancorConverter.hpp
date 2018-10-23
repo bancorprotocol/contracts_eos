@@ -75,7 +75,7 @@ CONTRACT BancorConverter : public eosio::contract {
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
 
         // initializes the converter settings
-        // can also be called once, by the contract account
+        // can only be called once, by the contract account
         ACTION init(name smart_contract,    // contract name of the smart token governed by the converter
                     asset smart_currency,   // currency of the smart token governed by the converter
                     bool  smart_enabled,    // true if the smart token can be converted to/from, false if not
