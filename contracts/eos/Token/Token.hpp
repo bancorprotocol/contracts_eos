@@ -11,7 +11,7 @@ namespace eosiosystem {
 namespace eosio {
 using std::string;
 
-CONTRACT SmartToken : public contract {
+CONTRACT Token : public contract {
     using contract::contract;
     public:
         struct transfer_args {

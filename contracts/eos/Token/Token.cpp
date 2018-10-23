@@ -1,8 +1,8 @@
-#include "SmartToken.hpp"
+#include "Token.hpp"
 
 namespace eosio {
 
-ACTION SmartToken::create(name issuer, asset maximum_supply) {
+ACTION Token::create(name issuer, asset maximum_supply) {
     require_auth(_self);
 
     auto sym = maximum_supply.symbol;
@@ -21,7 +21,7 @@ ACTION SmartToken::create(name issuer, asset maximum_supply) {
     });
 }
 
-ACTION SmartToken::issue(name to, asset quantity, string memo) {
+ACTION Token::issue(name to, asset quantity, string memo) {
     auto sym = quantity.symbol;
     eosio_assert(sym.is_valid(), "invalid symbol name");
     eosio_assert(memo.size() <= 256, "memo has more than 256 bytes");
@@ -49,7 +49,7 @@ ACTION SmartToken::issue(name to, asset quantity, string memo) {
     }
 }
 
-ACTION SmartToken::retire(asset quantity, string memo) {
+ACTION Token::retire(asset quantity, string memo) {
     auto sym = quantity.symbol;
     eosio_assert(sym.is_valid(), "invalid symbol name");
     eosio_assert(memo.size() <= 256, "memo has more than 256 bytes");
@@ -72,7 +72,7 @@ ACTION SmartToken::retire(asset quantity, string memo) {
     sub_balance(st.issuer, quantity);
 }
 
-ACTION SmartToken::transfer(name from, name to, asset quantity, string memo) {
+ACTION Token::transfer(name from, name to, asset quantity, string memo) {
     eosio_assert(from != to, "cannot transfer to self");
     require_auth(from);
     eosio_assert(is_account(to), "to account does not exist");
@@ -94,7 +94,7 @@ ACTION SmartToken::transfer(name from, name to, asset quantity, string memo) {
     add_balance(to, quantity, payer);
 }
 
-ACTION SmartToken::sub_balance(name owner, asset value) {
+ACTION Token::sub_balance(name owner, asset value) {
     accounts from_acnts(_self, owner.value);
 
     const auto& from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
@@ -105,7 +105,7 @@ ACTION SmartToken::sub_balance(name owner, asset value) {
     });
 }
 
-ACTION SmartToken::add_balance(name owner, asset value, name ram_payer) {
+ACTION Token::add_balance(name owner, asset value, name ram_payer) {
     accounts to_acnts(_self, owner.value);
     auto to = to_acnts.find(value.symbol.code().raw());
     if (to == to_acnts.end()) {
@@ -119,7 +119,7 @@ ACTION SmartToken::add_balance(name owner, asset value, name ram_payer) {
     }
 }
 
-ACTION SmartToken::open(name owner, symbol_code symbol, name ram_payer) {
+ACTION Token::open(name owner, symbol_code symbol, name ram_payer) {
     require_auth(ram_payer);
 
     auto sym = symbol.raw();
@@ -137,7 +137,7 @@ ACTION SmartToken::open(name owner, symbol_code symbol, name ram_payer) {
     }
 }
 
-ACTION SmartToken::close(name owner, symbol_code symbol) {
+ACTION Token::close(name owner, symbol_code symbol) {
     require_auth(owner);
 
     accounts acnts(_self, owner.value);
@@ -149,4 +149,4 @@ ACTION SmartToken::close(name owner, symbol_code symbol) {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH(eosio::SmartToken, (create)(issue)(transfer)(open)(close)(retire))
+EOSIO_DISPATCH(eosio::Token, (create)(issue)(transfer)(open)(close)(retire))

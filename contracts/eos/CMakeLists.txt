@@ -1,3 +1,3 @@
-add_subdirectory(SmartToken)
+add_subdirectory(Token)
 add_subdirectory(BancorNetwork)
 add_subdirectory(BancorConverter)

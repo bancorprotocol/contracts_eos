@@ -1,17 +1,17 @@
-var SmartToken = artifacts.require("./SmartToken/");
+var Token = artifacts.require("./Token/");
 var BancorNetwork = artifacts.require("./BancorNetwork/");
 var BancorConverter = artifacts.require("./BancorConverter/");
 
 async function regConverter(deployer, token, symbol, networkContract, networkToken, networkTokenSymbol) {
     const converter = await deployer.deploy(BancorConverter, `cnvt${token}`);
 
-    const tknContract = await deployer.deploy(SmartToken, token);
+    const tknContract = await deployer.deploy(Token, token);
     await tknContract.contractInstance.create({
         issuer: tknContract.contract.address,
         maximum_supply: `1000000000.0000 ${symbol}`},
         { authorization: `${tknContract.contract.address}@active`, broadcast: true, sign: true });
 
-    const tknrlyContract = await deployer.deploy(SmartToken, `tkn${networkToken.contract.address}${token}`);
+    const tknrlyContract = await deployer.deploy(Token, `tkn${networkToken.contract.address}${token}`);
     var rlySymbol = networkTokenSymbol + symbol;
     await tknrlyContract.contractInstance.create({
         issuer: converter.contract.address,
@@ -67,7 +67,7 @@ async function regConverter(deployer, token, symbol, networkContract, networkTok
 
 module.exports = async function(deployer, network, accounts) {
     const networkContract = await deployer.deploy(BancorNetwork, "bancornetwrk");
-    const tknbntContract = await deployer.deploy(SmartToken, "bnt");
+    const tknbntContract = await deployer.deploy(Token, "bnt");
     var networkTokenSymbol = "BNT";
     await tknbntContract.contractInstance.create({
         issuer: tknbntContract.contract.address,
