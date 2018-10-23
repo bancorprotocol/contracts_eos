@@ -94,7 +94,7 @@ ACTION Token::transfer(name from, name to, asset quantity, string memo) {
     add_balance(to, quantity, payer);
 }
 
-ACTION Token::sub_balance(name owner, asset value) {
+void Token::sub_balance(name owner, asset value) {
     accounts from_acnts(_self, owner.value);
 
     const auto& from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
@@ -105,7 +105,7 @@ ACTION Token::sub_balance(name owner, asset value) {
     });
 }
 
-ACTION Token::add_balance(name owner, asset value, name ram_payer) {
+void Token::add_balance(name owner, asset value, name ram_payer) {
     accounts to_acnts(_self, owner.value);
     auto to = to_acnts.find(value.symbol.code().raw());
     if (to == to_acnts.end()) {
