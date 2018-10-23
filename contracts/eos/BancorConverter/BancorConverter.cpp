@@ -152,7 +152,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
 
     auto issue = false;
     if (outgoing_smart_token) {
-        eosio_assert(memo_object.path.size() == 3, "smart token must be final currency");
+        eosio_assert(memo_object.path.size() == 2, "smart token must be final currency");
         to_tokens = smart_tokens;
         issue = true;
     }
