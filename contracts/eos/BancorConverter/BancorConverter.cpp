@@ -34,7 +34,7 @@ ACTION BancorConverter::init(name smart_contract,
 
     settings settings_table(_self, _self.value);
     bool settings_exists = settings_table.exists();
-    eosio_assert(!settings_exists, "settings already exists");
+    eosio_assert(!settings_exists, "settings already defined");
 
     settings_t new_settings;
     new_settings.smart_contract  = smart_contract;
