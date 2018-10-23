@@ -28,7 +28,13 @@ ACTION BancorConverter::init(name smart_contract,
                              uint64_t max_fee,
                              uint64_t fee) {
     require_auth(_self);
-    eosio_assert(fee < 1000, "must be under 1000");
+    eosio_assert(max_fee <= 1000, "maximum fee must be lower or equal to 1000");
+    eosio_assert(fee <= 1000, "fee must be lower or equal to 1000");
+    eosio_assert(fee <= max_fee, "fee must be lower or equal to the maximum fee");
+
+    settings settings_table(_self, _self.value);
+    bool settings_exists = settings_table.exists();
+    eosio_assert(!settings_exists, "settings already exists");
 
     settings_t new_settings;
     new_settings.smart_contract  = smart_contract;
@@ -39,9 +45,25 @@ ACTION BancorConverter::init(name smart_contract,
     new_settings.require_balance = require_balance;
     new_settings.max_fee         = max_fee;
     new_settings.fee             = fee;
+    settings_table.set(new_settings, _self);
+}
+
+ACTION BancorConverter::update(bool smart_enabled,
+                               bool enabled,
+                               bool require_balance,
+                               uint64_t fee) {
+    require_auth(_self);
+    eosio_assert(fee <= 1000, "fee must be lower or equal to 1000");
 
     settings settings_table(_self, _self.value);
-    settings_table.set(new_settings, _self);
+    auto st = settings_table.get();
+    eosio_assert(fee <= st.max_fee, "fee must be lower or equal to the maximum fee");
+
+    st.smart_enabled   = smart_enabled;
+    st.enabled         = enabled;
+    st.require_balance = require_balance;
+    st.fee             = fee;
+    settings_table.set(st, _self);
 }
 
 ACTION BancorConverter::setreserve(name contract,
@@ -50,12 +72,14 @@ ACTION BancorConverter::setreserve(name contract,
                                    bool     p_enabled)
 {
     require_auth(_self);
+    eosio_assert(ratio <= 1000, "ratio must be lower or equal to 1000");
 
     reserves reserves_table(_self, _self.value);
     auto existing = reserves_table.find(currency.symbol.code().raw());
     if (existing != reserves_table.end()) {
+        eosio_assert(existing->contract == contract, "cannot update the reserve contract name");
+
         reserves_table.modify(existing, _self, [&](auto& s) {
-            s.contract    = contract;
             s.currency    = currency;
             s.ratio       = ratio;
             s.p_enabled   = p_enabled;
@@ -67,6 +91,12 @@ ACTION BancorConverter::setreserve(name contract,
         s.ratio       = ratio;
         s.p_enabled   = p_enabled;
     });
+
+    uint64_t total_ratio = 0;
+    for (auto& reserve : reserves_table)
+        total_ratio += reserve.ratio;
+    
+    eosio_assert(total_ratio <= 1000, "total ratio cannot exceed 1000");
 
     settings settings_table(_self, _self.value);
     auto converter_settings = settings_table.get();
@@ -139,9 +169,6 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         if (converter_settings.fee > 0) {
             double ffee = (1.0 * converter_settings.fee / 1000.0);
             auto fee = smart_tokens * ffee;
-            if (converter_settings.max_fee > 0 && fee > converter_settings.max_fee)
-                fee = converter_settings.max_fee;
-
             int64_t fee_amount = (fee * pow(10, converter_settings.smart_currency.symbol.precision()));
             if (fee_amount > 0) {
                 smart_tokens = smart_tokens - fee;
@@ -160,8 +187,6 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         if (converter_settings.fee) {
             double ffee = (1.0 * converter_settings.fee / 1000.0);
             auto fee = smart_tokens * ffee;
-            if (converter_settings.max_fee > 0 && fee > converter_settings.max_fee)
-                fee = converter_settings.max_fee;
             int64_t fee_amount = (fee * pow(10, converter_settings.smart_currency.symbol.precision()));
             if (fee_amount > 0) {
                 smart_tokens = smart_tokens - fee;

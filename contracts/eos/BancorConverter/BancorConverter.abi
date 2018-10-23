@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Tue Oct 23 15:39:46 2018",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Tue Oct 23 20:42:27 2018",
     "version": "eosio::abi/1.0",
     "structs": [
         {
@@ -121,6 +121,28 @@
                     "type": "uint64"
                 }
             ]
+        },
+        {
+            "name": "update",
+            "base": "",
+            "fields": [
+                {
+                    "name": "smart_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "require_balance",
+                    "type": "bool"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                }
+            ]
         }
     ],
     "types": [],
@@ -133,6 +155,11 @@
         {
             "name": "setreserve",
             "type": "setreserve",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "update",
+            "type": "update",
             "ricardian_contract": ""
         }
     ],

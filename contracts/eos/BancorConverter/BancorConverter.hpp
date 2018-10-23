@@ -75,7 +75,7 @@ CONTRACT BancorConverter : public eosio::contract {
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
 
         // initializes the converter settings
-        // can also be used to update the settings
+        // can also be called once, by the contract account
         ACTION init(name smart_contract,    // contract name of the smart token governed by the converter
                     asset smart_currency,   // currency of the smart token governed by the converter
                     bool  smart_enabled,    // true if the smart token can be converted to/from, false if not
@@ -83,10 +83,17 @@ CONTRACT BancorConverter : public eosio::contract {
                     name  network,          // bancor network contract name
                     bool  require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
                     uint64_t max_fee,       // maximum conversion fee percentage, 0-1000
-                    uint64_t fee);          // conversion fee percentage, 0-1000
+                    uint64_t fee);          // conversion fee percentage, must be lower than the maximum fee, 0-1000
+
+        // updates the converter settings
+        // can only be called by the contract account
+        ACTION update(bool smart_enabled,    // true if the smart token can be converted to/from, false if not
+                      bool enabled,          // true if conversions are enabled, false if not
+                      bool require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
+                      uint64_t fee);         // conversion fee percentage, must be lower than the maximum fee, 0-1000
         
         // initializes a new reserve in the converter
-        // can also be used to update an existing reserve
+        // can also be used to update an existing reserve, can only be called by the contract account
         ACTION setreserve(name contract,        // reserve token contract name
                           asset    currency,    // reserve token currency
                           uint64_t ratio,       // reserve ratio, percentage, 0-1000
