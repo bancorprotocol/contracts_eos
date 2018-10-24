@@ -48,10 +48,7 @@ ACTION BancorConverter::init(name smart_contract,
     settings_table.set(new_settings, _self);
 }
 
-ACTION BancorConverter::update(bool smart_enabled,
-                               bool enabled,
-                               bool require_balance,
-                               uint64_t fee) {
+ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee) {
     require_auth(_self);
     eosio_assert(fee <= 1000, "fee must be lower or equal to 1000");
 
@@ -66,11 +63,7 @@ ACTION BancorConverter::update(bool smart_enabled,
     settings_table.set(st, _self);
 }
 
-ACTION BancorConverter::setreserve(name contract,
-                                   asset    currency,
-                                   uint64_t ratio,
-                                   bool     p_enabled)
-{
+ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio, bool p_enabled) {
     require_auth(_self);
     eosio_assert(ratio > 0 && ratio <= 1000, "ratio must be between 1 and 1000");
 
@@ -365,7 +358,7 @@ extern "C" {
         }
         if (code == receiver) {
             switch (action) { 
-                EOSIO_DISPATCH_HELPER(BancorConverter, (init)(setreserve)) 
+                EOSIO_DISPATCH_HELPER(BancorConverter, (init)(update)(setreserve)) 
             }    
         }
         eosio_exit(0);
