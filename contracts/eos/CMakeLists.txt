@@ -1,3 +1,5 @@
 add_subdirectory(Token)
+add_subdirectory(BancorX)
 add_subdirectory(BancorNetwork)
 add_subdirectory(BancorConverter)
+add_subdirectory(XTransferRerouter)
