@@ -122,7 +122,6 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name 
     uint64_t current_limit = std::min(prev_issue_limit + limit_inc * current_delta, st.max_issue_limit);
 
     eosio_assert(quantity.amount >= st.min_limit, "below min limit");
-    eosio_assert(quantity.amount <= current_limit, "above max limit");
 
     // checks that the signer is known reporter
     reporters reporters_table(_self, _self.value);
@@ -136,6 +135,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name 
 
     // first reporter 
     if (transaction == transfers_table.end()) {
+        eosio_assert(quantity.amount <= current_limit, "above max limit");
         transfers_table.emplace(_self, [&](auto& s) {
             s.tx_id           = tx_id;
             s.target          = target;
