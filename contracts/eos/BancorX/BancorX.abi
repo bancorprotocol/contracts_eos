@@ -1,0 +1,297 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Wed Nov  7 16:21:11 2018",
+    "version": "eosio::abi/1.0",
+    "structs": [
+        {
+            "name": "addreporter",
+            "base": "",
+            "fields": [
+                {
+                    "name": "reporter",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "enablerpt",
+            "base": "",
+            "fields": [
+                {
+                    "name": "enable",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "enablext",
+            "base": "",
+            "fields": [
+                {
+                    "name": "enable",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "init",
+            "base": "",
+            "fields": [
+                {
+                    "name": "x_token_name",
+                    "type": "name"
+                },
+                {
+                    "name": "min_reporters",
+                    "type": "uint64"
+                },
+                {
+                    "name": "min_limit",
+                    "type": "uint64"
+                },
+                {
+                    "name": "limit_inc",
+                    "type": "uint64"
+                },
+                {
+                    "name": "max_issue_limit",
+                    "type": "uint64"
+                },
+                {
+                    "name": "max_destroy_limit",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "reporter_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "reporter",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "reporttx",
+            "base": "",
+            "fields": [
+                {
+                    "name": "reporter",
+                    "type": "name"
+                },
+                {
+                    "name": "blockchain",
+                    "type": "string"
+                },
+                {
+                    "name": "tx_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "target",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                },
+                {
+                    "name": "data",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "rmreporter",
+            "base": "",
+            "fields": [
+                {
+                    "name": "reporter",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "settings_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "x_token_name",
+                    "type": "name"
+                },
+                {
+                    "name": "rpt_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "xt_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "min_reporters",
+                    "type": "uint64"
+                },
+                {
+                    "name": "min_limit",
+                    "type": "uint64"
+                },
+                {
+                    "name": "limit_inc",
+                    "type": "uint64"
+                },
+                {
+                    "name": "max_issue_limit",
+                    "type": "uint64"
+                },
+                {
+                    "name": "prev_issue_limit",
+                    "type": "uint64"
+                },
+                {
+                    "name": "prev_issue_time",
+                    "type": "uint64"
+                },
+                {
+                    "name": "max_destroy_limit",
+                    "type": "uint64"
+                },
+                {
+                    "name": "prev_destroy_limit",
+                    "type": "uint64"
+                },
+                {
+                    "name": "prev_destroy_time",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "transfer_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "tx_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "target",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "blockchain",
+                    "type": "string"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
+                },
+                {
+                    "name": "data",
+                    "type": "string"
+                },
+                {
+                    "name": "reporters",
+                    "type": "name[]"
+                }
+            ]
+        },
+        {
+            "name": "update",
+            "base": "",
+            "fields": [
+                {
+                    "name": "min_reporters",
+                    "type": "uint64"
+                },
+                {
+                    "name": "min_limit",
+                    "type": "uint64"
+                },
+                {
+                    "name": "limit_inc",
+                    "type": "uint64"
+                },
+                {
+                    "name": "max_issue_limit",
+                    "type": "uint64"
+                },
+                {
+                    "name": "max_destroy_limit",
+                    "type": "uint64"
+                }
+            ]
+        }
+    ],
+    "types": [],
+    "actions": [
+        {
+            "name": "addreporter",
+            "type": "addreporter",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "enablerpt",
+            "type": "enablerpt",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "enablext",
+            "type": "enablext",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "init",
+            "type": "init",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "reporttx",
+            "type": "reporttx",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "rmreporter",
+            "type": "rmreporter",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "update",
+            "type": "update",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "reporters",
+            "type": "reporter_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "settings",
+            "type": "settings_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "transfers",
+            "type": "transfer_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "abi_extensions": []
+}

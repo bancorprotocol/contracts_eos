@@ -1,0 +1,68 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Wed Nov  7 16:21:21 2018",
+    "version": "eosio::abi/1.0",
+    "structs": [
+        {
+            "name": "enablerrt",
+            "base": "",
+            "fields": [
+                {
+                    "name": "enable",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "reroutetx",
+            "base": "",
+            "fields": [
+                {
+                    "name": "tx_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "blockchain",
+                    "type": "string"
+                },
+                {
+                    "name": "target",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "settings_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "rrt_enabled",
+                    "type": "bool"
+                }
+            ]
+        }
+    ],
+    "types": [],
+    "actions": [
+        {
+            "name": "enablerrt",
+            "type": "enablerrt",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "reroutetx",
+            "type": "reroutetx",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "settings",
+            "type": "settings_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "abi_extensions": []
+}
