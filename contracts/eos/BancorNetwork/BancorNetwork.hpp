@@ -25,6 +25,11 @@ using std::vector;
 
     Format:
     [converter account, to token symbol, converter account, to token symbol...]
+
+    For example, in order to convert 10 EOS into BNT, the caller needs to transfer 10 EOS to the contract
+    and provide the following memo:
+
+    1,bnt2eosrelay,BNT,1,receiver_account_name
 */
 CONTRACT BancorNetwork : public eosio::contract {
     using contract::contract;

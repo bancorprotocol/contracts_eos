@@ -17,6 +17,8 @@ Bancor protocol is implemented using multiple contracts. The main ones are a ver
 BancorNetwork is the entry point for any token to any token conversion.
 BancorConverter is responsible for converting between a specific token and its own reserves.
 
+In order to execute a conversion, the caller needs to transfer tokens to the BancorNetwork contract with specific conversion instructions in the transfer memo.
+
 See each contract for a description and general usage information.
 
 ## Testing
