@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Wed Nov  7 16:50:05 2018",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sat Nov 17 13:16:28 2018",
     "version": "eosio::abi/1.0",
     "structs": [
         {
@@ -9,6 +9,50 @@
                 {
                     "name": "reporter",
                     "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "claimx",
+            "base": "",
+            "fields": [
+                {
+                    "name": "hash_lock_source",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "deposit_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "short_hash_lock",
+                    "type": "uint64"
+                },
+                {
+                    "name": "sender",
+                    "type": "name"
+                },
+                {
+                    "name": "blockchain",
+                    "type": "string"
+                },
+                {
+                    "name": "target",
+                    "type": "string"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "expiration",
+                    "type": "uint64"
+                },
+                {
+                    "name": "claimed",
+                    "type": "bool"
                 }
             ]
         },
@@ -41,10 +85,6 @@
                     "type": "name"
                 },
                 {
-                    "name": "min_reporters",
-                    "type": "uint64"
-                },
-                {
                     "name": "min_limit",
                     "type": "uint64"
                 },
@@ -59,6 +99,20 @@
                 {
                     "name": "max_destroy_limit",
                     "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "releasetkns",
+            "base": "",
+            "fields": [
+                {
+                    "name": "hash_lock_source",
+                    "type": "string"
+                },
+                {
+                    "name": "memo",
+                    "type": "string"
                 }
             ]
         },
@@ -85,8 +139,8 @@
                     "type": "string"
                 },
                 {
-                    "name": "tx_id",
-                    "type": "uint64"
+                    "name": "hash_lock",
+                    "type": "checksum256"
                 },
                 {
                     "name": "target",
@@ -133,10 +187,6 @@
                     "type": "bool"
                 },
                 {
-                    "name": "min_reporters",
-                    "type": "uint64"
-                },
-                {
                     "name": "min_limit",
                     "type": "uint64"
                 },
@@ -175,7 +225,11 @@
             "base": "",
             "fields": [
                 {
-                    "name": "tx_id",
+                    "name": "short_hash_lock",
+                    "type": "uint64"
+                },
+                {
+                    "name": "expiration",
                     "type": "uint64"
                 },
                 {
@@ -197,10 +251,6 @@
                 {
                     "name": "data",
                     "type": "string"
-                },
-                {
-                    "name": "reporters",
-                    "type": "name[]"
                 }
             ]
         },
@@ -208,10 +258,6 @@
             "name": "update",
             "base": "",
             "fields": [
-                {
-                    "name": "min_reporters",
-                    "type": "uint64"
-                },
                 {
                     "name": "min_limit",
                     "type": "uint64"
@@ -239,6 +285,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "claimx",
+            "type": "claimx",
+            "ricardian_contract": ""
+        },
+        {
             "name": "enablerpt",
             "type": "enablerpt",
             "ricardian_contract": ""
@@ -251,6 +302,11 @@
         {
             "name": "init",
             "type": "init",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "releasetkns",
+            "type": "releasetkns",
             "ricardian_contract": ""
         },
         {
@@ -270,6 +326,13 @@
         }
     ],
     "tables": [
+        {
+            "name": "deposits",
+            "type": "deposit_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
         {
             "name": "reporters",
             "type": "reporter_t",

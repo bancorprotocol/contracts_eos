@@ -8,6 +8,8 @@
 #include <eosiolib/symbol.hpp>
 #include <eosiolib/singleton.hpp>
 #include "../Common/common.hpp"
+#include "eosiolib/types.h"
+
 using std::string;
 using std::vector;
 
@@ -61,11 +63,22 @@ CONTRACT BancorX : public contract {
     using contract::contract;
     public:
 
+
+        TABLE deposit_t {
+            uint64_t            short_hash_lock;
+            name sender;
+            string blockchain;
+            string target;
+            asset quantity;
+            uint64_t expiration;
+            bool claimed;
+            uint64_t     primary_key() const { return short_hash_lock; }
+        };
+
         TABLE settings_t {
             name     x_token_name;
             bool     rpt_enabled;
             bool     xt_enabled;
-            uint64_t min_reporters;
             uint64_t min_limit;
             uint64_t limit_inc;
             uint64_t max_issue_limit;
@@ -74,18 +87,18 @@ CONTRACT BancorX : public contract {
             uint64_t max_destroy_limit;
             uint64_t prev_destroy_limit;
             uint64_t prev_destroy_time;
-            EOSLIB_SERIALIZE(settings_t, (x_token_name)(rpt_enabled)(xt_enabled)(min_reporters)(min_limit)(limit_inc)(max_issue_limit)(prev_issue_limit)(prev_issue_time)(max_destroy_limit)(prev_destroy_limit)(prev_destroy_time))
+            EOSLIB_SERIALIZE(settings_t, (x_token_name)(rpt_enabled)(xt_enabled)(min_limit)(limit_inc)(max_issue_limit)(prev_issue_limit)(prev_issue_time)(max_destroy_limit)(prev_destroy_limit)(prev_destroy_time))
         };
 
         TABLE transfer_t {
-            uint64_t        tx_id;
-            name            target;
-            asset           quantity;
-            string          blockchain;
-            string          memo;
-            string          data;
-            vector<name>    reporters;
-            uint64_t     primary_key() const { return tx_id; }
+            uint64_t            short_hash_lock;
+            uint64_t            expiration;
+            name                target;
+            asset               quantity;
+            string              blockchain;
+            string              memo;
+            string              data;
+            uint64_t     primary_key() const { return short_hash_lock; }
         };
 
         TABLE reporter_t {
@@ -98,10 +111,11 @@ CONTRACT BancorX : public contract {
         typedef eosio::multi_index<"transfers"_n, transfer_t> transfers;
         typedef eosio::multi_index<"reporters"_n, reporter_t> reporters;
 
+        typedef eosio::multi_index<"deposits"_n, deposit_t> deposits;
+
         // initializes the contract settings
         // can only be called once, by the contract account
         ACTION init(name x_token_name,              // cross chain token account
-                    uint64_t min_reporters,         // minimum required number of reporters to fulfill a cross chain transfer
                     uint64_t min_limit,             // minimum amount that can be transferred out (destroyed)
                     uint64_t limit_inc,             // amount the current limit is increased by in each interval
                     uint64_t max_issue_limit,       // maximum amount that can be issued on EOS in a given timespan
@@ -109,8 +123,7 @@ CONTRACT BancorX : public contract {
 
         // updates the contract settings
         // can only be called by the contract account
-        ACTION update(uint64_t min_reporters,       // new minimum required number of reporters
-                      uint64_t min_limit,           // new minimum limit
+        ACTION update(uint64_t min_limit,           // new minimum limit
                       uint64_t limit_inc,           // new limit increment
                       uint64_t max_issue_limit,     // new maximum incoming amount
                       uint64_t max_destroy_limit);  // new maximum outgoing amount
@@ -125,11 +138,15 @@ CONTRACT BancorX : public contract {
         // can only be called by an existing reporter
         ACTION reporttx(name reporter,      // reporter account
                         string blockchain,  // name of the source blockchain
-                        uint64_t tx_id,     // unique transaction id on the source blockchain
+                        capi_checksum256 hash_lock, // hash lock
                         name target,        // target account on EOS
                         asset quantity,     // amount to issue to the target account if the minimum required number of reports is met
                         string memo,        // memo to pass in in the transfer action
                         string data);       // custom source blockchain value, usually a string representing the tx hash on the source blockchain
+
+        ACTION claimx(string hash_lock_source);
+
+        ACTION releasetkns(string hash_lock_source, string memo);
 
         // transfer intercepts with standard transfer args
         // if the token received is the cross transfers token, initiates a cross transfer
@@ -140,9 +157,52 @@ CONTRACT BancorX : public contract {
             std::string version;
             std::string blockchain;
             std::string target;
+            capi_checksum256 hash_lock;
         };
 
-        void xtransfer(string blockchain, name from, string target, asset quantity);
+        void xtransfer(string blockchain, name from, string target, asset quantity, capi_checksum256 hash_lock);
+
+        uint8_t from_hex(char c) {
+            if (c >= '0' && c <= '9') return c - '0';
+            if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+            if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+            eosio_assert(false, "Invalid hex character");
+            return 0;
+        }
+
+        size_t from_hex(const std::string& hex_str, char* out_data, size_t out_data_len) {
+            auto i = hex_str.begin();
+            uint8_t* out_pos = (uint8_t*)out_data;
+            uint8_t* out_end = out_pos + out_data_len;
+            while (i != hex_str.end() && out_end != out_pos) {
+                *out_pos = from_hex((char)(*i)) << 4;
+                ++i;
+                if (i != hex_str.end()) {
+                    *out_pos |= from_hex((char)(*i));
+                    ++i;
+                }
+                ++out_pos;
+            }
+            return out_pos - (uint8_t*)out_data;
+        }
+
+        capi_checksum256 hex_to_checksum256(const std::string& hex_str) {
+            eosio_assert(hex_str.length() == 64, "invalid sha256");
+            capi_checksum256 checksum;
+            from_hex(hex_str, (char*)checksum.hash, sizeof(checksum.hash));
+            return checksum;
+        }
+
+        uint64_t get_short_hash(capi_checksum256 hash) { // use reference instead
+            uint64_t id = 0;
+
+            for(int i=0; i<8; i++) {
+                id <<=8;
+                id |= hash.hash[i];
+            }
+
+            return id;
+        }
 
         memo_x_transfer parse_memo(string memo) {
             auto res = memo_x_transfer();
@@ -150,6 +210,7 @@ CONTRACT BancorX : public contract {
             res.version = parts[0];
             res.blockchain = parts[1];
             res.target = parts[2];
+            res.hash_lock = hex_to_checksum256(parts[3]);
             return res;
         }
 };

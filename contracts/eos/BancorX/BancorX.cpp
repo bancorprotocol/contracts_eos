@@ -2,17 +2,17 @@
 #include <math.h>
 #include "./BancorX.hpp"
 #include "../Common/common.hpp"
+#include "eosiolib/crypto.h"
 
 using namespace eosio;
 
-ACTION BancorX::init(name x_token_name, uint64_t min_reporters, uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit) {
+ACTION BancorX::init(name x_token_name, uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit) {
     require_auth(_self);
 
     settings settings_table(_self, _self.value);
     bool settings_exists = settings_table.exists();
 
     eosio_assert(!settings_exists, "settings already defined");
-    eosio_assert(min_reporters > 0, "minimum reporters must be positive");
     eosio_assert(min_limit >= 0, "minimum limit must be non-negative");
     eosio_assert(min_limit <= max_issue_limit, "minimum limit must be lower or equal than the maximum issue limit");
     eosio_assert(min_limit <= max_destroy_limit, "minimum limit must be lower or equal than the maximum destroy limit");
@@ -24,7 +24,6 @@ ACTION BancorX::init(name x_token_name, uint64_t min_reporters, uint64_t min_lim
         x_token_name,
         false,
         false,
-        min_reporters,
         min_limit,
         limit_inc,
         max_issue_limit,
@@ -36,10 +35,9 @@ ACTION BancorX::init(name x_token_name, uint64_t min_reporters, uint64_t min_lim
         }, _self);
 }
 
-ACTION BancorX::update(uint64_t min_reporters, uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit) {
+ACTION BancorX::update(uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit) {
     require_auth(_self);
 
-    eosio_assert(min_reporters > 0, "minimum reporters must be positive");
     eosio_assert(min_limit >= 0, "minimum limit must be non-negative");
     eosio_assert(min_limit <= max_issue_limit, "minimum limit must be lower or equal than the maximum issue limit");
     eosio_assert(min_limit <= max_destroy_limit, "minimum limit must be lower or equal than the maximum destroy limit");
@@ -49,7 +47,6 @@ ACTION BancorX::update(uint64_t min_reporters, uint64_t min_limit, uint64_t limi
 
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
-    st.min_reporters = min_reporters;
     st.max_issue_limit = max_issue_limit;
     st.min_limit = min_limit;
     st.limit_inc = limit_inc;
@@ -98,7 +95,7 @@ ACTION BancorX::rmreporter(name reporter) {
     reporters_table.erase(it);
 }
 
-ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name target, asset quantity, string memo, string data) {
+ACTION BancorX::reporttx(name reporter, string blockchain, capi_checksum256 hash_lock, name target, asset quantity, string memo, string data) {
     // checks that the reporter signed on the tx
     require_auth(reporter);
 
@@ -129,64 +126,61 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name 
 
     eosio_assert(existing != reporters_table.end(), "the signer is not a known reporter");
 
+    uint64_t short_hash_lock = get_short_hash(hash_lock);
     // checks if the reporters limits are valid
     transfers transfers_table(_self, _self.value);
-    auto transaction = transfers_table.find(tx_id);
+    auto transaction = transfers_table.find(short_hash_lock);
 
     // first reporter 
-    if (transaction == transfers_table.end()) {
-        eosio_assert(quantity.amount <= current_limit, "above max limit");
-        transfers_table.emplace(_self, [&](auto& s) {
-            s.tx_id           = tx_id;
-            s.target          = target;
-            s.quantity        = quantity;
-            s.blockchain      = blockchain;
-            s.memo            = memo;
-            s.data            = data;
-            s.reporters.push_back(reporter);
-        });
+    eosio_assert(transaction == transfers_table.end(), "transaction already exists");
+    eosio_assert(quantity.amount <= current_limit, "above max limit");
+    transfers_table.emplace(_self, [&](auto& s) {
+        s.short_hash_lock = short_hash_lock;
+        s.expiration      = (current_time() / 500000) + (2400); // + 20 minutes (2400 half-seconds == 1200 seconds == 20 minutes)
+        s.target          = target;
+        s.quantity        = quantity;
+        s.blockchain      = blockchain;
+        s.memo            = memo;
+        s.data            = data;
+    });
 
-        st.prev_issue_limit = current_limit - quantity.amount;
-        st.prev_issue_time  = timestamp;
-        settings_table.set(st, _self);
+    st.prev_issue_limit = current_limit - quantity.amount;
+    st.prev_issue_time  = timestamp;
+    settings_table.set(st, _self);
 
-        EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, memo);
-    }
-    else {
-        // checks that the reporter didn't already report the transfer
-        eosio_assert(std::find(transaction->reporters.begin(), 
-                               transaction->reporters.end(),
-                               reporter) == transaction->reporters.end(),
-                               "the reporter already reported the transfer");
-
-        eosio_assert(transaction->target == target &&
-                     transaction->quantity == quantity &&
-                     transaction->blockchain == blockchain &&
-                     transaction->memo == memo &&
-                     transaction->data == data,
-                     "transfer data doesn't match");
-
-        transfers_table.modify(transaction, _self, [&](auto& s) {
-            s.reporters.push_back(reporter);
-        });
-        
-        EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, memo);
-
-        // checks if we have minimal reporters for issue
-        if (transaction->reporters.size() >= st.min_reporters) {
-            // issue tokens
-            action(
-                permission_level{ _self, "active"_n },
-                st.x_token_name, "issue"_n,
-                std::make_tuple(transaction->target, transaction->quantity, memo)
-            ).send();
-
-            EMIT_ISSUE_EVENT(target, quantity);
-
-            transfers_table.erase(transaction);
-        }
-    }
+    EMIT_TX_REPORT_EVENT(reporter, blockchain, short_hash_lock, target, quantity, memo);
 }
+
+ACTION BancorX::releasetkns(string hash_lock_source, string memo) {
+    capi_checksum256 hash_lock;
+    const char* cstr = hash_lock_source.c_str();
+    sha256(cstr, hash_lock_source.size(), &hash_lock);
+
+    uint64_t short_hash_lock = get_short_hash(hash_lock);
+    transfers transfers_table(_self, _self.value);
+    auto transaction = transfers_table.find(short_hash_lock);
+
+    settings settings_table(_self, _self.value);
+    auto st = settings_table.get();
+
+    eosio_assert(transaction != transfers_table.end(),"there\'s no corresponding transaction to the provided hash lock");
+    eosio_assert(current_time() / 500000 <= transaction->expiration, "transaction has expired");
+
+    // issue tokens
+    action(
+        permission_level{ _self, "active"_n },
+        st.x_token_name, "issue"_n,
+        std::make_tuple(transaction->target, transaction->quantity, memo)
+    ).send();
+
+    EMIT_ISSUE_EVENT(transaction->target, transaction->quantity);
+
+    transfers_table.erase(transaction);
+}
+
+// ACTION BancorX::deleteexpiredtransactions() {
+
+// }
 
 void BancorX::transfer(name from, name to, asset quantity, string memo) {
     if (from == _self || to != _self)
@@ -198,10 +192,10 @@ void BancorX::transfer(name from, name to, asset quantity, string memo) {
         return;
 
     auto memo_object = parse_memo(memo);
-    xtransfer(memo_object.blockchain, from, memo_object.target, quantity);
+    xtransfer(memo_object.blockchain, from, memo_object.target, quantity, memo_object.hash_lock);
 }
 
-void BancorX::xtransfer(string blockchain, name from, string target, asset quantity) {
+void BancorX::xtransfer(string blockchain, name from, string target, asset quantity, capi_checksum256 hash_lock) {
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
 
@@ -221,6 +215,23 @@ void BancorX::xtransfer(string blockchain, name from, string target, asset quant
 
     eosio_assert(quantity.amount >= st.min_limit, "below min limit");
     eosio_assert(quantity.amount <= current_limit, "above max limit");
+    
+    uint64_t short_hash_lock = get_short_hash(hash_lock);
+
+    deposits deposits_table(_self, _self.value);
+    auto dp = deposits_table.find(short_hash_lock);
+
+    eosio_assert(dp == deposits_table.end(), "deposit already defined");
+    
+    deposits_table.emplace(_self, [&](auto& s) {
+        s.short_hash_lock   = short_hash_lock;
+        s.sender            = from;
+        s.blockchain        = blockchain;
+        s.target            = target;
+        s.quantity          = quantity;
+        s.claimed       = false;
+        s.expiration    = current_time() / 500000 + 9000; // + 75 minutes
+    });
 
     action(
         permission_level{ _self, "active"_n },
@@ -236,6 +247,37 @@ void BancorX::xtransfer(string blockchain, name from, string target, asset quant
     EMIT_X_TRANSFER_EVENT(blockchain, target, quantity);
 }
 
+ACTION BancorX::claimx(string hash_lock_source) {
+    capi_checksum256 hash_lock;
+    const char* cstr = hash_lock_source.c_str();
+    sha256(cstr, hash_lock_source.size(), &hash_lock);
+
+    uint64_t short_hash_lock = get_short_hash(hash_lock);
+
+    deposits deposits_table(_self, _self.value);
+    auto deposit = deposits_table.find(short_hash_lock);
+
+    eosio_assert(deposit != deposits_table.end(),"there\'s no corresponding deposit to the provided hash lock");
+    eosio_assert(deposit->claimed == false, "xtransfer deposit was already claimed");
+
+    deposits_table.modify(deposit, _self, [&](auto& d) {
+        d.claimed = true;
+    });
+
+    settings settings_table(_self, _self.value);
+    auto st = settings_table.get();
+
+    if (current_time() / 500000 > deposit->expiration) {
+        action(
+            permission_level{ _self, "active"_n },
+            st.x_token_name, "issue"_n,
+            std::make_tuple(deposit->sender, deposit->quantity,std::string("destroy on x transfer"))
+        ).send();
+        
+    }
+}
+
+    
 extern "C" {
     [[noreturn]] void apply(uint64_t receiver, uint64_t code, uint64_t action) {
         if (action == "transfer"_n.value && code != receiver) {
@@ -244,7 +286,7 @@ extern "C" {
     
         if (code == receiver) {
             switch (action) { 
-                EOSIO_DISPATCH_HELPER(BancorX, (init)(update)(enablerpt)(enablext)(addreporter)(rmreporter)(reporttx)) 
+                EOSIO_DISPATCH_HELPER(BancorX, (init)(update)(enablerpt)(enablext)(addreporter)(rmreporter)(reporttx)(claimx)(releasetkns)) 
             }    
         }
 
