@@ -229,8 +229,8 @@ void BancorX::xtransfer(string blockchain, name from, string target, asset quant
         s.blockchain        = blockchain;
         s.target            = target;
         s.quantity          = quantity;
-        s.claimed       = false;
-        s.expiration    = current_time() / 500000 + 9000; // + 75 minutes
+        s.claimed           = false;
+        s.expiration        = current_time() / 500000 + 9000; // + 75 minutes
     });
 
     action(
@@ -275,6 +275,7 @@ ACTION BancorX::claimx(string hash_lock_source) {
         ).send();
         
     }
+
 }
 
     
