@@ -178,9 +178,6 @@ ACTION BancorX::releasetkns(string hash_lock_source, string memo) {
     transfers_table.erase(transaction);
 }
 
-// ACTION BancorX::deleteexpiredtransactions() {
-
-// }
 
 void BancorX::transfer(name from, name to, asset quantity, string memo) {
     if (from == _self || to != _self)
@@ -247,6 +244,7 @@ void BancorX::xtransfer(string blockchain, name from, string target, asset quant
     EMIT_X_TRANSFER_EVENT(blockchain, target, quantity);
 }
 
+// TODO: instead of using a 'claim' field, just delete the deposit when it's claimed
 ACTION BancorX::claimx(string hash_lock_source) {
     capi_checksum256 hash_lock;
     const char* cstr = hash_lock_source.c_str();
@@ -271,7 +269,7 @@ ACTION BancorX::claimx(string hash_lock_source) {
         action(
             permission_level{ _self, "active"_n },
             st.x_token_name, "issue"_n,
-            std::make_tuple(deposit->sender, deposit->quantity,std::string("destroy on x transfer"))
+            std::make_tuple(deposit->sender, deposit->quantity,std::string("issue on x transfer"))
         ).send();
         
     }

@@ -63,16 +63,16 @@ CONTRACT BancorX : public contract {
     using contract::contract;
     public:
 
-
+        // TODO: add a field for the rest of the (256-64) bits of the hash lock
         TABLE deposit_t {
-            uint64_t            short_hash_lock;
-            name sender;
-            string blockchain;
-            string target;
-            asset quantity;
-            uint64_t expiration;
-            bool claimed;
-            uint64_t     primary_key() const { return short_hash_lock; }
+            uint64_t    short_hash_lock;
+            name        sender;
+            string      blockchain;
+            string      target;
+            asset       quantity;
+            uint64_t    expiration;
+            bool        claimed;
+            uint64_t    primary_key() const { return short_hash_lock; }
         };
 
         TABLE settings_t {
