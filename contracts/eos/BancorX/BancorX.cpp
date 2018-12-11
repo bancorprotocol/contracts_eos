@@ -98,7 +98,7 @@ ACTION BancorX::rmreporter(name reporter) {
     reporters_table.erase(it);
 }
 
-ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name target, asset quantity, string memo, string data) {
+ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint64_t x_transfer_id, name target, asset quantity, string memo, string data) {
     // checks that the reporter signed on the tx
     require_auth(reporter);
 
@@ -138,6 +138,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name 
         eosio_assert(quantity.amount <= current_limit, "above max limit");
         transfers_table.emplace(_self, [&](auto& s) {
             s.tx_id           = tx_id;
+            s.x_transfer_id   = x_transfer_id;
             s.target          = target;
             s.quantity        = quantity;
             s.blockchain      = blockchain;
@@ -150,7 +151,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name 
         st.prev_issue_time  = timestamp;
         settings_table.set(st, _self);
 
-        EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, memo);
+        EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, x_transfer_id, memo);
     }
     else {
         // checks that the reporter didn't already report the transfer
@@ -159,7 +160,8 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name 
                                reporter) == transaction->reporters.end(),
                                "the reporter already reported the transfer");
 
-        eosio_assert(transaction->target == target &&
+        eosio_assert(transaction->x_transfer_id == x_transfer_id &&
+                     transaction->target == target &&
                      transaction->quantity == quantity &&
                      transaction->blockchain == blockchain &&
                      transaction->memo == memo &&
@@ -170,7 +172,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name 
             s.reporters.push_back(reporter);
         });
         
-        EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, memo);
+        EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, x_transfer_id, memo);
 
         // checks if we have minimal reporters for issue
         if (transaction->reporters.size() >= st.min_reporters) {
@@ -184,6 +186,16 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, name 
             EMIT_ISSUE_EVENT(target, quantity);
 
             transfers_table.erase(transaction);
+
+            if (x_transfer_id) {
+                amounts amounts_table(_self, _self.value);
+                auto amount = amounts_table.find(x_transfer_id);
+                eosio_assert(amount == amounts_table.end(), "x_transfer_id already exists");
+                amounts_table.emplace(_self, [&](auto& a)  {
+                    a.x_transfer_id = x_transfer_id;
+                    a.quantity = quantity;
+                });
+            }
         }
     }
 }
@@ -198,10 +210,10 @@ void BancorX::transfer(name from, name to, asset quantity, string memo) {
         return;
 
     auto memo_object = parse_memo(memo);
-    xtransfer(memo_object.blockchain, from, memo_object.target, quantity);
+    xtransfer(memo_object.blockchain, from, memo_object.target, quantity, memo_object.x_transfer_id);
 }
 
-void BancorX::xtransfer(string blockchain, name from, string target, asset quantity) {
+void BancorX::xtransfer(string blockchain, name from, string target, asset quantity, uint64_t x_transfer_id) {
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
 
@@ -233,7 +245,7 @@ void BancorX::xtransfer(string blockchain, name from, string target, asset quant
     settings_table.set(st, _self);
 
     EMIT_DESTROY_EVENT(from, quantity);
-    EMIT_X_TRANSFER_EVENT(blockchain, target, quantity);
+    EMIT_X_TRANSFER_EVENT(blockchain, target, quantity, x_transfer_id);
 }
 
 extern "C" {

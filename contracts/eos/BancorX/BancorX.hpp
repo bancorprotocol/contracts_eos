@@ -15,11 +15,12 @@ using namespace eosio;
 
 // events
 // triggered when an account initiates a cross chain transafer
-#define EMIT_X_TRANSFER_EVENT(blockchain, target, quantity) \
+#define EMIT_X_TRANSFER_EVENT(blockchain, target, quantity, x_transfer_id) \
     START_EVENT("xtransfer", "1.1") \
     EVENTKV("blockchain",blockchain) \
     EVENTKV("target",target) \
     EVENTKVL("quantity",quantity) \
+    EVENTKVL("x_transfer_id",x_transfer_id) \
     END_EVENT()
 
 // triggered when account tokens are destroyed after cross chain transfer initiation
@@ -30,13 +31,14 @@ using namespace eosio;
     END_EVENT()
 
 // triggered when a reporter reports a cross chain transfer from another blockchain
-#define EMIT_TX_REPORT_EVENT(reporter, blockchain, transaction, target, quantity, memo) \
+#define EMIT_TX_REPORT_EVENT(reporter, blockchain, transaction, target, quantity, x_transfer_id, memo) \
     START_EVENT("txreport", "1.1") \
     EVENTKV("reporter",reporter) \
     EVENTKV("from_blockchain",blockchain) \
     EVENTKV("transaction",transaction) \
     EVENTKV("target",target) \
     EVENTKV("quantity",quantity) \
+    EVENTKVL("x_transfer_id",x_transfer_id) \
     EVENTKVL("memo",memo) \
     END_EVENT()
 
@@ -79,6 +81,7 @@ CONTRACT BancorX : public contract {
 
         TABLE transfer_t {
             uint64_t        tx_id;
+            uint64_t        x_transfer_id;
             name            target;
             asset           quantity;
             string          blockchain;
@@ -86,6 +89,12 @@ CONTRACT BancorX : public contract {
             string          data;
             vector<name>    reporters;
             uint64_t     primary_key() const { return tx_id; }
+        };
+
+        TABLE amounts_t {
+            uint64_t x_transfer_id;
+            asset quantity;
+            uint64_t primary_key() const { return x_transfer_id; }
         };
 
         TABLE reporter_t {
@@ -96,6 +105,7 @@ CONTRACT BancorX : public contract {
         typedef eosio::singleton<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
         typedef eosio::multi_index<"transfers"_n, transfer_t> transfers;
+        typedef eosio::multi_index<"amounts"_n, amounts_t> amounts;
         typedef eosio::multi_index<"reporters"_n, reporter_t> reporters;
 
         // initializes the contract settings
@@ -123,13 +133,14 @@ CONTRACT BancorX : public contract {
 
         // reports an incoming transaction from a different blockchain
         // can only be called by an existing reporter
-        ACTION reporttx(name reporter,      // reporter account
-                        string blockchain,  // name of the source blockchain
-                        uint64_t tx_id,     // unique transaction id on the source blockchain
-                        name target,        // target account on EOS
-                        asset quantity,     // amount to issue to the target account if the minimum required number of reports is met
-                        string memo,        // memo to pass in in the transfer action
-                        string data);       // custom source blockchain value, usually a string representing the tx hash on the source blockchain
+        ACTION reporttx(name reporter,           // reporter account
+                        string blockchain,       // name of the source blockchain
+                        uint64_t tx_id,          // unique transaction id on the source blockchain
+                        uint64_t x_transfer_id,  // (TODO!)
+                        name target,             // target account on EOS
+                        asset quantity,          // amount to issue to the target account if the minimum required number of reports is met
+                        string memo,             // memo to pass in in the transfer action
+                        string data);            // custom source blockchain value, usually a string representing the tx hash on the source blockchain
 
         // transfer intercepts with standard transfer args
         // if the token received is the cross transfers token, initiates a cross transfer
@@ -140,9 +151,10 @@ CONTRACT BancorX : public contract {
             std::string version;
             std::string blockchain;
             std::string target;
+            uint64_t x_transfer_id;
         };
 
-        void xtransfer(string blockchain, name from, string target, asset quantity);
+        void xtransfer(string blockchain, name from, string target, asset quantity, uint64_t x_transfer_id);
 
         memo_x_transfer parse_memo(string memo) {
             auto res = memo_x_transfer();
@@ -150,6 +162,7 @@ CONTRACT BancorX : public contract {
             res.version = parts[0];
             res.blockchain = parts[1];
             res.target = parts[2];
+            res.x_transfer_id = name(parts[3]).value;
             return res;
         }
 };
