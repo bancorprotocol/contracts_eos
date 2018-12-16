@@ -103,28 +103,10 @@ ACTION Token::transfer(name from, name to, asset quantity, string memo) {
 }
 
 ACTION Token::transferbyid(name from, name to, uint64_t amount_id, name contract, string memo) {
-    eosio_assert(from != to, "cannot transfer to self");
     require_auth(from);
-    eosio_assert(is_account(to), "to account does not exist");
-
     asset quantity = get_quantity_by_id(contract, amount_id);
-
-    auto sym = quantity.symbol.code().raw();
-    stats statstable(_self, sym);
-    const auto& st = statstable.get(sym);
-
-    require_recipient(from);
-    require_recipient(to);
-
-    eosio_assert(quantity.is_valid(), "invalid quantity");
-    eosio_assert(quantity.amount > 0, "must transfer positive quantity");
-    eosio_assert(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
-    eosio_assert(memo.size() <= 256, "memo has more than 256 bytes");
-
-    auto payer = has_auth(to) ? to : from;
-
-    sub_balance(from, quantity);
-    add_balance(to, quantity, payer);
+    
+    SEND_INLINE_ACTION(*this, transfer, {from,"active"_n}, {from, to, quantity, memo});
 }
 
 asset Token::get_quantity_by_id(name contract, uint64_t id) {
@@ -188,4 +170,4 @@ ACTION Token::close(name owner, symbol_code symbol) {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH(eosio::Token, (create)(issue)(transfer)(open)(close)(retire))
+EOSIO_DISPATCH(eosio::Token, (create)(issue)(transfer)(transferbyid)(open)(close)(retire))
