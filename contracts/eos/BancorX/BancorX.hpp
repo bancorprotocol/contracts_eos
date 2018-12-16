@@ -19,7 +19,7 @@ using namespace eosio;
     START_EVENT("xtransfer", "1.1") \
     EVENTKV("blockchain",blockchain) \
     EVENTKV("target",target) \
-    EVENTKVL("quantity",quantity) \
+    EVENTKV("quantity",quantity) \
     EVENTKVL("x_transfer_id",x_transfer_id) \
     END_EVENT()
 
@@ -38,7 +38,7 @@ using namespace eosio;
     EVENTKV("transaction",transaction) \
     EVENTKV("target",target) \
     EVENTKV("quantity",quantity) \
-    EVENTKVL("x_transfer_id",x_transfer_id) \
+    EVENTKV("x_transfer_id",x_transfer_id) \
     EVENTKVL("memo",memo) \
     END_EVENT()
 
