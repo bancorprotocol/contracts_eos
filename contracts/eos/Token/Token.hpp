@@ -27,6 +27,7 @@ CONTRACT Token : public contract {
         ACTION retire(asset quantity, string memo);
 
         ACTION transfer(name from, name to, asset quantity, string memo);
+        ACTION transferbyid(name from, name to, uint64_t amount_id, name contract, string memo);
 
         ACTION open(name owner, symbol_code symbol, name ram_payer);
         ACTION close(name owner, symbol_code symbol);
@@ -58,6 +59,8 @@ CONTRACT Token : public contract {
 
         typedef eosio::multi_index<"accounts"_n, account> accounts;
         typedef eosio::multi_index<"stat"_n, currency_stats> stats;
+
+        asset get_quantity_by_id(name contract, uint64_t id);
 
         void sub_balance(name owner, asset value);
         void add_balance(name owner, asset value, name ram_payer);

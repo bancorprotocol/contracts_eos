@@ -30,7 +30,6 @@ describe('BancorX Contract', () => {
             });
         } catch (err) {
             pass = true
-            console.log(err)
         }
         pass.should.be.equal(true)
 
@@ -50,7 +49,6 @@ describe('BancorX Contract', () => {
             });
         } catch (err) {
             pass = true
-            console.log(err)
         }
         pass.should.be.equal(true)
 
@@ -96,6 +94,7 @@ describe('BancorX Contract', () => {
         });
         var events = res.processed.action_traces[0].inline_traces[1].console;
         events = events.split('\n');
+
         var destroyEvent = JSON.parse(events[0]);
         var xtransferEvent = JSON.parse(events[1]);
         assert.equal(destroyEvent.etype, "destroy", "unexpected destroy etype result");
@@ -119,7 +118,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000000 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${reporter1User}@active`]
         });
@@ -139,6 +139,7 @@ describe('BancorX Contract', () => {
         transfers.rows[0].blockchain.should.be.equal('eth');
         transfers.rows[0].memo.should.be.equal('text');
         transfers.rows[0].data.should.be.equal('txHash');
+        transfers.rows[0]['x_transfer_id'].should.be.equal(0);
         transfers.rows[0].reporters.should.include('reporter1');
         let balance = await getEos(networkToken).getTableRows({
             code: networkToken,
@@ -166,7 +167,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000000 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${reporter2User}@active`]
         });
@@ -205,7 +207,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000000 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${testUser}@active`]
         });
@@ -224,7 +227,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000000 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${reporter1User}@active`]
         });
@@ -237,7 +241,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000001 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${reporter2User}@active`]
         });

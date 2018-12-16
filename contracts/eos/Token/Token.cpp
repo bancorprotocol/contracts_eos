@@ -2,6 +2,14 @@
 
 namespace eosio {
 
+TABLE amounts_t {
+    uint64_t custom_id;
+    asset quantity;
+    uint64_t primary_key() const { return custom_id; }
+};
+
+typedef eosio::multi_index<"amounts"_n, amounts_t> amounts;
+
 ACTION Token::create(name issuer, asset maximum_supply) {
     require_auth(_self);
 
@@ -92,6 +100,37 @@ ACTION Token::transfer(name from, name to, asset quantity, string memo) {
 
     sub_balance(from, quantity);
     add_balance(to, quantity, payer);
+}
+
+ACTION Token::transferbyid(name from, name to, uint64_t amount_id, name contract, string memo) {
+    eosio_assert(from != to, "cannot transfer to self");
+    require_auth(from);
+    eosio_assert(is_account(to), "to account does not exist");
+
+    asset quantity = get_quantity_by_id(contract, amount_id);
+
+    auto sym = quantity.symbol.code().raw();
+    stats statstable(_self, sym);
+    const auto& st = statstable.get(sym);
+
+    require_recipient(from);
+    require_recipient(to);
+
+    eosio_assert(quantity.is_valid(), "invalid quantity");
+    eosio_assert(quantity.amount > 0, "must transfer positive quantity");
+    eosio_assert(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
+    eosio_assert(memo.size() <= 256, "memo has more than 256 bytes");
+
+    auto payer = has_auth(to) ? to : from;
+
+    sub_balance(from, quantity);
+    add_balance(to, quantity, payer);
+}
+
+asset Token::get_quantity_by_id(name contract, uint64_t id) {
+    amounts amounts_table(contract, contract.value);
+    const auto& am = amounts_table.get(id);
+    return am.quantity;
 }
 
 void Token::sub_balance(name owner, asset value) {
