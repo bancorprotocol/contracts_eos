@@ -40,7 +40,7 @@ describe('BancorX Contract', () => {
         const token = await getEos(testUser).contract(networkToken);
         try {
             let res = await token.transfer({
-                from: 'cnvtbb',
+                from: 'reporter1',
                 to: bancorXContract,
                 quantity: `2.0000000000 ${networkTokenSymbol}`,
                 memo: `1.1,eth,ETH_ADDRESS`
@@ -147,7 +147,7 @@ describe('BancorX Contract', () => {
             table: 'accounts',
             json: true,
         });
-        balance["rows"][0]["balance"].should.be.equal('99998.0000000000 BNT')
+        balance["rows"][0]["balance"].should.be.equal('9998.0000000000 BNT')
 
     });
 
@@ -180,7 +180,7 @@ describe('BancorX Contract', () => {
             table: 'accounts',
             json: true,
         });
-        balance["rows"][0]["balance"].should.be.equal('100000.0000000000 BNT')
+        balance["rows"][0]["balance"].should.be.equal('10000.0000000000 BNT')
 
     })
 

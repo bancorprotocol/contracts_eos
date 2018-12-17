@@ -69,12 +69,94 @@ module.exports = async function(deployer, network, accounts) {
     const tknbntContract = await deployer.deploy(Token, "bnt");
     const rerouterContract = await deployer.deploy(XTransferRerouter, "txrerouter");
 
+    const converter = await deployer.deploy(BancorConverter, "bnt2eoscnvrt")
+    const bntrlyContract = await deployer.deploy(Token, "bnt2eosrelay");
+
     var networkTokenSymbol = "BNT";
+
+    // create BNT
     await tknbntContract.contractInstance.create({
         issuer: bancorxContract.contract.address,
         maximum_supply: `250000000.0000000000 ${networkTokenSymbol}`},
         { authorization: `${tknbntContract.contract.address}@active`, broadcast: true, sign: true });
 
+
+    // create BNTEOS
+    await bntrlyContract.contractInstance.create({
+        issuer: converter.account,
+        maximum_supply: `250000000.0000000000 BNTEOS`
+    }, {
+        authorization: `${bntrlyContract.account}@active`
+    });
+
+    // create BNTEOS converter
+    await converter.contractInstance.init({
+        smart_contract: bntrlyContract.account,
+        smart_currency: `0.0000000000 BNTEOS`,
+        smart_enabled: 0,
+        enabled: 1,
+        network: networkContract.account,
+        require_balance: 0,
+        max_fee: 0,
+        fee: 0
+    }, {
+        authorization: `${converter.account}@active`
+    });
+
+    // set BNT as reserve
+    await converter.contractInstance.setreserve({
+        contract: tknbntContract.contract.address,
+        currency: `0.0000000000 BNT`,
+        ratio: 500,
+        p_enabled: 1
+    }, {
+        authorization: `${converter.account}@active`
+    });
+
+    // set SYS as reserve
+    await converter.contractInstance.setreserve({
+        contract: "eosio.token",
+        currency: `0.0000 SYS`,
+        ratio: 500,
+        p_enabled: 1
+    }, {
+        authorization: `${converter.account}@active`
+    });
+
+    // send SYS to converter
+    const eosioToken = await bancorxContract.eos.contract('eosio.token')    
+    await eosioToken.transfer({
+        from: 'eosio',
+        to: converter.account,
+        quantity: `10000.0000 SYS`,
+        memo: 'setup'
+    }, {
+        authorization: 'eosio@active',
+        keyProvider: '5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3'
+    })
+
+    // issue BNT to converter
+    await tknbntContract.contractInstance.issue({
+        to: converter.account,
+        quantity: `90000.0000000000 BNT`,
+        memo: 'setup'
+    }, {
+        authorization: `${bancorxContract.account}@active`,
+        keyProvider: bancorxContract.keys.privateKey
+    });
+
+    // issue BNTEOS
+    await bntrlyContract.contractInstance.issue({
+        to: converter.account,
+        quantity: `20000.0000000000 BNTEOS`,
+        memo: 'setup'
+    }, {
+        authorization: `${converter.account}@active`,
+        keyProvider: converter.keys.privateKey
+    });
+
+
+    // initialize bancorx
     await bancorxContract.contractInstance.init({
         x_token_name: tknbntContract.contract.address,
         min_reporters: 2,
@@ -113,7 +195,7 @@ module.exports = async function(deployer, network, accounts) {
     var contract1 = await bancorxContract.eos.contract(tknbntContract.contract.address);
     await contract1.issue({
         to: 'test1',
-        quantity: `100000.0000000000 ${networkTokenSymbol}`,
+        quantity: `10000.0000000000 ${networkTokenSymbol}`,
         memo: "test money"
     }, { authorization: `${bancorxContract.contract.address}@active`, broadcast: true, sign: true });
 

@@ -34,13 +34,18 @@ using namespace eosio;
 
 typedef std::vector<std::string> path;
 
+struct memo_structure {
+    std::string convert_memo;
+    std::string receiver_memo;
+};
+
 struct memo_convert_structure {
     path    path;
     std::string version;
     std::string to_token;
     std::string min_return;
 };
-    
+
 std::string build_memo(memo_convert_structure data) {
     std::string pathstr = "";
     for(auto i=0; i < data.path.size(); i++){
@@ -60,7 +65,25 @@ std::string build_memo(memo_convert_structure data) {
     return memo;
 }
 
-memo_convert_structure parse_memo(std::string memo){
+memo_structure parse_memo(std::string memo) {
+    auto res = memo_structure();
+    auto split_memos = split(memo, ";"); // we separate concantenated memos with ";"
+
+    eosio::print("split memos length: ");
+    eosio::print(split_memos.size());
+    eosio::print("\n");
+
+    res.convert_memo = split_memos[0];
+    if (split_memos.size() == 2) {
+        res.receiver_memo = split_memos[1];
+    } else {
+        res.receiver_memo = "convert";
+    }
+
+    return res;
+}
+
+memo_convert_structure parse_convert_memo(std::string memo){
     auto res = memo_convert_structure();
     auto parts = split(memo, ",");
     res.version = parts[0];

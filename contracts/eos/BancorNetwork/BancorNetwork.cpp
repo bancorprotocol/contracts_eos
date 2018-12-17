@@ -3,6 +3,10 @@
 
 using namespace eosio;
 
+ACTION BancorNetwork::init() {
+    require_auth(_self);
+}
+
 void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     if (to != _self)
         return;
@@ -10,20 +14,21 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     // auto a = extended_asset(, code);
     eosio_assert(quantity.symbol.is_valid(), "invalid quantity in transfer");
     eosio_assert(quantity.amount != 0, "zero quantity is disallowed in transfer");
-    
+
+    // get the memo split in two - { convert_memo, receiver_memo }
     auto memo_object = parse_memo(memo);
-    eosio_assert(memo_object.path.size() >= 2, "bad path format");
-    name convert_contract = eosio::name(memo_object.path[0].c_str());
+
+    // parse the convert_memo to - { path, version, to_token, min_return }
+    auto memo_convert_object = parse_convert_memo(memo_object.convert_memo);
+
+    eosio_assert(memo_convert_object.path.size() >= 2, "bad path format");
+    name convert_contract = eosio::name(memo_convert_object.path[0].c_str());
 
     action(
         permission_level{ _self, "active"_n },
         _code, "transfer"_n,
         std::make_tuple(_self, convert_contract, quantity, memo)
     ).send();
-}
-
-ACTION BancorNetwork::init() {
-    require_auth(_self);
 }
 
 extern "C" {
