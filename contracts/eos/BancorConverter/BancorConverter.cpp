@@ -104,17 +104,16 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     auto from_amount = quantity.amount / pow(10, quantity.symbol.precision());
 
     auto memo_object = parse_memo(memo);
-    auto memo_convert_object = parse_convert_memo(memo_object.convert_memo);
-    eosio_assert(memo_convert_object.path.size() > 1, "invalid memo format");
+    eosio_assert(memo_object.path.size() > 1, "invalid memo format");
     settings settings_table(_self, _self.value);
     auto converter_settings = settings_table.get();
     eosio_assert(converter_settings.enabled, "converter is disabled");
     eosio_assert(converter_settings.network == from, "converter can only receive from network contract");
 
-    auto contract_name = name(memo_convert_object.path[0].c_str());
+    auto contract_name = name(memo_object.path[0].c_str());
     eosio_assert(contract_name == _self, "wrong converter");
     auto from_path_currency = quantity.symbol.code().raw();
-    auto to_path_currency = symbol_code(memo_convert_object.path[1].c_str()).raw();
+    auto to_path_currency = symbol_code(memo_object.path[1].c_str()).raw();
     eosio_assert(from_path_currency != to_path_currency, "cannot convert to self");
     auto smart_symbol_name = converter_settings.smart_currency.symbol.code().raw();
     auto from_token = get_reserve(from_path_currency, converter_settings);
@@ -138,7 +137,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     auto current_to_balance = ((get_balance(to_contract, _self, to_currency.symbol.code())).amount + to_currency.amount) / pow(10, to_currency.symbol.precision());
     auto current_smart_supply = ((get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount) / pow(10, converter_settings.smart_currency.symbol.precision());
 
-    name final_to = name(memo_convert_object.to_token.c_str());
+    name final_to = name(memo_object.dest_account.c_str());
     double smart_tokens = 0;
     double to_tokens = 0;
     int64_t total_fee_amount = 0;
@@ -174,7 +173,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
 
     auto issue = false;
     if (outgoing_smart_token) {
-        eosio_assert(memo_convert_object.path.size() == 2, "smart token must be final currency");
+        eosio_assert(memo_object.path.size() == 2, "smart token must be final currency");
         to_tokens = smart_tokens;
         issue = true;
     }
@@ -200,13 +199,13 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     if (outgoing_smart_token || !incoming_smart_token)
         EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance, from_ratio);
 
-    auto next_hop_memo = next_hop(memo_convert_object);
-    auto new_memo = build_memo(next_hop_memo).append(";").append(memo_object.receiver_memo);
+    auto next_hop_memo = next_hop(memo_object);
+    auto new_memo = build_memo(next_hop_memo);
     auto new_asset = asset(to_amount, to_currency.symbol);
     name inner_to = converter_settings.network;
     if (next_hop_memo.path.size() == 0) {
         inner_to = final_to;
-        verify_min_return(new_asset, memo_convert_object.min_return);
+        verify_min_return(new_asset, memo_object.min_return);
         if (converter_settings.require_balance)
             verify_entry(inner_to, to_contract, new_asset);
         new_memo = memo_object.receiver_memo;
