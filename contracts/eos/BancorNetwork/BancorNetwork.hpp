@@ -2,9 +2,7 @@
 
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/transaction.hpp>
-#include <eosiolib/singleton.hpp>
 #include <eosiolib/asset.hpp>
-#include <eosiolib/symbol.hpp>
 
 using namespace eosio;
 
