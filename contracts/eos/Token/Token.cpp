@@ -4,6 +4,7 @@ namespace eosio {
 
 TABLE amounts_t {
     uint64_t custom_id;
+    name target;
     asset quantity;
     uint64_t primary_key() const { return custom_id; }
 };
@@ -104,15 +105,19 @@ ACTION Token::transfer(name from, name to, asset quantity, string memo) {
 
 ACTION Token::transferbyid(name from, name to, uint64_t amount_id, name contract, string memo) {
     require_auth(from);
-    asset quantity = get_quantity_by_id(contract, amount_id);
-    
-    SEND_INLINE_ACTION(*this, transfer, {from,"active"_n}, {from, to, quantity, memo});
-}
 
-asset Token::get_quantity_by_id(name contract, uint64_t id) {
     amounts amounts_table(contract, contract.value);
-    const auto& am = amounts_table.get(id);
-    return am.quantity;
+    const auto& am = amounts_table.get(amount_id);
+
+    eosio_assert(from == am.target, "attempting to transfer by id meant for another account");
+    
+    SEND_INLINE_ACTION(*this, transfer, {from,"active"_n}, {from, to, am.quantity, memo});
+
+    action(
+        permission_level{ _self, "active"_n },
+        contract, "closeamount"_n,
+        std::make_tuple(amount_id)
+    ).send();
 }
 
 void Token::sub_balance(name owner, asset value) {

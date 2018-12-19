@@ -100,6 +100,7 @@ CONTRACT BancorX : public contract {
 
         TABLE amounts_t {
             uint64_t x_transfer_id;
+            name target;
             asset quantity;
             uint64_t primary_key() const { return x_transfer_id; }
         };
@@ -148,6 +149,8 @@ CONTRACT BancorX : public contract {
                         asset quantity,          // amount to issue to the target account if the minimum required number of reports is met
                         string memo,             // memo to pass in in the transfer action
                         string data);            // custom source blockchain value, usually a string representing the tx hash on the source blockchain
+
+        ACTION closeamount(uint64_t amount_id); // closes row in amount table, can only be called by bnt token contract
 
         // transfer intercepts with standard transfer args
         // if the token received is the cross transfers token, initiates a cross transfer

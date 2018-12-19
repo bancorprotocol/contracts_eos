@@ -60,8 +60,6 @@ CONTRACT Token : public contract {
         typedef eosio::multi_index<"accounts"_n, account> accounts;
         typedef eosio::multi_index<"stat"_n, currency_stats> stats;
 
-        asset get_quantity_by_id(name contract, uint64_t id);
-
         void sub_balance(name owner, asset value);
         void add_balance(name owner, asset value, name ram_payer);
 };

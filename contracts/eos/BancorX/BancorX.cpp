@@ -194,11 +194,27 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
                 eosio_assert(amount == amounts_table.end(), "x_transfer_id already exists");
                 amounts_table.emplace(_self, [&](auto& a)  {
                     a.x_transfer_id = x_transfer_id;
+                    a.target = target;
                     a.quantity = quantity;
                 });
             }
         }
     }
+}
+
+ACTION BancorX::closeamount(uint64_t amount_id) {
+    settings settings_table(_self, _self.value);
+    auto st = settings_table.get();
+
+    // only the bnt contract
+    require_auth(st.x_token_name);
+
+    amounts amounts_table(_self, _self.value);
+    auto it = amounts_table.find(amount_id);
+
+    eosio_assert(it != amounts_table.end(), "amount doesn't exist in table");
+    
+    amounts_table.erase(it);
 }
 
 void BancorX::transfer(name from, name to, asset quantity, string memo) {
@@ -257,7 +273,7 @@ extern "C" {
     
         if (code == receiver) {
             switch (action) { 
-                EOSIO_DISPATCH_HELPER(BancorX, (init)(update)(enablerpt)(enablext)(addreporter)(rmreporter)(reporttx)) 
+                EOSIO_DISPATCH_HELPER(BancorX, (init)(update)(enablerpt)(enablext)(addreporter)(rmreporter)(reporttx)(closeamount)) 
             }    
         }
 
