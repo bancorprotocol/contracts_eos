@@ -199,11 +199,14 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     if (outgoing_smart_token || !incoming_smart_token)
         EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance, from_ratio);
 
-    auto next_hop_memo = next_hop(memo_object);
-    auto new_memo = build_memo(next_hop_memo);
+    path new_path = memo_object.path;
+    new_path.erase(new_path.begin(), new_path.begin() + 2);
+    memo_object.path = new_path;
+
+    auto new_memo = build_memo(memo_object);
     auto new_asset = asset(to_amount, to_currency.symbol);
     name inner_to = converter_settings.network;
-    if (next_hop_memo.path.size() == 0) {
+    if (memo_object.path.size() == 0) {
         inner_to = final_to;
         verify_min_return(new_asset, memo_object.min_return);
         if (converter_settings.require_balance)

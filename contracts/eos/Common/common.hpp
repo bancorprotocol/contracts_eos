@@ -43,14 +43,14 @@ struct memo_structure {
 };
 
 path parse_memo_path(std::string memo) {
-    auto parts = split(memo, ",");
-    auto path_elements = split(parts[1], " ");
+    size_t pos = memo.find(",", 2); // get the position of first comma after memo version
+    std::string path = memo.substr(2, pos);
+    auto path_elements = split(path, " ");
     if (path_elements.size() == 1 && path_elements[0] == "") {
         return {};
     }
     else
         return path_elements;
-
 }
 
 std::string build_memo(memo_structure data) {
