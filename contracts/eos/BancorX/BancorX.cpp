@@ -206,8 +206,10 @@ ACTION BancorX::closeamount(uint64_t amount_id) {
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
 
-    // only the bnt contract
-    require_auth(st.x_token_name);
+    // only the bnt contract or self
+    eosio_assert(
+        has_auth(st.x_token_name || has_auth(_self)),
+        "missing required authority to close amount row");
 
     amounts amounts_table(_self, _self.value);
     auto it = amounts_table.find(amount_id);
