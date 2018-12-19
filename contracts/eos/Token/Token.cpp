@@ -115,7 +115,7 @@ ACTION Token::transferbyid(name from, name to, uint64_t amount_id, name contract
 
     action(
         permission_level{ _self, "active"_n },
-        contract, "closeamount"_n,
+        contract, "clearamount"_n,
         std::make_tuple(amount_id)
     ).send();
 }

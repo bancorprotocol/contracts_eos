@@ -16,7 +16,7 @@ using namespace eosio;
 // events
 // triggered when an account initiates a cross chain transafer
 #define EMIT_X_TRANSFER_EVENT(blockchain, target, quantity, x_transfer_id) \
-    START_EVENT("xtransfer", "1.1") \
+    START_EVENT("xtransfer", "1.2") \
     EVENTKV("blockchain",blockchain) \
     EVENTKV("target",target) \
     EVENTKV("quantity",quantity) \
@@ -32,7 +32,7 @@ using namespace eosio;
 
 // triggered when a reporter reports a cross chain transfer from another blockchain
 #define EMIT_TX_REPORT_EVENT(reporter, blockchain, transaction, target, quantity, x_transfer_id, memo) \
-    START_EVENT("txreport", "1.1") \
+    START_EVENT("txreport", "1.2") \
     EVENTKV("reporter",reporter) \
     EVENTKV("from_blockchain",blockchain) \
     EVENTKV("transaction",transaction) \
@@ -44,7 +44,7 @@ using namespace eosio;
 
 // triggered when final report is succesfully submitted
 #define EMIT_X_TRANSFER_COMPLETE_EVENT(target, x_transfer_id) \
-    START_EVENT("xtransfercomplete", "1.1") \
+    START_EVENT("xtransfercomplete", "1.2") \
     EVENTKV("target", target) \
     EVENTKVL("x_transfer_id", x_transfer_id) \
     END_EVENT()
@@ -150,7 +150,7 @@ CONTRACT BancorX : public contract {
                         string memo,             // memo to pass in in the transfer action
                         string data);            // custom source blockchain value, usually a string representing the tx hash on the source blockchain
 
-        ACTION closeamount(uint64_t amount_id); // closes row in amount table, can only be called by bnt token contract or self
+        ACTION clearamount(uint64_t amount_id); // closes row in amount table, can only be called by bnt token contract or self
 
         // transfer intercepts with standard transfer args
         // if the token received is the cross transfers token, initiates a cross transfer

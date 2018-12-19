@@ -183,8 +183,8 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
                 std::make_tuple(transaction->target, transaction->quantity, memo)
             ).send();
 
-            EMIT_X_TRANSFER_COMPLETE_EVENT(target, x_transfer_id);
             EMIT_ISSUE_EVENT(target, quantity);
+            EMIT_X_TRANSFER_COMPLETE_EVENT(target, x_transfer_id);
 
             transfers_table.erase(transaction);
 
@@ -202,7 +202,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     }
 }
 
-ACTION BancorX::closeamount(uint64_t amount_id) {
+ACTION BancorX::clearamount(uint64_t amount_id) {
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
 
@@ -275,7 +275,7 @@ extern "C" {
     
         if (code == receiver) {
             switch (action) { 
-                EOSIO_DISPATCH_HELPER(BancorX, (init)(update)(enablerpt)(enablext)(addreporter)(rmreporter)(reporttx)(closeamount)) 
+                EOSIO_DISPATCH_HELPER(BancorX, (init)(update)(enablerpt)(enablext)(addreporter)(rmreporter)(reporttx)(clearamount)) 
             }    
         }
 
