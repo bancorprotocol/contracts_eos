@@ -208,7 +208,7 @@ ACTION BancorX::closeamount(uint64_t amount_id) {
 
     // only the bnt contract or self
     eosio_assert(
-        has_auth(st.x_token_name || has_auth(_self)),
+        has_auth(st.x_token_name) || has_auth(_self),
         "missing required authority to close amount row");
 
     amounts amounts_table(_self, _self.value);
