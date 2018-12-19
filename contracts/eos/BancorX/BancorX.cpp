@@ -183,6 +183,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
                 std::make_tuple(transaction->target, transaction->quantity, memo)
             ).send();
 
+            EMIT_X_TRANSFER_COMPLETE_EVENT(target, x_transfer_id);
             EMIT_ISSUE_EVENT(target, quantity);
 
             transfers_table.erase(transaction);
