@@ -209,7 +209,7 @@ ACTION BancorX::closeamount(uint64_t amount_id) {
     // only the bnt contract or self
     eosio_assert(
         has_auth(st.x_token_name) || has_auth(_self),
-        "missing required authority to close amount row");
+        "missing required authority to close row");
 
     amounts amounts_table(_self, _self.value);
     auto it = amounts_table.find(amount_id);
@@ -232,7 +232,7 @@ void BancorX::transfer(name from, name to, asset quantity, string memo) {
     xtransfer(memo_object.blockchain, from, memo_object.target, quantity, memo_object.x_transfer_id);
 }
 
-void BancorX::xtransfer(string blockchain, name from, string target, asset quantity, uint64_t x_transfer_id) {
+void BancorX::xtransfer(string blockchain, name from, string target, asset quantity, std::string x_transfer_id) {
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
 

@@ -144,13 +144,13 @@ CONTRACT BancorX : public contract {
         ACTION reporttx(name reporter,           // reporter account
                         string blockchain,       // name of the source blockchain
                         uint64_t tx_id,          // unique transaction id on the source blockchain
-                        uint64_t x_transfer_id,  // (TODO!)
+                        uint64_t x_transfer_id,  // unique (if non zero) pre-determined id (unlike _txId which is determined after the transactions been mined)
                         name target,             // target account on EOS
                         asset quantity,          // amount to issue to the target account if the minimum required number of reports is met
                         string memo,             // memo to pass in in the transfer action
                         string data);            // custom source blockchain value, usually a string representing the tx hash on the source blockchain
 
-        ACTION closeamount(uint64_t amount_id); // closes row in amount table, can only be called by bnt token contract
+        ACTION closeamount(uint64_t amount_id); // closes row in amount table, can only be called by bnt token contract or self
 
         // transfer intercepts with standard transfer args
         // if the token received is the cross transfers token, initiates a cross transfer
@@ -161,10 +161,10 @@ CONTRACT BancorX : public contract {
             std::string version;
             std::string blockchain;
             std::string target;
-            uint64_t x_transfer_id;
+            std::string x_transfer_id;
         };
 
-        void xtransfer(string blockchain, name from, string target, asset quantity, uint64_t x_transfer_id);
+        void xtransfer(string blockchain, name from, string target, asset quantity, std::string x_transfer_id);
 
         memo_x_transfer parse_memo(string memo) {
             auto res = memo_x_transfer();
@@ -172,7 +172,7 @@ CONTRACT BancorX : public contract {
             res.version = parts[0];
             res.blockchain = parts[1];
             res.target = parts[2];
-            res.x_transfer_id = name(parts[3]).value;
+            res.x_transfer_id = parts[3];
             return res;
         }
 };
