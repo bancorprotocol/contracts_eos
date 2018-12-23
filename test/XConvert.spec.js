@@ -1,6 +1,7 @@
 require("babel-core/register");
 require("babel-polyfill");
 const assert = require('chai').should();
+const { ERRORS } = require('./constants');
 
 const {
     ensureContractAssertionError,
@@ -51,7 +52,7 @@ describe('Cross Conversions', () => {
         assert.equal(postBalance, prevBalance, "unexpected balance after transferring BNT by id")
     })
 
-    it("can complete x conversion with x_transfer_id", async function() {
+    it("can convert BNT to another token by amount_id rather than quantity", async function() {
         const tx_id = getRandomId()
         const x_transfer_id = getRandomId()
 
@@ -96,6 +97,27 @@ describe('Cross Conversions', () => {
         assert.equal(Number(bancorXEvents.x_transfer_id), x_transfer_id)
         assert.equal(bancorXEvents.blockchain, "eth")
         assert.equal(bancorXEvents.target, "0x12345123451234512345")
+    })
+
+    it("doesn't allow a user to call transferbyid without the right authorities", async function() {
+        const tx_id = getRandomId()
+        const x_transfer_id = getRandomId()
+
+        await reportAndIssue(tx_id, testUser, `10.0000000000 BNT`, 'hi', 'data', 'eth', x_transfer_id)
+
+        const token = await getEos(reporter2User).contract(networkToken);
+
+        const p = token.transferbyid({
+            from: testUser,
+            to: networkContract,
+            amount_id: x_transfer_id,
+            contract: bancorXContract,
+            memo: `1,${converter1} ${tokenASymbol},1.00000000,${testUser}`
+        }, {
+            authorization: [`${reporter2User}@active`]
+        })
+
+        await ensureContractAssertionError(p, ERRORS.PERMISSIONS)
     })
 })
 

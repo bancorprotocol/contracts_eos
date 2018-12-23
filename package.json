@@ -1,6 +1,6 @@
 {
   "name": "bancor-contracts-eos",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "author": "Tal Muskal",
   "scripts": {
     "test": "mocha --require babel-core/register --require=dotenv/config --require babel-polyfill --exit --timeout 1000000",
