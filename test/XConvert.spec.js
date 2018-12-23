@@ -40,8 +40,8 @@ describe('Cross Conversions', () => {
         let res = await token.transferbyid({
             from: testUser,
             to: reporter1User,
+            amount_account: bancorXContract,
             amount_id: x_transfer_id,
-            contract: bancorXContract,
             memo: "hi"
         }, {
             authorization: [`${testUser}@active`]
@@ -65,8 +65,8 @@ describe('Cross Conversions', () => {
         let res = await token.transferbyid({
             from: testUser,
             to: networkContract,
+            amount_account: bancorXContract,
             amount_id: x_transfer_id,
-            contract: bancorXContract,
             memo: `1,${converter1} ${tokenASymbol},1.00000000,${testUser}`
         }, {
             authorization: [`${testUser}@active`]
@@ -110,8 +110,8 @@ describe('Cross Conversions', () => {
         const p = token.transferbyid({
             from: testUser,
             to: networkContract,
+            amount_account: bancorXContract,
             amount_id: x_transfer_id,
-            contract: bancorXContract,
             memo: `1,${converter1} ${tokenASymbol},1.00000000,${testUser}`
         }, {
             authorization: [`${reporter2User}@active`]

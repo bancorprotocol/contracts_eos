@@ -27,7 +27,7 @@ CONTRACT Token : public contract {
         ACTION retire(asset quantity, string memo);
 
         ACTION transfer(name from, name to, asset quantity, string memo);
-        ACTION transferbyid(name from, name to, uint64_t amount_id, name contract, string memo);
+        ACTION transferbyid(name from, name to, name amount_account, uint64_t amount_id, string memo);
 
         ACTION open(name owner, symbol_code symbol, name ram_payer);
         ACTION close(name owner, symbol_code symbol);

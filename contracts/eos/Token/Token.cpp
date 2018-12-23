@@ -103,10 +103,10 @@ ACTION Token::transfer(name from, name to, asset quantity, string memo) {
     add_balance(to, quantity, payer);
 }
 
-ACTION Token::transferbyid(name from, name to, uint64_t amount_id, name contract, string memo) {
+ACTION Token::transferbyid(name from, name to, name amount_account, uint64_t amount_id, string memo) {
     require_auth(from);
 
-    amounts amounts_table(contract, contract.value);
+    amounts amounts_table(amount_account, amount_account.value);
     const auto& am = amounts_table.get(amount_id);
 
     eosio_assert(from == am.target, "attempting to transfer by id meant for another account");
@@ -115,7 +115,7 @@ ACTION Token::transferbyid(name from, name to, uint64_t amount_id, name contract
 
     action(
         permission_level{ _self, "active"_n },
-        contract, "clearamount"_n,
+        amount_account, "clearamount"_n,
         std::make_tuple(amount_id)
     ).send();
 }
