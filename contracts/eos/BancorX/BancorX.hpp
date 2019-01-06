@@ -150,7 +150,7 @@ CONTRACT BancorX : public contract {
                         string memo,             // memo to pass in in the transfer action
                         string data);            // custom source blockchain value, usually a string representing the tx hash on the source blockchain
 
-        ACTION clearamount(uint64_t amount_id); // closes row in amount table, can only be called by bnt token contract or self
+        ACTION clearamount(uint64_t x_transfer_id); // closes row in amounts table, can only be called by bnt token contract or self
 
         // transfer intercepts with standard transfer args
         // if the token received is the cross transfers token, initiates a cross transfer

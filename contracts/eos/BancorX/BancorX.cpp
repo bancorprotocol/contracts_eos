@@ -202,7 +202,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     }
 }
 
-ACTION BancorX::clearamount(uint64_t amount_id) {
+ACTION BancorX::clearamount(uint64_t x_transfer_id) {
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
 
@@ -212,7 +212,7 @@ ACTION BancorX::clearamount(uint64_t amount_id) {
         "missing required authority to close row");
 
     amounts amounts_table(_self, _self.value);
-    auto it = amounts_table.find(amount_id);
+    auto it = amounts_table.find(x_transfer_id);
 
     eosio_assert(it != amounts_table.end(), "amount doesn't exist in table");
     
