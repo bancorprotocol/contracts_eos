@@ -173,33 +173,32 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
         });
         
         EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, x_transfer_id, memo);
+    }
+    // checks if we have minimal reporters for issue
+    if (transaction->reporters.size() >= st.min_reporters) {
+        // issue tokens
+        action(
+            permission_level{ _self, "active"_n },
+            st.x_token_name, "issue"_n,
+            std::make_tuple(transaction->target, transaction->quantity, memo)
+        ).send();
 
-        // checks if we have minimal reporters for issue
-        if (transaction->reporters.size() >= st.min_reporters) {
-            // issue tokens
-            action(
-                permission_level{ _self, "active"_n },
-                st.x_token_name, "issue"_n,
-                std::make_tuple(transaction->target, transaction->quantity, memo)
-            ).send();
+        EMIT_ISSUE_EVENT(target, quantity);
 
-            EMIT_ISSUE_EVENT(target, quantity);
+        transfers_table.erase(transaction);
 
-            transfers_table.erase(transaction);
-
-            if (x_transfer_id) {
-                amounts amounts_table(_self, _self.value);
-                auto amount = amounts_table.find(x_transfer_id);
-                eosio_assert(amount == amounts_table.end(), "x_transfer_id already exists");
-                amounts_table.emplace(_self, [&](auto& a)  {
-                    a.x_transfer_id = x_transfer_id;
-                    a.target = target;
-                    a.quantity = quantity;
-                });
-            }
-
-            EMIT_X_TRANSFER_COMPLETE_EVENT(target, x_transfer_id);
+        if (x_transfer_id) {
+            amounts amounts_table(_self, _self.value);
+            auto amount = amounts_table.find(x_transfer_id);
+            eosio_assert(amount == amounts_table.end(), "x_transfer_id already exists");
+            amounts_table.emplace(_self, [&](auto& a)  {
+                a.x_transfer_id = x_transfer_id;
+                a.target = target;
+                a.quantity = quantity;
+            });
         }
+
+        EMIT_X_TRANSFER_COMPLETE_EVENT(target, x_transfer_id);
     }
 }
 
