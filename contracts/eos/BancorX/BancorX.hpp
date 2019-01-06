@@ -43,10 +43,10 @@ using namespace eosio;
     END_EVENT()
 
 // triggered when final report is succesfully submitted
-#define EMIT_X_TRANSFER_COMPLETE_EVENT(target, x_transfer_id) \
+#define EMIT_X_TRANSFER_COMPLETE_EVENT(target, id) \
     START_EVENT("xtransfercomplete", "1.2") \
     EVENTKV("target", target) \
-    EVENTKVL("x_transfer_id", x_transfer_id) \
+    EVENTKVL("id", id) \
     END_EVENT()
 
 // triggered when enough reports arrived and tokens are issued to an account and the cross chain transfer is fulfilled
