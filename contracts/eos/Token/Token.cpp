@@ -2,6 +2,15 @@
 
 namespace eosio {
 
+TABLE amounts_t {
+    uint64_t custom_id;
+    name target;
+    asset quantity;
+    uint64_t primary_key() const { return custom_id; }
+};
+
+typedef eosio::multi_index<"amounts"_n, amounts_t> amounts;
+
 ACTION Token::create(name issuer, asset maximum_supply) {
     require_auth(_self);
 
@@ -94,6 +103,23 @@ ACTION Token::transfer(name from, name to, asset quantity, string memo) {
     add_balance(to, quantity, payer);
 }
 
+ACTION Token::transferbyid(name from, name to, name amount_account, uint64_t amount_id, string memo) {
+    require_auth(from);
+
+    amounts amounts_table(amount_account, amount_account.value);
+    const auto& am = amounts_table.get(amount_id);
+
+    eosio_assert(from == am.target, "attempting to transfer by id meant for another account");
+    
+    SEND_INLINE_ACTION(*this, transfer, {from,"active"_n}, {from, to, am.quantity, memo});
+
+    action(
+        permission_level{ _self, "active"_n },
+        amount_account, "clearamount"_n,
+        std::make_tuple(amount_id)
+    ).send();
+}
+
 void Token::sub_balance(name owner, asset value) {
     accounts from_acnts(_self, owner.value);
 
@@ -149,4 +175,4 @@ ACTION Token::close(name owner, symbol_code symbol) {
 
 } /// namespace eosio
 
-EOSIO_DISPATCH(eosio::Token, (create)(issue)(transfer)(open)(close)(retire))
+EOSIO_DISPATCH(eosio::Token, (create)(issue)(transfer)(transferbyid)(open)(close)(retire))

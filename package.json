@@ -3,12 +3,14 @@
   "version": "0.0.3",
   "author": "Tal Muskal",
   "scripts": {
-    "test": "mocha --require babel-core/register --require=dotenv/config --require babel-polyfill --exit --timeout 1000000"
+    "test": "mocha --require babel-core/register --require=dotenv/config --require babel-polyfill --exit --timeout 1000000",
+    "test-contracts": "funguy test"
   },
   "dependencies": {
     "dotenv": "^6.1.0",
     "eosjs": "^16.0.9",
-    "eosjs-ecc": "^4.0.4"
+    "eosjs-ecc": "^4.0.4",
+    "funguy": "^1.0.1"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",

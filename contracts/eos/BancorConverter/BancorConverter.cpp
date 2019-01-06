@@ -102,6 +102,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     eosio_assert(quantity.is_valid(), "invalid quantity");
     eosio_assert(quantity.amount != 0, "zero quantity is disallowed");
     auto from_amount = quantity.amount / pow(10, quantity.symbol.precision());
+
     auto memo_object = parse_memo(memo);
     eosio_assert(memo_object.path.size() > 1, "invalid memo format");
     settings settings_table(_self, _self.value);
@@ -136,7 +137,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     auto current_to_balance = ((get_balance(to_contract, _self, to_currency.symbol.code())).amount + to_currency.amount) / pow(10, to_currency.symbol.precision());
     auto current_smart_supply = ((get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount) / pow(10, converter_settings.smart_currency.symbol.precision());
 
-    name final_to = name(memo_object.to_token.c_str());
+    name final_to = name(memo_object.dest_account.c_str());
     double smart_tokens = 0;
     double to_tokens = 0;
     int64_t total_fee_amount = 0;
@@ -198,16 +199,19 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     if (outgoing_smart_token || !incoming_smart_token)
         EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance, from_ratio);
 
-    auto next_hop_memo = next_hop(memo_object);
-    auto new_memo = build_memo(next_hop_memo);
+    path new_path = memo_object.path;
+    new_path.erase(new_path.begin(), new_path.begin() + 2);
+    memo_object.path = new_path;
+
+    auto new_memo = build_memo(memo_object);
     auto new_asset = asset(to_amount, to_currency.symbol);
     name inner_to = converter_settings.network;
-    if (next_hop_memo.path.size() == 0) {
+    if (memo_object.path.size() == 0) {
         inner_to = final_to;
         verify_min_return(new_asset, memo_object.min_return);
         if (converter_settings.require_balance)
             verify_entry(inner_to, to_contract, new_asset);
-        new_memo = std::string("convert");
+        new_memo = memo_object.receiver_memo;
     }
 
     if (issue)

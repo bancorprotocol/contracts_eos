@@ -30,7 +30,6 @@ describe('BancorX Contract', () => {
             });
         } catch (err) {
             pass = true
-            console.log(err)
         }
         pass.should.be.equal(true)
 
@@ -41,7 +40,7 @@ describe('BancorX Contract', () => {
         const token = await getEos(testUser).contract(networkToken);
         try {
             let res = await token.transfer({
-                from: 'cnvtbb',
+                from: 'reporter1',
                 to: bancorXContract,
                 quantity: `2.0000000000 ${networkTokenSymbol}`,
                 memo: `1.1,eth,ETH_ADDRESS`
@@ -50,7 +49,6 @@ describe('BancorX Contract', () => {
             });
         } catch (err) {
             pass = true
-            console.log(err)
         }
         pass.should.be.equal(true)
 
@@ -96,6 +94,7 @@ describe('BancorX Contract', () => {
         });
         var events = res.processed.action_traces[0].inline_traces[1].console;
         events = events.split('\n');
+
         var destroyEvent = JSON.parse(events[0]);
         var xtransferEvent = JSON.parse(events[1]);
         assert.equal(destroyEvent.etype, "destroy", "unexpected destroy etype result");
@@ -119,7 +118,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000000 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${reporter1User}@active`]
         });
@@ -139,6 +139,7 @@ describe('BancorX Contract', () => {
         transfers.rows[0].blockchain.should.be.equal('eth');
         transfers.rows[0].memo.should.be.equal('text');
         transfers.rows[0].data.should.be.equal('txHash');
+        transfers.rows[0]['x_transfer_id'].should.be.equal(0);
         transfers.rows[0].reporters.should.include('reporter1');
         let balance = await getEos(networkToken).getTableRows({
             code: networkToken,
@@ -146,7 +147,7 @@ describe('BancorX Contract', () => {
             table: 'accounts',
             json: true,
         });
-        balance["rows"][0]["balance"].should.be.equal('99998.0000000000 BNT')
+        balance["rows"][0]["balance"].should.be.equal('9998.0000000000 BNT')
 
     });
 
@@ -166,7 +167,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000000 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${reporter2User}@active`]
         });
@@ -178,7 +180,7 @@ describe('BancorX Contract', () => {
             table: 'accounts',
             json: true,
         });
-        balance["rows"][0]["balance"].should.be.equal('100000.0000000000 BNT')
+        balance["rows"][0]["balance"].should.be.equal('10000.0000000000 BNT')
 
     })
 
@@ -205,7 +207,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000000 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${testUser}@active`]
         });
@@ -224,7 +227,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000000 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${reporter1User}@active`]
         });
@@ -237,7 +241,8 @@ describe('BancorX Contract', () => {
             quantity: `2.0000000001 ${networkTokenSymbol}`,
             memo: 'text',
             data: 'txHash',
-            blockchain: 'eth'
+            blockchain: 'eth',
+            x_transfer_id: '0'
         }, {
             authorization: [`${reporter2User}@active`]
         });
@@ -291,8 +296,8 @@ describe('BancorX Contract', () => {
     it('verifies that the owner can update the contracts private state variables', async () => {
         const bancorX = await getEos(bancorXContract).contract(bancorXContract);
         await bancorX.update({
-            min_reporters: 9,
-            min_limit: 23,
+            min_reporters: 1,
+            min_limit: 1,
             limit_inc: 100000009990000,
             max_issue_limit: 100000555000000,
             max_destroy_limit: 10000000666000000},
@@ -303,8 +308,8 @@ describe('BancorX Contract', () => {
             table: 'settings',
             json: true
         });
-        settings.rows[0].min_reporters.should.be.equal(9);
-        settings.rows[0].min_limit.should.be.equal(23);
+        settings.rows[0].min_reporters.should.be.equal(1);
+        settings.rows[0].min_limit.should.be.equal(1);
         settings.rows[0].limit_inc.should.be.equal('100000009990000');
         settings.rows[0].max_issue_limit.should.be.equal('100000555000000');
         settings.rows[0].max_destroy_limit.should.be.equal('10000000666000000');

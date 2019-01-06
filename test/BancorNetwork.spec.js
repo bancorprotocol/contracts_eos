@@ -27,36 +27,30 @@ describe('BancorNetwork Contract', () => {
     const _self = Eos({ httpEndpoint:host(), keyProvider:codekey });
     const _selfopts = { authorization:[`${testUser}@active`] };
     
-    it('simple convert', done => {
+    it('simple convert', async function() {
         var minReturn = 0.100;
-        _self.contract(networkToken).then(async token => {
-            return await token.transfer({ from: testUser, to: networkContract, quantity: `2.0000000000 ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
-        }).then((res) => {
-            var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
-            console.log(events)
-            var convertEvent = JSON.parse(events[0]);
-            assert.equal(convertEvent.return, "199996000", "unexpected conversion result");
-            // console.log("result",jObj.target_amount);
-            done();
-        }).catch((err) => done(err));
+        const token = await _self.contract(networkToken)
+        let res = await token.transfer({ from: testUser, to: networkContract, quantity: `2.0000000000 ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
+        var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
+        // console.log(events)
+        var convertEvent = JSON.parse(events[0]);
+        assert.equal(convertEvent.return, "199996000", "unexpected conversion result");
+        // console.log("result",jObj.target_amount);
     });
 
-    it('2 hop convert', done => {
+    it('2 hop convert', async function() {
         var minReturn = 0.100;
-        _self.contract(tokenContract).then(async token => {
-            return await token.transfer({ from: testUser, to: networkContract, quantity: `1.00000000 ${tokenSymbol}`, memo: `1,${converter} ${networkTokenSymbol} ${converter2} ${tokenSymbol2},${minReturn},${testUser}` }, _selfopts);
-        }).then((res) => {
-            var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
-            console.log(events)
-            var convertEvent = JSON.parse(events[0]);
-            
-            assert.equal(convertEvent.return, "10000299998", "unexpected conversion result");
-            // console.log("action console", res.processed.action_traces[0].inline_traces);
-            events = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[2].inline_traces[1].console.split("\n");
-            console.log(events)
-            convertEvent = JSON.parse(events[0]);
-            assert.equal(convertEvent.return, "100001999", "unexpected conversion result");
-            done();
-        }).catch((err) => done(err));
+        const token = await _self.contract(tokenContract)
+        let res = await token.transfer({ from: testUser, to: networkContract, quantity: `1.00000000 ${tokenSymbol}`, memo: `1,${converter} ${networkTokenSymbol} ${converter2} ${tokenSymbol2},${minReturn},${testUser}` }, _selfopts);
+        var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
+        // console.log(events)
+        var convertEvent = JSON.parse(events[0]);
+        
+        assert.equal(convertEvent.return, "10000299998", "unexpected conversion result");
+        // console.log("action console", res.processed.action_traces[0].inline_traces);
+        events = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[2].inline_traces[1].console.split("\n");
+        // console.log(events)
+        convertEvent = JSON.parse(events[0]);
+        assert.equal(convertEvent.return, "100001999", "unexpected conversion result");
     });
 });
