@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Wed Nov  7 16:50:05 2018",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Tue Jan  8 12:13:37 2019",
     "version": "eosio::abi/1.0",
     "structs": [
         {
@@ -9,6 +9,34 @@
                 {
                     "name": "reporter",
                     "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "amounts_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "x_transfer_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "target",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "clearamount",
+            "base": "",
+            "fields": [
+                {
+                    "name": "x_transfer_id",
+                    "type": "uint64"
                 }
             ]
         },
@@ -86,6 +114,10 @@
                 },
                 {
                     "name": "tx_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "x_transfer_id",
                     "type": "uint64"
                 },
                 {
@@ -179,6 +211,10 @@
                     "type": "uint64"
                 },
                 {
+                    "name": "x_transfer_id",
+                    "type": "uint64"
+                },
+                {
                     "name": "target",
                     "type": "name"
                 },
@@ -239,6 +275,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "clearamount",
+            "type": "clearamount",
+            "ricardian_contract": ""
+        },
+        {
             "name": "enablerpt",
             "type": "enablerpt",
             "ricardian_contract": ""
@@ -270,6 +311,13 @@
         }
     ],
     "tables": [
+        {
+            "name": "amounts",
+            "type": "amounts_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
         {
             "name": "reporters",
             "type": "reporter_t",
