@@ -174,6 +174,9 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
         
         EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, x_transfer_id, memo);
     }
+    // get the transaction again in case this was the first report
+    transaction = transfers_table.find(tx_id);
+
     // checks if we have minimal reporters for issue
     if (transaction->reporters.size() >= st.min_reporters) {
         // issue tokens

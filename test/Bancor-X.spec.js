@@ -296,7 +296,7 @@ describe('BancorX Contract', () => {
     it('verifies that the owner can update the contracts private state variables', async () => {
         const bancorX = await getEos(bancorXContract).contract(bancorXContract);
         await bancorX.update({
-            min_reporters: 1,
+            min_reporters: 2,
             min_limit: 1,
             limit_inc: 100000009990000,
             max_issue_limit: 100000555000000,
@@ -308,7 +308,7 @@ describe('BancorX Contract', () => {
             table: 'settings',
             json: true
         });
-        settings.rows[0].min_reporters.should.be.equal(1);
+        settings.rows[0].min_reporters.should.be.equal(2);
         settings.rows[0].min_limit.should.be.equal(1);
         settings.rows[0].limit_inc.should.be.equal('100000009990000');
         settings.rows[0].max_issue_limit.should.be.equal('100000555000000');
