@@ -15,12 +15,12 @@ using namespace eosio;
 
 // events
 // triggered when an account initiates a cross chain transafer
-#define EMIT_X_TRANSFER_EVENT(blockchain, target, quantity, x_transfer_id) \
+#define EMIT_X_TRANSFER_EVENT(blockchain, target, quantity, id) \
     START_EVENT("xtransfer", "1.2") \
     EVENTKV("blockchain",blockchain) \
     EVENTKV("target",target) \
     EVENTKV("quantity",quantity) \
-    EVENTKVL("x_transfer_id",x_transfer_id) \
+    EVENTKVL("id",id) \
     END_EVENT()
 
 // triggered when account tokens are destroyed after cross chain transfer initiation

@@ -94,7 +94,7 @@ describe('Cross Conversions', () => {
         let bancorXEvents = JSON.parse(res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[1].console.split("\n")[1])
         // console.log(bancorXEvents)
         assert.equal(bancorXEvents.etype, "xtransfer")
-        assert.equal(Number(bancorXEvents.x_transfer_id), x_transfer_id)
+        assert.equal(Number(bancorXEvents.id), x_transfer_id)
         assert.equal(bancorXEvents.blockchain, "eth")
         assert.equal(bancorXEvents.target, "0x12345123451234512345")
     })
