@@ -131,7 +131,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     auto from_ratio = from_token.ratio;
     auto to_ratio = to_token.ratio;
 
-    eosio_assert(from_token.p_enabled, "'from' token purchases disabled");
+    eosio_assert(to_token.p_enabled, "'to' token purchases disabled");
     eosio_assert(code == from_contract, "unknown 'from' contract");
     auto current_from_balance = ((get_balance(from_contract, _self, from_currency.symbol.code())).amount + from_currency.amount - quantity.amount) / pow(10, from_currency.symbol.precision()); 
     auto current_to_balance = ((get_balance(to_contract, _self, to_currency.symbol.code())).amount + to_currency.amount) / pow(10, to_currency.symbol.precision());
