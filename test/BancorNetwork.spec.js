@@ -33,8 +33,10 @@ describe('BancorNetwork Contract', () => {
         let res = await token.transfer({ from: testUser, to: networkContract, quantity: `2.0000000000 ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
         var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
         // console.log(events)
-        var convertEvent = JSON.parse(events[0]);
-        assert.equal(convertEvent.return, "199996000", "unexpected conversion result");
+        const convertEvent = JSON.parse(events[0]);
+        const priceDataEvent = JSON.parse(events[1]);
+        // assert.equal(convertEvent.return, 1.99996000, "unexpected conversion result");
+        assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
         // console.log("result",jObj.target_amount);
     });
 
@@ -43,14 +45,19 @@ describe('BancorNetwork Contract', () => {
         const token = await _self.contract(tokenContract)
         let res = await token.transfer({ from: testUser, to: networkContract, quantity: `1.00000000 ${tokenSymbol}`, memo: `1,${converter} ${networkTokenSymbol} ${converter2} ${tokenSymbol2},${minReturn},${testUser}` }, _selfopts);
         var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
-        // console.log(events)
-        var convertEvent = JSON.parse(events[0]);
+        console.log(events)
+        let convertEvent = JSON.parse(events[0]);
+        let priceDataEvent = JSON.parse(events[1]);
+        assert.equal(convertEvent.return, 1.0000299998, "unexpected conversion result");
+        assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
         
-        assert.equal(convertEvent.return, "10000299998", "unexpected conversion result");
-        // console.log("action console", res.processed.action_traces[0].inline_traces);
         events = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[2].inline_traces[1].console.split("\n");
-        // console.log(events)
+        console.log(events)
         convertEvent = JSON.parse(events[0]);
-        assert.equal(convertEvent.return, "100001999", "unexpected conversion result");
+        priceDataEvent = JSON.parse(events[1]);
+        assert.equal(convertEvent.return, 0.99802094, "unexpected conversion result");
+        assert.equal(convertEvent.conversion_fee, 0.00099951, "unexpected conversion result");
+        assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
     });
+
 });

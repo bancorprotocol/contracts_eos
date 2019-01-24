@@ -10,7 +10,7 @@
     "dotenv": "^6.1.0",
     "eosjs": "^16.0.9",
     "eosjs-ecc": "^4.0.4",
-    "funguy": "^1.0.1"
+    "funguy": "^1.0.8"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
