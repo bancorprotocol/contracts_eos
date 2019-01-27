@@ -29,11 +29,12 @@ using std::vector;
     For example, in order to convert 10 EOS into BNT, the caller needs to transfer 10 EOS to the contract
     and provide the following memo:
 
-    1,bnt2eosrelay,BNT,1,receiver_account_name
+    1,bnt2eoscnvrt BNT,1.0000000000,receiver_account_name
 */
 CONTRACT BancorNetwork : public eosio::contract {
     using contract::contract;
     public:
+
 
         ACTION init();
 

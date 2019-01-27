@@ -1,20 +1,90 @@
 require("babel-core/register");
 require("babel-polyfill");
-import Eos from 'eosjs';
-import 'mocha';
-const fs = require('fs');
-const path = require('path');
+const { ERRORS } = require('./constants');
 
-const host = () => {
-    const h = process.env.NETWORK_HOST;
-    const p = process.env.NETWORK_PORT;
-    return `http://${h}:${p}`;
-};
+const {
+    ensureContractAssertionError,
+    getEos,
+    ensurePromiseDoesntThrow
+} = require('./utils');
 
-describe('BancorConverter Contract', () => {
-    const code = 'bancornetwrk';
-    const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${code}.json`)).toString());
-    const codekey = keyFile.privateKey;
-    const _self = Eos({ httpEndpoint:host(), keyProvider:codekey });
-    const _selfopts = { authorization:[`${code}@active`] };
+const networkContract = 'bancornetwrk';
+const tokenCContract= 'cc';
+const tokenCSymbol = "TKNC";
+const tokenCRelaySymbol = "BNTTKNC";
+const converterC = 'cnvtcc';
+const bntConverter = 'bnt2eoscnvrt';
+const networkTokenSymbol = "BNT";
+const bntRelaySymbol = 'BNTEOS';
+const bntRelay = 'bnt2eosrelay';
+const networkToken = 'bnt';
+const testUser = 'test1';
+
+describe('BancorConverter', () => {
+    it("trying to buy relays with 'smart_enabled' set to false - should throw (BNT)", async () => {
+        const bntToken = await getEos(testUser).contract(networkToken);
+        const minReturn = '0.0000000001';
+
+        const conversion = bntToken.transfer(
+            {
+                from: testUser,
+                to: networkContract,
+                quantity: `5.0000000000 ${networkTokenSymbol}`,
+                memo: `1,${bntConverter} ${bntRelaySymbol},${minReturn},${testUser}`
+            },
+            { authorization: `${testUser}@active` }
+        );
+
+        await ensureContractAssertionError(conversion, ERRORS.TOKEN_PURCHASES_DISABLED);
+    });
+
+    it("trying to sell relays with 'smart_enabled' set to false - should not throw (BNT)", async () => {
+        const bntRelayTokenIssuer = await getEos(bntConverter).contract(bntRelay);
+        const bntRelayTokenTestUser = await getEos(testUser).contract(bntRelay);
+
+        const minReturn = '0.0000000001';
+
+        await bntRelayTokenIssuer.issue({
+            to: testUser,
+            quantity: `10.0000000000 ${bntRelaySymbol}`,
+            memo: "hey there"
+        }, { authorization: `${bntConverter}@active` });
+
+        const p = bntRelayTokenTestUser.transfer(
+            {
+                from: testUser,
+                to: networkContract,
+                quantity: `10.0000000000 ${bntRelaySymbol}`,
+                memo: `1,${bntConverter} ${networkTokenSymbol},${minReturn},${testUser}`
+            },
+            { authorization: `${testUser}@active` }
+        );   
+
+        await ensurePromiseDoesntThrow(p);
+    });
+
+    it("trying to buy relays with 'smart_enabled' set to true - should not throw", async () => {
+        const tokenAIssuer = await getEos(tokenCContract).contract(tokenCContract);
+        const tokenATestUser = await getEos(testUser).contract(tokenCContract);
+
+        const minReturn = '0.0000000001';
+
+        await tokenAIssuer.issue({
+            to: testUser,
+            quantity: `10.00000000 ${tokenCSymbol}`,
+            memo: "hey there"
+        }, { authorization: `${tokenCContract}@active` });
+
+        const p = tokenATestUser.transfer(
+            {
+                from: testUser,
+                to: networkContract,
+                quantity: `10.00000000 ${tokenCSymbol}`,
+                memo: `1,${converterC} ${tokenCRelaySymbol},${minReturn},${testUser}`
+            },
+            { authorization: `${testUser}@active` }
+        );
+
+        await ensurePromiseDoesntThrow(p);
+    });
 });
