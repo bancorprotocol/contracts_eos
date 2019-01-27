@@ -4,7 +4,7 @@ var BancorNetwork = artifacts.require("./BancorNetwork/");
 var BancorConverter = artifacts.require("./BancorConverter/");
 var XTransferRerouter = artifacts.require("./XTransferRerouter/");
 
-async function regConverter(deployer, token, symbol, networkContract, networkToken, networkTokenSymbol, issuerAccount, issuerPrivateKey) {
+async function regConverter(deployer, token, symbol, fee, networkContract, networkToken, networkTokenSymbol, issuerAccount, issuerPrivateKey) {
     const converter = await deployer.deploy(BancorConverter, `cnvt${token}`);
 
     const tknContract = await deployer.deploy(Token, token);
@@ -23,12 +23,12 @@ async function regConverter(deployer, token, symbol, networkContract, networkTok
     await converter.contractInstance.init({
         smart_contract: tknrlyContract.contract.address,
         smart_currency: `0.0000000000 ${rlySymbol}`,
-        smart_enabled: 0,
+        smart_enabled: 1,
         enabled: 1,
         network: networkContract.contract.address,
         require_balance: 0,
-        max_fee: 0,
-        fee: 0
+        max_fee: 30,
+        fee
     }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });        
 
     await converter.contractInstance.setreserve({
@@ -67,7 +67,7 @@ module.exports = async function(deployer, network, accounts) {
     const bancorxContract = await deployer.deploy(BancorX, "bancorx");
     const networkContract = await deployer.deploy(BancorNetwork, "bancornetwrk");
     const tknbntContract = await deployer.deploy(Token, "bnt");
-    const rerouterContract = await deployer.deploy(XTransferRerouter, "txrerouter");
+    await deployer.deploy(XTransferRerouter, "txrerouter");
 
     const converter = await deployer.deploy(BancorConverter, "bnt2eoscnvrt")
     const bntrlyContract = await deployer.deploy(Token, "bnt2eosrelay");
@@ -206,11 +206,12 @@ module.exports = async function(deployer, network, accounts) {
         },{authorization: `${bancorxContract.contract.address}@active`,broadcast: true,sign: true});
 
     for (var i = 0; i < tkns.length; i++) {
-        const { contract, symbol } = tkns[i];
-        await regConverter(deployer, contract, symbol, networkContract, tknbntContract, networkTokenSymbol, bancorxContract.contract.address, bancorxContract.keys.privateKey);    
+        const { contract, symbol, fee } = tkns[i];
+        await regConverter(deployer, contract, symbol, fee, networkContract, tknbntContract, networkTokenSymbol, bancorxContract.contract.address, bancorxContract.keys.privateKey);    
     }
 };
 
 var tkns = [];
-tkns.push({ contract: "aa", symbol: "TKNA" });
-tkns.push({ contract: "bb", symbol: "TKNB" });
+tkns.push({ contract: "aa", symbol: "TKNA", fee: 0 });
+tkns.push({ contract: "bb", symbol: "TKNB", fee: 1 });
+tkns.push({ contract: "cc", symbol: "TKNC", fee: 0 });

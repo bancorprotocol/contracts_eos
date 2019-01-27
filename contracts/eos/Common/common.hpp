@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <iterator>
+#include <math.h>
 #include "events.hpp"
 
 using std::string;
@@ -72,6 +73,10 @@ std::string build_memo(memo_structure data) {
     memo.append(";");
     memo.append(data.receiver_memo);
     return memo;
+}
+
+double to_fixed(double num, int precision) {
+    return (int)(num * pow(10, precision)) / pow(10, precision);
 }
 
 memo_structure parse_memo(std::string memo) {

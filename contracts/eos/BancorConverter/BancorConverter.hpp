@@ -14,7 +14,7 @@ using std::vector;
 // events
 // triggered when a conversion between two tokens occurs
 #define EMIT_CONVERSION_EVENT(memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount) \
-    START_EVENT("conversion", "1.1") \
+    START_EVENT("conversion", "1.2") \
     EVENTKV("memo", memo) \
     EVENTKV("from_contract", from_contract) \
     EVENTKV("from_symbol", from_symbol) \
@@ -27,7 +27,7 @@ using std::vector;
 
 // triggered after a conversion with new tokens price data
 #define EMIT_PRICE_DATA_EVENT(smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) \
-    START_EVENT("price_data", "1.1") \
+    START_EVENT("price_data", "1.2") \
     EVENTKV("smart_supply", smart_supply) \
     EVENTKV("reserve_contract", reserve_contract) \
     EVENTKV("reserve_symbol", reserve_symbol) \

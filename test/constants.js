@@ -16,6 +16,7 @@ module.exports = Object.freeze({
         REPORTER_DOESNT_EXIST: 'reporter does not exist',
         TRANSFER_DATA_MISMATCH: 'transfer data doesn\'t match',
         SINGLETON_DOESNT_EXIST: 'singleton does not exist',
-        REROUTING_DISABLED: 'transaction rerouting is disabled'
+        REROUTING_DISABLED: 'transaction rerouting is disabled',
+        TOKEN_PURCHASES_DISABLED: "'to' token purchases disabled"
     }
 });

@@ -1,6 +1,7 @@
 const Eos = require('eosjs');
 const fs = require('fs');
 const path = require('path');
+import { assert } from 'chai';
 const getKeyFile = account => JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${account}.json`)).toString())
 
 const getEos = account => Eos({ httpEndpoint: host(), keyProvider: getKeyFile(account).privateKey })
@@ -15,6 +16,19 @@ async function ensureContractAssertionError(prom, expected_error) {
     }
 }
 
+async function ensurePromiseDoesntThrow(prom) {
+    let wasRejected = false;
+
+    try {
+        await prom;
+    }
+    catch (err) {
+        wasRejected = true;
+    }
+
+    assert.equal(wasRejected, false, 'promise should have resolved');
+}
+
 const host = () => {
     const h = process.env.NETWORK_HOST;
     const p = process.env.NETWORK_PORT;
@@ -27,6 +41,7 @@ module.exports ={
     getEos,
     getKeyFile,
     ensureContractAssertionError,
+    ensurePromiseDoesntThrow,
     host,
     snooze
 }
