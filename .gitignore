@@ -9,3 +9,5 @@ node_modules/
 **/CMakeFiles/**
 **/CMakeFiles
 **/cmake_install.cmake
+
+.vscode
