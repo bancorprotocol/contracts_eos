@@ -5,6 +5,7 @@ import { assert } from 'chai';
 import 'mocha';
 const fs = require('fs');
 const path = require('path');
+const BigNumber = require('bignumber.js');
 
 const host = () => {
     const h = process.env.NETWORK_HOST;
@@ -29,19 +30,31 @@ describe('BancorNetwork Contract', () => {
     
     it('simple convert', async function() {
         const minReturn = 0.100;
+        const amount = '2.0000000000'
         
+        const initialFromTokenReserveBalance = (await _self.getTableRows(true, networkToken, converter, 'accounts')).rows[0].balance.split(' ')[0];
+        const initialToTokenReserveBalance = (await _self.getTableRows(true, tokenContract, converter, 'accounts')).rows[0].balance.split(' ')[0];
+    
         const token = await _self.contract(networkToken)
-        const res = await token.transfer({ from: testUser, to: networkContract, quantity: `2.0000000000 ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
+        const res = await token.transfer({ from: testUser, to: networkContract, quantity: `${amount} ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
         const events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
         
         const convertEvent = JSON.parse(events[0]);
-        const priceDataEvent = JSON.parse(events[1]);
+        const toTokenPriceDataEvent = JSON.parse(events[1]);
+        const fromTokenPriceDataEvent = JSON.parse(events[2]);
 
         assert.equal(convertEvent.return, 1.99996000, "unexpected conversion return amount");
         assert.equal(convertEvent.conversion_fee, 0, "unexpected conversion fee");
 
-        assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
-        assert.equal(priceDataEvent.reserve_balance, 99998.00004, "unexpected reserve_balance");
+        assert.equal(toTokenPriceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
+        console.log(initialToTokenReserveBalance)
+        console.log(convertEvent.return)
+        const expectedToTokenReserveBalance = parseFloat(new BigNumber(initialToTokenReserveBalance).minus(convertEvent.return));
+        assert.equal(parseFloat(toTokenPriceDataEvent.reserve_balance), expectedToTokenReserveBalance, "unexpected reserve_balance");
+
+        assert.equal(fromTokenPriceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
+        const expectedFromTokenReserveBalance = parseFloat(new BigNumber(initialFromTokenReserveBalance).plus(amount));
+        assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance, "unexpected reserve_balance");
     });
 
     it('2 hop convert', async function() {

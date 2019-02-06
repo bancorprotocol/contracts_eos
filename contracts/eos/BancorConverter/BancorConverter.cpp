@@ -199,7 +199,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     if (incoming_smart_token || !outgoing_smart_token)
         EMIT_PRICE_DATA_EVENT(current_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_tokens, (to_ratio / 1000.0));
     if (outgoing_smart_token || !incoming_smart_token)
-        EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance, (from_ratio / 1000.0));
+        EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance + from_amount, (from_ratio / 1000.0));
 
     path new_path = memo_object.path;
     new_path.erase(new_path.begin(), new_path.begin() + 2);
