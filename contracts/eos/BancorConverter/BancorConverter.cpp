@@ -341,8 +341,9 @@ float BancorConverter::stof(const char* s) {
 };
 
 void BancorConverter::transfer(name from, name to, asset quantity, string memo) {
-    if (from == _self) {
-        // TODO: prevent withdrawal of funds
+    // avoid unstaking and system contract ops mishaps
+    if (from == _self || from == "eosio"_n || from == "eosio.stake"_n) {
+        // TODO: prevent withdrawal of reserve balances without depositing relay tokens
         return;
     }
 

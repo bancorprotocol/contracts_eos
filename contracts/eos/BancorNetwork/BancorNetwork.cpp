@@ -8,7 +8,8 @@ ACTION BancorNetwork::init() {
 }
 
 void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
-    if (to != _self)
+    // avoid unstaking and system contract ops mishaps
+    if (to != _self || from == "eosio"_n || from == "eosio.stake"_n)
         return;
  
     // auto a = extended_asset(, code);
