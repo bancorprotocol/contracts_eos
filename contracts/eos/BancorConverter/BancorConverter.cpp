@@ -191,21 +191,23 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         to_tokens = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_ratio);
     }
 
-    int64_t to_amount = (to_tokens * pow(10, to_currency_precision));
+    double formatted_total_fee_amount = to_fixed(total_fee_amount, to_currency_precision);
+    to_tokens = to_fixed(to_tokens, to_currency_precision);
 
-    double formatted_total_fee_amount = (int)(total_fee_amount * pow(10, to_currency_precision)) / pow(10, to_currency_precision);
-    EMIT_CONVERSION_EVENT(memo, from_token.contract, from_currency.symbol.code(), to_token.contract, to_currency.symbol.code(), from_amount, (to_amount / pow(10, to_currency_precision)), formatted_total_fee_amount);
+    EMIT_CONVERSION_EVENT(memo, from_token.contract, from_currency.symbol.code(), to_token.contract, to_currency.symbol.code(), from_amount, to_tokens, formatted_total_fee_amount);
 
     if (incoming_smart_token || !outgoing_smart_token)
-        EMIT_PRICE_DATA_EVENT(current_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_amount, (to_ratio / 1000.0));
+        EMIT_PRICE_DATA_EVENT(current_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_tokens, (to_ratio / 1000.0));
     if (outgoing_smart_token || !incoming_smart_token)
-        EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance, (from_ratio / 1000.0));
+        EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance + from_amount, (from_ratio / 1000.0));
 
     path new_path = memo_object.path;
     new_path.erase(new_path.begin(), new_path.begin() + 2);
     memo_object.path = new_path;
 
     auto new_memo = build_memo(memo_object);
+
+    int64_t to_amount = (to_tokens * pow(10, to_currency_precision));
     auto new_asset = asset(to_amount, to_currency.symbol);
     name inner_to = converter_settings.network;
     if (memo_object.path.size() == 0) {
