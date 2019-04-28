@@ -3,6 +3,7 @@
 #include <eosiolib/eosio.hpp>
 #include <eosiolib/transaction.hpp>
 #include <eosiolib/asset.hpp>
+#include <eosiolib/singleton.hpp>
 
 using namespace eosio;
 
@@ -37,6 +38,9 @@ CONTRACT BancorNetwork : public eosio::contract {
 
 
         ACTION init();
+        ACTION update(name converters_white_lister);
+
+        ACTION setconverter(name converter_account, bool isActive);
 
         // transfer intercepts
         // memo is in csv format, values -
@@ -45,4 +49,19 @@ CONTRACT BancorNetwork : public eosio::contract {
         // minimum return   conversion minimum return amount, the conversion will fail if the amount returned is lower than the given amount
         // target account   account to receive the conversion return
         void transfer(name from, name to, asset quantity, string memo);
+
+        TABLE converter_t {
+            name converter;
+            bool isActive;
+            uint64_t primary_key() const { return converter.value; }
+        };
+
+        TABLE settings_t {
+            name     converters_white_lister;
+            EOSLIB_SERIALIZE(settings_t, (converters_white_lister))
+        };
+
+        typedef eosio::singleton<"settings"_n, settings_t> settings;
+        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
+        typedef eosio::multi_index<"converters"_n, converter_t> converters;
 };

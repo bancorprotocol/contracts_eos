@@ -1,11 +1,59 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Thu Jan 24 11:36:35 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Apr 28 09:12:01 2019",
     "version": "eosio::abi/1.0",
     "structs": [
+        {
+            "name": "converter_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter",
+                    "type": "name"
+                },
+                {
+                    "name": "isActive",
+                    "type": "bool"
+                }
+            ]
+        },
         {
             "name": "init",
             "base": "",
             "fields": []
+        },
+        {
+            "name": "setconverter",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_account",
+                    "type": "name"
+                },
+                {
+                    "name": "isActive",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "settings_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converters_white_lister",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "update",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converters_white_lister",
+                    "type": "name"
+                }
+            ]
         }
     ],
     "types": [],
@@ -14,9 +62,34 @@
             "name": "init",
             "type": "init",
             "ricardian_contract": ""
+        },
+        {
+            "name": "setconverter",
+            "type": "setconverter",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "update",
+            "type": "update",
+            "ricardian_contract": ""
         }
     ],
-    "tables": [],
+    "tables": [
+        {
+            "name": "converters",
+            "type": "converter_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "settings",
+            "type": "settings_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
     "ricardian_clauses": [],
     "abi_extensions": []
 }

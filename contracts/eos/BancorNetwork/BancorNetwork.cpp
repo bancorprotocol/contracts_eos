@@ -7,23 +7,61 @@ ACTION BancorNetwork::init() {
     require_auth(_self);
 }
 
+ACTION BancorNetwork::update(name converters_white_lister) {
+    require_auth(_self);
+    settings settings_table(_self, _self.value);
+    
+    settings_t new_settings;
+    new_settings.converters_white_lister = converters_white_lister;
+    settings_table.set(new_settings, _self);
+}
+
+ACTION BancorNetwork::setconverter(name converter_account, bool isActive) {
+    settings settings_table(_self, _self.value);
+    auto st = settings_table.get();
+    eosio_assert(has_auth(st.converters_white_lister) || has_auth(_self), "declared authorization is not allowed to white list a converter");
+    
+    converters converters_table(_self, converter_account.value);
+    auto converter = converters_table.find(converter_account.value);
+
+    if (converter == converters_table.end()) {
+        converters_table.emplace(_self, [&](auto& c) {
+            c.converter = converter_account;
+            c.isActive = isActive;
+        });
+    }
+    else {
+        converters_table.modify(converter, _self, [&](auto& c) {
+            c.isActive = isActive;
+        });
+    }
+}
+
 void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     if (to != _self)
         return;
- 
-    // auto a = extended_asset(, code);
+    
     eosio_assert(quantity.symbol.is_valid(), "invalid quantity in transfer");
     eosio_assert(quantity.amount != 0, "zero quantity is disallowed in transfer");
 
-    auto path = parse_memo_path(memo);
+    auto memo_object = parse_memo(memo);
+    eosio_assert(memo_object.path.size() >= 2, "bad path format");
 
-    eosio_assert(path.size() >= 2, "bad path format");
-    name convert_contract = eosio::name(path[0].c_str());
+    name next_converter = memo_object.converters[0];
 
+    converters converters_table(_self, next_converter.value);
+    converters_table.require_find(next_converter.value, "converter is not white listed");
+
+    const name destination_account = name(memo_object.dest_account.c_str());
+    if (from != destination_account && destination_account != BANCOR_X) {
+        converters converters_table(_self, from.value);
+        converters_table.require_find(from.value, "The destination account must by either the sender, or the BancorX contract account");
+    }
+    
     action(
         permission_level{ _self, "active"_n },
         _code, "transfer"_n,
-        std::make_tuple(_self, convert_contract, quantity, memo)
+        std::make_tuple(_self, next_converter, quantity, memo)
     ).send();
 }
 
@@ -35,7 +73,7 @@ extern "C" {
         }
         if (code == receiver){
             switch( action ) { 
-                EOSIO_DISPATCH_HELPER( BancorNetwork, (init) ) 
+                EOSIO_DISPATCH_HELPER( BancorNetwork, (init)(update)(setconverter) ) 
             }    
         }
         eosio_exit(0);

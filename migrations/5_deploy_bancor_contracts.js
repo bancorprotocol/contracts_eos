@@ -4,7 +4,9 @@ var BancorNetwork = artifacts.require("./BancorNetwork/");
 var BancorConverter = artifacts.require("./BancorConverter/");
 var XTransferRerouter = artifacts.require("./XTransferRerouter/");
 
-async function regConverter(deployer, token, symbol, fee, networkContract, networkToken, networkTokenSymbol, issuerAccount, issuerPrivateKey) {
+let networkContract;
+
+async function regConverter(deployer, token, symbol, fee, networkContract, networkToken, networkTokenSymbol, issuerAccount, issuerPrivateKey, whiteListConverter=true) {
     const converter = await deployer.deploy(BancorConverter, `cnvt${token}`);
 
     const tknContract = await deployer.deploy(Token, token);
@@ -61,15 +63,31 @@ async function regConverter(deployer, token, symbol, fee, networkContract, netwo
         quantity: `100000.0000000000 ${networkTokenSymbol}`,
         memo: "setup"
     }, { authorization: `${issuerAccount}@active`, broadcast: true, sign: true, keyProvider: issuerPrivateKey });
+
+    if (whiteListConverter) {
+        await networkContract.contractInstance.setconverter({
+            converter_account: converter.contract.address,
+            isActive: 1
+        }, { authorization: `${networkContract.contract.address}@active` })
+    }
 }
 
 module.exports = async function(deployer, network, accounts) {
-    const bancorxContract = await deployer.deploy(BancorX, "bancorx");
-    const networkContract = await deployer.deploy(BancorNetwork, "bancornetwrk");
+    const bancorxContract = await deployer.deploy(BancorX, "bancorxoneos");
+    
+    networkContract = await deployer.deploy(BancorNetwork, "thisisbancor");
+    await networkContract.contractInstance.update({
+        converters_white_lister: networkContract.contract.address
+    }, { authorization: `${networkContract.contract.address}@active` })
+
     const tknbntContract = await deployer.deploy(Token, "bnt");
     await deployer.deploy(XTransferRerouter, "txrerouter");
 
     const converter = await deployer.deploy(BancorConverter, "bnt2eoscnvrt")
+    await networkContract.contractInstance.setconverter({
+        converter_account: converter.contract.address,
+        isActive: 1
+    }, { authorization: `${networkContract.contract.address}@active` })
     const bntrlyContract = await deployer.deploy(Token, "bnt2eosrelay");
 
     var networkTokenSymbol = "BNT";
@@ -206,12 +224,13 @@ module.exports = async function(deployer, network, accounts) {
         },{authorization: `${bancorxContract.contract.address}@active`,broadcast: true,sign: true});
 
     for (var i = 0; i < tkns.length; i++) {
-        const { contract, symbol, fee } = tkns[i];
-        await regConverter(deployer, contract, symbol, fee, networkContract, tknbntContract, networkTokenSymbol, bancorxContract.contract.address, bancorxContract.keys.privateKey);    
+        const { contract, symbol, fee, whiteListConverter } = tkns[i];
+        await regConverter(deployer, contract, symbol, fee, networkContract, tknbntContract, networkTokenSymbol, bancorxContract.contract.address, bancorxContract.keys.privateKey, whiteListConverter);    
     }
 };
 
 var tkns = [];
-tkns.push({ contract: "aa", symbol: "TKNA", fee: 0 });
-tkns.push({ contract: "bb", symbol: "TKNB", fee: 1 });
-tkns.push({ contract: "cc", symbol: "TKNC", fee: 0 });
+tkns.push({ contract: "aa", symbol: "TKNA", fee: 0, whiteListConverter: true });
+tkns.push({ contract: "bb", symbol: "TKNB", fee: 1, whiteListConverter: true });
+tkns.push({ contract: "cc", symbol: "TKNC", fee: 0, whiteListConverter: true });
+tkns.push({ contract: "dd", symbol: "TKND", fee: 0, whiteListConverter: false });

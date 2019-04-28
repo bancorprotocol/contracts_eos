@@ -3,6 +3,8 @@ require("babel-polyfill");
 import Eos from 'eosjs';
 import { assert } from 'chai';
 import 'mocha';
+import { ensureContractAssertionError, getEos } from './utils';
+import { ERRORS } from './constants';
 const fs = require('fs');
 const path = require('path');
 
@@ -15,11 +17,14 @@ const host = () => {
 describe('BancorNetwork Contract', () => {
     const converter = 'cnvtaa';
     const converter2 = 'cnvtbb';
-    const networkContract = 'bancornetwrk';
+    const unauthorizedConverter = 'cnvtdd';
+    const networkContract = 'thisisbancor';
+    const bntConverter = 'bnt2eoscnvrt';
     const networkTokenSymbol = "BNT";
     const networkToken = 'bnt';
     const tokenSymbol = "TKNA";
     const tokenSymbol2 = "TKNB";
+    const unauthorizedToken = "TKND";
     const testUser = 'test1';
     const tokenContract= 'aa';
     const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${testUser}.json`)).toString());
@@ -60,4 +65,40 @@ describe('BancorNetwork Contract', () => {
         assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
     });
 
+
+    it("verifies it's not possible to do a conversion with a destination wallet that's different than the origin account", async () => {
+        const bntToken = await getEos(testUser).contract(networkToken);
+        const minReturn = '0.0000000001';
+        const thirdPartyAccount = 'eosio';
+
+        const conversion = bntToken.transfer(
+            {
+                from: testUser,
+                to: networkContract,
+                quantity: `5.0000000000 ${networkTokenSymbol}`,
+                memo: `1,${bntConverter} SYS,${minReturn},${thirdPartyAccount}`
+            },
+            { authorization: `${testUser}@active` }
+        );
+
+        await ensureContractAssertionError(conversion, ERRORS.INVALID_TARGET_ACCOUNT);
+    });
+
+    it("verifies an error is thrown when trying to convert with a non white-listed converter as a part of the path", async () => {
+        const bntToken = await getEos(testUser).contract(networkToken);
+        const minReturn = '0.0000000001';
+        const thirdPartyAccount = 'eosio';
+
+        const conversion = bntToken.transfer(
+            {
+                from: testUser,
+                to: networkContract,
+                quantity: `5.0000000000 ${networkTokenSymbol}`,
+                memo: `1,${unauthorizedConverter} ${unauthorizedToken},${minReturn},${testUser}`
+            },
+            { authorization: `${testUser}@active` }
+        );
+
+        await ensureContractAssertionError(conversion, ERRORS.CONVERTER_NOT_WHITE_LISTED);
+    });
 });

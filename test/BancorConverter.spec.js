@@ -8,7 +8,7 @@ const {
     ensurePromiseDoesntThrow
 } = require('./utils');
 
-const networkContract = 'bancornetwrk';
+const networkContract = 'thisisbancor';
 const tokenCContract= 'cc';
 const tokenCSymbol = "TKNC";
 const tokenCRelaySymbol = "BNTTKNC";
