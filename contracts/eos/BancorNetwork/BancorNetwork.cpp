@@ -18,7 +18,7 @@ ACTION BancorNetwork::update(name converters_white_lister) {
 
 ACTION BancorNetwork::setconverter(name converter_account, bool isActive) {
     settings settings_table(_self, _self.value);
-    auto st = settings_table.get();
+    const auto& st = settings_table.get();
     eosio_assert(has_auth(st.converters_white_lister) || has_auth(_self), "declared authorization is not allowed to white list a converter");
     
     converters converters_table(_self, converter_account.value);
