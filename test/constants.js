@@ -18,7 +18,7 @@ module.exports = Object.freeze({
         SINGLETON_DOESNT_EXIST: 'singleton does not exist',
         REROUTING_DISABLED: 'transaction rerouting is disabled',
         TOKEN_PURCHASES_DISABLED: "'to' token purchases disabled",
-        INVALID_TARGET_ACCOUNT: 'The destination account must by either the sender, or the BancorX contract account',
+        INVALID_TARGET_ACCOUNT: 'the destination account must by either the sender, or the BancorX contract account',
         CONVERTER_NOT_WHITE_LISTED: 'converter is not white listed'
     }
 });

@@ -53,9 +53,10 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     converters_table.require_find(next_converter.value, "converter is not white listed");
 
     const name destination_account = name(memo_object.dest_account.c_str());
+    // the 'from' param must be either the destination account, or a valid, whitelisted converter (in case it's a "2-hop" conversion path)
     if (from != destination_account && destination_account != BANCOR_X) {
         converters converters_table(_self, from.value);
-        converters_table.require_find(from.value, "The destination account must by either the sender, or the BancorX contract account");
+        converters_table.require_find(from.value, "the destination account must by either the sender, or the BancorX contract account");
     }
     
     action(
