@@ -76,10 +76,6 @@ module.exports = async function(deployer, network, accounts) {
     const bancorxContract = await deployer.deploy(BancorX, "bancorxoneos");
     
     networkContract = await deployer.deploy(BancorNetwork, "thisisbancor");
-    await networkContract.contractInstance.update({
-        converters_white_lister: networkContract.contract.address
-    }, { authorization: `${networkContract.contract.address}@active` })
-
     const tknbntContract = await deployer.deploy(Token, "bnt");
     await deployer.deploy(XTransferRerouter, "txrerouter");
 

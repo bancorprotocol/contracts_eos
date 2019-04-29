@@ -7,20 +7,8 @@ ACTION BancorNetwork::init() {
     require_auth(_self);
 }
 
-ACTION BancorNetwork::update(name converters_white_lister) {
-    require_auth(_self);
-    settings settings_table(_self, _self.value);
-    
-    settings_t new_settings;
-    new_settings.converters_white_lister = converters_white_lister;
-    settings_table.set(new_settings, _self);
-}
-
 ACTION BancorNetwork::setconverter(name converter_account, bool isActive) {
-    settings settings_table(_self, _self.value);
-    const auto& st = settings_table.get();
-    eosio_assert(has_auth(st.converters_white_lister) || has_auth(_self), "declared authorization is not allowed to white list a converter");
-    
+    require_auth(_self);
     converters converters_table(_self, converter_account.value);
     auto converter = converters_table.find(converter_account.value);
 
@@ -74,7 +62,7 @@ extern "C" {
         }
         if (code == receiver){
             switch( action ) { 
-                EOSIO_DISPATCH_HELPER( BancorNetwork, (init)(update)(setconverter) ) 
+                EOSIO_DISPATCH_HELPER( BancorNetwork, (init)(setconverter) ) 
             }    
         }
         eosio_exit(0);

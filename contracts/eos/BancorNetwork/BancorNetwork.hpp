@@ -38,7 +38,6 @@ CONTRACT BancorNetwork : public eosio::contract {
 
 
         ACTION init();
-        ACTION update(name converters_white_lister);
 
         ACTION setconverter(name converter_account, bool isActive);
 
@@ -56,12 +55,5 @@ CONTRACT BancorNetwork : public eosio::contract {
             uint64_t primary_key() const { return converter.value; }
         };
 
-        TABLE settings_t {
-            name     converters_white_lister;
-            EOSLIB_SERIALIZE(settings_t, (converters_white_lister))
-        };
-
-        typedef eosio::singleton<"settings"_n, settings_t> settings;
-        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
 };
