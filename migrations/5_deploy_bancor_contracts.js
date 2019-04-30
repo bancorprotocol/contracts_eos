@@ -64,12 +64,10 @@ async function regConverter(deployer, token, symbol, fee, networkContract, netwo
         memo: "setup"
     }, { authorization: `${issuerAccount}@active`, broadcast: true, sign: true, keyProvider: issuerPrivateKey });
 
-    if (whiteListConverter) {
-        await networkContract.contractInstance.setconverter({
-            converter_account: converter.contract.address,
-            isActive: 1
-        }, { authorization: `${networkContract.contract.address}@active` })
-    }
+    await networkContract.contractInstance.setconverter({
+        converter_account: converter.contract.address,
+        isActive: whiteListConverter ? 1 : 0
+    }, { authorization: `${networkContract.contract.address}@active` })
 }
 
 module.exports = async function(deployer, network, accounts) {

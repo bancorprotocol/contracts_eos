@@ -36,15 +36,12 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     eosio_assert(memo_object.path.size() >= 2, "bad path format");
 
     name next_converter = memo_object.converters[0];
-
-    converters converters_table(_self, next_converter.value);
-    converters_table.require_find(next_converter.value, "converter is not white listed");
+    eosio_assert(isWhiteListedConverter(next_converter), "converter is not white listed");
 
     const name destination_account = name(memo_object.dest_account.c_str());
     // the 'from' param must be either the destination account, or a valid, whitelisted converter (in case it's a "2-hop" conversion path)
     if (from != destination_account && destination_account != BANCOR_X) {
-        converters converters_table(_self, from.value);
-        converters_table.require_find(from.value, "the destination account must by either the sender, or the BancorX contract account");
+        eosio_assert(isWhiteListedConverter(from), "the destination account must by either the sender, or the BancorX contract account");
     }
     
     action(
@@ -52,6 +49,13 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
         _code, "transfer"_n,
         std::make_tuple(_self, next_converter, quantity, memo)
     ).send();
+}
+
+bool BancorNetwork::isWhiteListedConverter(name converter) {
+    converters converters_table(_self, converter.value);
+    const auto& c_it = converters_table.find(converter.value);
+
+    return c_it != converters_table.end() && c_it->isActive;
 }
 
 extern "C" {

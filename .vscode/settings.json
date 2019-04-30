@@ -59,6 +59,10 @@
         "system_error": "cpp",
         "unordered_map": "cpp",
         "hashtable": "cpp",
-        "hash_map": "cpp"
+        "hash_map": "cpp",
+        "__tree": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp"
     }
 }
