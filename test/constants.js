@@ -19,6 +19,6 @@ module.exports = Object.freeze({
         REROUTING_DISABLED: 'transaction rerouting is disabled',
         TOKEN_PURCHASES_DISABLED: "'to' token purchases disabled",
         INVALID_TARGET_ACCOUNT: 'the destination account must by either the sender, or the BancorX contract account',
-        CONVERTER_NOT_WHITE_LISTED: 'converter is not white listed'
+        CONVERTER_DOESNT_EXIST: 'converter doesn\'t exist'
     }
 });

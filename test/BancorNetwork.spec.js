@@ -17,14 +17,12 @@ const host = () => {
 describe('BancorNetwork Contract', () => {
     const converter = 'cnvtaa';
     const converter2 = 'cnvtbb';
-    const unauthorizedConverter = 'cnvtdd';
     const networkContract = 'thisisbancor';
     const bntConverter = 'bnt2eoscnvrt';
     const networkTokenSymbol = "BNT";
     const networkToken = 'bnt';
     const tokenSymbol = "TKNA";
     const tokenSymbol2 = "TKNB";
-    const unauthorizedToken = "TKND";
     const testUser1 = 'test1';
     const testUser2 = 'test2';
     const tokenContract= 'aa';
@@ -85,23 +83,6 @@ describe('BancorNetwork Contract', () => {
         await ensureContractAssertionError(conversion, ERRORS.INVALID_TARGET_ACCOUNT);
     });
 
-    it("verifies an error is thrown when trying to use a disabled converter as part of the path", async () => {
-        const bntToken = await getEos(testUser1).contract(networkToken);
-        const minReturn = '0.0000000001';
-
-        const conversion = bntToken.transfer(
-            {
-                from: testUser1,
-                to: networkContract,
-                quantity: `5.0000000000 ${networkTokenSymbol}`,
-                memo: `1,${unauthorizedConverter} ${unauthorizedToken},${minReturn},${testUser1}`
-            },
-            { authorization: `${testUser1}@active` }
-        );
-
-        await ensureContractAssertionError(conversion, ERRORS.CONVERTER_NOT_WHITE_LISTED);
-    });
-
     it("verifies an error is thrown when trying to use a non-converter account name as part of the path", async () => {
         const bntToken = await getEos(testUser1).contract(networkToken);
         const minReturn = '0.0000000001';
@@ -116,6 +97,6 @@ describe('BancorNetwork Contract', () => {
             { authorization: `${testUser1}@active` }
         );
 
-        await ensureContractAssertionError(conversion, ERRORS.CONVERTER_NOT_WHITE_LISTED);
+        await ensureContractAssertionError(conversion, ERRORS.CONVERTER_DOESNT_EXIST);
     });
 });

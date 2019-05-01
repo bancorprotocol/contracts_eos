@@ -55,5 +55,5 @@ CONTRACT BancorNetwork : public eosio::contract {
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
     
     private:
-        bool isConverterEnabled(name converter);
+        bool isConverter(name converter);
 };

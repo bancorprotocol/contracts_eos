@@ -19,12 +19,12 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     eosio_assert(memo_object.path.size() >= 2, "bad path format");
 
     name next_converter = memo_object.converters[0];
-    eosio_assert(isConverterEnabled(next_converter), "converter is not white listed");
+    eosio_assert(isConverter(next_converter), "converter doesn\'t exist");
 
     const name destination_account = name(memo_object.dest_account.c_str());
     // the 'from' param must be either the destination account, or a valid, whitelisted converter (in case it's a "2-hop" conversion path)
     if (from != destination_account && destination_account != BANCOR_X) {
-        eosio_assert(isConverterEnabled(from), "the destination account must by either the sender, or the BancorX contract account");
+        eosio_assert(isConverter(from), "the destination account must by either the sender, or the BancorX contract account");
     }
     
     action(
@@ -34,7 +34,7 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     ).send();
 }
 
-bool BancorNetwork::isConverterEnabled(name converter) {
+bool BancorNetwork::isConverter(name converter) {
     BancorConverter::settings settings_table(converter, converter.value);
     bool settings_exists = settings_table.exists();
     if (!settings_exists)
