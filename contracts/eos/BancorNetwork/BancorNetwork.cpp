@@ -1,5 +1,6 @@
 #include "./BancorNetwork.hpp"
 #include "../Common/common.hpp"
+#include "../BancorConverter/BancorConverter.hpp"
 
 using namespace eosio;
 
@@ -36,12 +37,12 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     eosio_assert(memo_object.path.size() >= 2, "bad path format");
 
     name next_converter = memo_object.converters[0];
-    eosio_assert(isWhiteListedConverter(next_converter), "converter is not white listed");
+    eosio_assert(isConverterEnabled(next_converter), "converter is not white listed");
 
     const name destination_account = name(memo_object.dest_account.c_str());
     // the 'from' param must be either the destination account, or a valid, whitelisted converter (in case it's a "2-hop" conversion path)
     if (from != destination_account && destination_account != BANCOR_X) {
-        eosio_assert(isWhiteListedConverter(from), "the destination account must by either the sender, or the BancorX contract account");
+        eosio_assert(isConverterEnabled(from), "the destination account must by either the sender, or the BancorX contract account");
     }
     
     action(
@@ -51,11 +52,11 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     ).send();
 }
 
-bool BancorNetwork::isWhiteListedConverter(name converter) {
-    converters converters_table(_self, converter.value);
-    const auto& c_it = converters_table.find(converter.value);
+bool BancorNetwork::isConverterEnabled(name converter) {
+    BancorConverter::settings settings_table(converter, converter.value);
+    const auto& c_it = settings_table.find();
 
-    return c_it != converters_table.end() && c_it->isActive;
+    return c_it != converters_table.end() && c_it.enabled;
 }
 
 extern "C" {
