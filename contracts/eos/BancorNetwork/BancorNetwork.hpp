@@ -38,8 +38,6 @@ CONTRACT BancorNetwork : public eosio::contract {
 
         ACTION init();
 
-        ACTION setconverter(name converter_account, bool isActive);
-
         // transfer intercepts
         // memo is in csv format, values -
         // version          version number, currently 1

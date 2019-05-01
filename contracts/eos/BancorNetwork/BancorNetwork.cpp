@@ -8,24 +8,6 @@ ACTION BancorNetwork::init() {
     require_auth(_self);
 }
 
-ACTION BancorNetwork::setconverter(name converter_account, bool isActive) {
-    require_auth(_self);
-    converters converters_table(_self, converter_account.value);
-    auto converter = converters_table.find(converter_account.value);
-
-    if (converter == converters_table.end()) {
-        converters_table.emplace(_self, [&](auto& c) {
-            c.converter = converter_account;
-            c.isActive = isActive;
-        });
-    }
-    else {
-        converters_table.modify(converter, _self, [&](auto& c) {
-            c.isActive = isActive;
-        });
-    }
-}
-
 void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     if (to != _self)
         return;
@@ -54,9 +36,13 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
 
 bool BancorNetwork::isConverterEnabled(name converter) {
     BancorConverter::settings settings_table(converter, converter.value);
-    const auto& c_it = settings_table.find();
+    bool settings_exists = settings_table.exists();
+    if (!settings_exists)
+        return false;
+    
+    const auto& st = settings_table.get();
 
-    return c_it != converters_table.end() && c_it.enabled;
+    return st.enabled;
 }
 
 extern "C" {
@@ -67,7 +53,7 @@ extern "C" {
         }
         if (code == receiver){
             switch( action ) { 
-                EOSIO_DISPATCH_HELPER( BancorNetwork, (init)(setconverter) ) 
+                EOSIO_DISPATCH_HELPER( BancorNetwork, (init) ) 
             }    
         }
         eosio_exit(0);

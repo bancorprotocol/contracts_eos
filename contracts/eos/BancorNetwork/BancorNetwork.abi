@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Tue Apr 30 07:40:54 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Wed May  1 22:12:56 2019",
     "version": "eosio::abi/1.0",
     "structs": [
         {
@@ -20,20 +20,6 @@
             "name": "init",
             "base": "",
             "fields": []
-        },
-        {
-            "name": "setconverter",
-            "base": "",
-            "fields": [
-                {
-                    "name": "converter_account",
-                    "type": "name"
-                },
-                {
-                    "name": "isActive",
-                    "type": "bool"
-                }
-            ]
         }
     ],
     "types": [],
@@ -41,11 +27,6 @@
         {
             "name": "init",
             "type": "init",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "setconverter",
-            "type": "setconverter",
             "ricardian_contract": ""
         }
     ],
