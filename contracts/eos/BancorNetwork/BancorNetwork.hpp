@@ -45,14 +45,6 @@ CONTRACT BancorNetwork : public eosio::contract {
         // minimum return   conversion minimum return amount, the conversion will fail if the amount returned is lower than the given amount
         // target account   account to receive the conversion return
         void transfer(name from, name to, asset quantity, string memo);
-
-        TABLE converter_t {
-            name converter;
-            bool isActive;
-            uint64_t primary_key() const { return converter.value; }
-        };
-
-        typedef eosio::multi_index<"converters"_n, converter_t> converters;
     
     private:
         bool isConverter(name converter);
