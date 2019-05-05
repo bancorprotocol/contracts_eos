@@ -3,6 +3,8 @@ require("babel-polyfill");
 import Eos from 'eosjs';
 import { assert } from 'chai';
 import 'mocha';
+import { ensureContractAssertionError, getEos } from './utils';
+import { ERRORS } from './constants';
 const fs = require('fs');
 const path = require('path');
 
@@ -15,22 +17,24 @@ const host = () => {
 describe('BancorNetwork Contract', () => {
     const converter = 'cnvtaa';
     const converter2 = 'cnvtbb';
-    const networkContract = 'bancornetwrk';
+    const networkContract = 'thisisbancor';
+    const bntConverter = 'bnt2eoscnvrt';
     const networkTokenSymbol = "BNT";
     const networkToken = 'bnt';
     const tokenSymbol = "TKNA";
     const tokenSymbol2 = "TKNB";
-    const testUser = 'test1';
+    const testUser1 = 'test1';
+    const testUser2 = 'test2';
     const tokenContract= 'aa';
-    const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${testUser}.json`)).toString());
+    const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${testUser1}.json`)).toString());
     const codekey = keyFile.privateKey;
     const _self = Eos({ httpEndpoint:host(), keyProvider:codekey });
-    const _selfopts = { authorization:[`${testUser}@active`] };
+    const _selfopts = { authorization:[`${testUser1}@active`] };
     
     it('simple convert', async function() {
         var minReturn = 0.100;
         const token = await _self.contract(networkToken)
-        let res = await token.transfer({ from: testUser, to: networkContract, quantity: `2.0000000000 ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser}` }, _selfopts);
+        let res = await token.transfer({ from: testUser1, to: networkContract, quantity: `2.0000000000 ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser1}` }, _selfopts);
         var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
         // console.log(events)
         const convertEvent = JSON.parse(events[0]);
@@ -43,7 +47,7 @@ describe('BancorNetwork Contract', () => {
     it('2 hop convert', async function() {
         var minReturn = 0.100;
         const token = await _self.contract(tokenContract)
-        let res = await token.transfer({ from: testUser, to: networkContract, quantity: `1.00000000 ${tokenSymbol}`, memo: `1,${converter} ${networkTokenSymbol} ${converter2} ${tokenSymbol2},${minReturn},${testUser}` }, _selfopts);
+        let res = await token.transfer({ from: testUser1, to: networkContract, quantity: `1.00000000 ${tokenSymbol}`, memo: `1,${converter} ${networkTokenSymbol} ${converter2} ${tokenSymbol2},${minReturn},${testUser1}` }, _selfopts);
         var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
         console.log(events)
         let convertEvent = JSON.parse(events[0]);
@@ -60,4 +64,39 @@ describe('BancorNetwork Contract', () => {
         assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
     });
 
+
+    it("verifies it's not possible to do a conversion with a destination wallet that's different than the origin account", async () => {
+        const bntToken = await getEos(testUser1).contract(networkToken);
+        const minReturn = '0.0000000001';
+        const thirdPartyAccount = 'eosio';
+
+        const conversion = bntToken.transfer(
+            {
+                from: testUser1,
+                to: networkContract,
+                quantity: `5.0000000000 ${networkTokenSymbol}`,
+                memo: `1,${bntConverter} SYS,${minReturn},${thirdPartyAccount}`
+            },
+            { authorization: `${testUser1}@active` }
+        );
+
+        await ensureContractAssertionError(conversion, ERRORS.INVALID_TARGET_ACCOUNT);
+    });
+
+    it("verifies an error is thrown when trying to use a non-converter account name as part of the path", async () => {
+        const bntToken = await getEos(testUser1).contract(networkToken);
+        const minReturn = '0.0000000001';
+
+        const conversion = bntToken.transfer(
+            {
+                from: testUser1,
+                to: networkContract,
+                quantity: `5.0000000000 ${networkTokenSymbol}`,
+                memo: `1,${testUser2} ${networkTokenSymbol},${minReturn},${testUser1}`
+            },
+            { authorization: `${testUser1}@active` }
+        );
+
+        await ensureContractAssertionError(conversion, ERRORS.CONVERTER_DOESNT_EXIST);
+    });
 });

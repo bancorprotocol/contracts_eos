@@ -9,12 +9,12 @@ const {
     snooze
 } = require('./utils');
 
-const networkContract = 'bancornetwrk';
+const networkContract = 'thisisbancor';
 const tokenAContract= 'aa';
 const tokenASymbol = "TKNA";
 const converter1 = 'cnvtaa';
 const bntConverter = 'bnt2eoscnvrt';
-const bancorXContract = 'bancorx';
+const bancorXContract = 'bancorxoneos';
 const networkTokenSymbol = "BNT";
 const networkToken = 'bnt';
 const testUser = 'test1';
