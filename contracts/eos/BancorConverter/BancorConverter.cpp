@@ -28,8 +28,7 @@ ACTION BancorConverter::init(name smart_contract,
                              uint64_t max_fee,
                              uint64_t fee) {
     require_auth(_self);
-    eosio_assert(max_fee <= 1000, "maximum fee must be lower or equal to 1000");
-    eosio_assert(fee <= 1000, "fee must be lower or equal to 1000");
+    eosio_assert(max_fee <= 1000000, "maximum fee must be lower or equal to 100.0000%");
     eosio_assert(fee <= max_fee, "fee must be lower or equal to the maximum fee");
 
     settings settings_table(_self, _self.value);
@@ -50,7 +49,6 @@ ACTION BancorConverter::init(name smart_contract,
 
 ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee) {
     require_auth(_self);
-    eosio_assert(fee <= 1000, "fee must be lower or equal to 1000");
 
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
@@ -65,7 +63,7 @@ ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_ba
 
 ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio, bool p_enabled) {
     require_auth(_self);
-    eosio_assert(ratio > 0 && ratio <= 1000, "ratio must be between 1 and 1000");
+    eosio_assert(ratio > 0 && ratio <= 1000000, "ratio must be between 0.0001% and 100.0000%");
 
     reserves reserves_table(_self, _self.value);
     auto existing = reserves_table.find(currency.symbol.code().raw());
@@ -89,7 +87,7 @@ ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio
     for (auto& reserve : reserves_table)
         total_ratio += reserve.ratio;
     
-    eosio_assert(total_ratio <= 1000, "total ratio cannot exceed 1000");
+    eosio_assert(total_ratio <= 1000000, "total ratio cannot exceed 1000");
 
     settings settings_table(_self, _self.value);
     auto converter_settings = settings_table.get();
@@ -163,7 +161,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         smart_tokens = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, from_ratio);
         current_smart_supply += smart_tokens;
         if (converter_settings.fee > 0) {
-            double ffee = (1.0 * converter_settings.fee / 1000.0);
+            double ffee = (1.0 * converter_settings.fee / 1000000.0);
             auto fee = smart_tokens * ffee;
             if (fee > 0) {
                 smart_tokens = smart_tokens - fee;
@@ -180,7 +178,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     }
     else if (!quick) {
         if (converter_settings.fee) {
-            double ffee = (1.0 * converter_settings.fee / 1000.0);
+            double ffee = (1.0 * converter_settings.fee / 1000000.0);
             auto fee = smart_tokens * ffee;
             if (fee > 0) {
                 smart_tokens = smart_tokens - fee;
@@ -197,9 +195,9 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     EMIT_CONVERSION_EVENT(memo, from_token.contract, from_currency.symbol.code(), to_token.contract, to_currency.symbol.code(), from_amount, (to_amount / pow(10, to_currency_precision)), formatted_total_fee_amount);
 
     if (incoming_smart_token || !outgoing_smart_token)
-        EMIT_PRICE_DATA_EVENT(current_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_amount, (to_ratio / 1000.0));
+        EMIT_PRICE_DATA_EVENT(current_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_amount, (to_ratio / 1000000.0));
     if (outgoing_smart_token || !incoming_smart_token)
-        EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance, (from_ratio / 1000.0));
+        EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance, (from_ratio / 1000000.0));
 
     path new_path = memo_object.path;
     new_path.erase(new_path.begin(), new_path.begin() + 2);
@@ -292,7 +290,7 @@ void BancorConverter::verify_min_return(eosio::asset quantity, std::string min_r
 double BancorConverter::calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio) {
     double R(supply);
     double C(balance + deposit_amount);
-    double F(ratio / 1000.0);
+    double F(ratio / 1000000.0);
     double T(deposit_amount);
     double ONE(1.0);
 
@@ -305,7 +303,7 @@ double BancorConverter::calculate_purchase_return(double balance, double deposit
 double BancorConverter::calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio) {
     double R(supply - sell_amount);
     double C(balance);
-    double F(1000.0 / ratio);
+    double F(1000000.0 / ratio);
     double E(sell_amount);
     double ONE(1.0);
 
