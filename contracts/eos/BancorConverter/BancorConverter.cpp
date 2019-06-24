@@ -87,7 +87,7 @@ ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio
     for (auto& reserve : reserves_table)
         total_ratio += reserve.ratio;
     
-    eosio_assert(total_ratio <= 1000000, "total ratio cannot exceed 1000");
+    eosio_assert(total_ratio <= 1000000, "total ratio cannot exceed 100.0000%");
 
     settings settings_table(_self, _self.value);
     auto converter_settings = settings_table.get();

@@ -82,21 +82,21 @@ CONTRACT BancorConverter : public eosio::contract {
                     bool  enabled,          // true if conversions are enabled, false if not
                     name  network,          // bancor network contract name
                     bool  require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
-                    uint64_t max_fee,       // maximum conversion fee percentage, 0-1000
-                    uint64_t fee);          // conversion fee percentage, must be lower than the maximum fee, 0-1000
+                    uint64_t max_fee,       // // maximum conversion fee percentage, 0-1000000, 4-pt precision a la eosio.asset
+                    uint64_t fee);          // conversion fee percentage, must be lower than the maximum fee, same precision
 
         // updates the converter settings
         // can only be called by the contract account
         ACTION update(bool smart_enabled,    // true if the smart token can be converted to/from, false if not
                       bool enabled,          // true if conversions are enabled, false if not
                       bool require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
-                      uint64_t fee);         // conversion fee percentage, must be lower than the maximum fee, 0-1000
+                      uint64_t fee);         // conversion fee percentage, must be lower than the maximum fee, same precision
         
         // initializes a new reserve in the converter
         // can also be used to update an existing reserve, can only be called by the contract account
         ACTION setreserve(name contract,        // reserve token contract name
                           asset    currency,    // reserve token currency
-                          uint64_t ratio,       // reserve ratio, percentage, 0-1000
+                          uint64_t ratio,       // reserve ratio, percentage, 0-1000000, precision a la max_fee
                           bool     p_enabled);  // true if purchases are enabled with the reserve, false if not
 
         // transfer intercepts
