@@ -36,14 +36,11 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
 
 bool BancorNetwork::isConverter(name converter) {
     BancorConverter::settings settings_table(converter, converter.value);
-    auto st = settings_table.get(1, "settings do not exist");
-    /*
     bool settings_exists = settings_table.exists();
     if (!settings_exists)
         return false;
     
     const auto& st = settings_table.get();
-    */
     return st.enabled;
 }
 

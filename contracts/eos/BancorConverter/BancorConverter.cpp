@@ -32,26 +32,7 @@ ACTION BancorConverter::init(name smart_contract,
     check(fee <= max_fee, "fee must be lower or equal to the maximum fee");
 
     settings settings_table(_self, _self.value);
-    auto st = settings_table.find(1);
-    check (st == settings_table.end(), "settings already exist");
-
-    extend_t x;
-    x.precise = true;
-    settings_table.emplace(_self, [&](auto& s) {
-        s.smart_contract  = smart_contract;
-        s.smart_currency  = smart_currency;
-        s.smart_enabled   = smart_enabled;
-        s.enabled         = enabled;
-        s.network         = network;
-        s.require_balance = require_balance;
-        s.max_fee         = max_fee;
-        s.fee             = fee;
-        s.extend.emplace(x);
-    });
-
-    
-    /*
-    /bool settings_exists = settings_table.exists();
+    bool settings_exists = settings_table.exists();
     check(!settings_exists, "settings already defined");
 
     settings_t new_settings;
@@ -63,46 +44,29 @@ ACTION BancorConverter::init(name smart_contract,
     new_settings.require_balance = require_balance;
     new_settings.max_fee         = max_fee;
     new_settings.fee             = fee;
-    new_settings.precise.emplace(1);
+    
     settings_table.set(new_settings, _self);
-    */
 }
 
-ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee, binary_extension<char> precise) {
+ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee) {
     require_auth(_self);
 
     settings settings_table(_self, _self.value);
-    auto st = settings_table.get(1, "settings do not exist");
+    bool settings_exists = settings_table.exists();
+    check(settings_exists, "settings undefined");
+    auto st = settings_table.get();
+    
     check(fee <= st.max_fee, "fee must be lower or equal to the maximum fee");
 
-    settings_table.modify(st, _self, [&](auto& s) {
-        s.smart_enabled   = smart_enabled;
-        s.enabled         = enabled;
-        s.require_balance = require_balance;
-        s.fee             = fee;
-    });
-    if (precise && !st.extend) {
-        extend_t x;
-        x.precise = true;
-        settings_table.modify(st, _self, [&](auto& s) {
-            st.extend.emplace(x);
-            st.max_fee *= 1000;
-        });
-    }
-        
-    /*
+    if (st.max_fee <= 30)
+        st.max_fee *= 1000;
+
     st.smart_enabled   = smart_enabled;
     st.enabled         = enabled;
     st.require_balance = require_balance;
     st.fee             = fee;
 
-    if (precise && !st.precise) {
-        st.precise.emplace(1);
-        st.max_fee *= 1000;
-        st.fee *= 1000;
-    }
     settings_table.set(st, _self);
-    */
 }
 
 ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio, bool p_enabled) {
@@ -134,7 +98,10 @@ ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio
     check(total_ratio <= 1000000, "total ratio cannot exceed 100.0000%");
 
     settings settings_table(_self, _self.value);
-    auto converter_settings = settings_table.get(1, "settings do not exist");
+    bool settings_exists = settings_table.exists();
+    check(settings_exists, "settings undefined");
+    auto converter_settings = settings_table.get();
+
     auto current_smart_supply = ((get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount) / pow(10, converter_settings.smart_currency.symbol.precision());
     auto reserve_balance = ((get_balance_amount(contract, _self, currency.symbol.code())) + currency.amount) / pow(10, currency.symbol.precision()); 
     EMIT_PRICE_DATA_EVENT(current_smart_supply, contract, currency.symbol.code(), reserve_balance, ratio);
@@ -147,8 +114,12 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
 
     auto memo_object = parse_memo(memo);
     check(memo_object.path.size() > 1, "invalid memo format");
+    
     settings settings_table(_self, _self.value);
-    auto converter_settings = settings_table.get(1, "settings do not exist");
+    bool settings_exists = settings_table.exists();
+    check(settings_exists, "settings undefined");
+    auto converter_settings = settings_table.get();
+
     check(converter_settings.enabled, "converter is disabled");
     check(converter_settings.network == from, "converter can only receive from network contract");
 
