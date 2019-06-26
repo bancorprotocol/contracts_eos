@@ -6,7 +6,7 @@
 #include <eosio/symbol.hpp>
 #include <eosio/singleton.hpp>
 #include <eosio/binary_extension.hpp>
-#include "common.hpp"
+#include "../Common/common.hpp"
 
 using namespace eosio;
 using std::string;
@@ -50,9 +50,9 @@ using std::vector;
 CONTRACT BancorConverter : public eosio::contract {
     using contract::contract;
     public:
-        /*TABLE extend_t {
+        TABLE extend_t {
             bool precise = false;
-        }*/
+        };
         TABLE settings_t {
             name     smart_contract;
             asset    smart_currency;
@@ -62,8 +62,9 @@ CONTRACT BancorConverter : public eosio::contract {
             bool     require_balance;
             uint64_t max_fee;
             uint64_t fee;
-            eosio::binary_extension<char> precise;
-            EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(require_balance)(max_fee)(fee)(precise))
+            eosio::binary_extension<extend_t> extend;
+            uint64_t primary_key() const { return 1; }
+            EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(require_balance)(max_fee)(fee)(extend))
         };
 
         TABLE reserve_t {
@@ -74,8 +75,8 @@ CONTRACT BancorConverter : public eosio::contract {
             uint64_t primary_key() const { return currency.symbol.code().raw(); }
         };
 
-        typedef eosio::singleton<"settings"_n, settings_t> settings;
-        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
+        typedef eosio::multi_index<"settings"_n, settings_t> settings;
+        //typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
 
         // initializes the converter settings

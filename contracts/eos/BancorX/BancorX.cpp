@@ -11,14 +11,14 @@ ACTION BancorX::init(name x_token_name, uint64_t min_reporters, uint64_t min_lim
     settings settings_table(_self, _self.value);
     bool settings_exists = settings_table.exists();
 
-    eosio_assert(!settings_exists, "settings already defined");
-    eosio_assert(min_reporters > 0, "minimum reporters must be positive");
-    eosio_assert(min_limit >= 0, "minimum limit must be non-negative");
-    eosio_assert(min_limit <= max_issue_limit, "minimum limit must be lower or equal than the maximum issue limit");
-    eosio_assert(min_limit <= max_destroy_limit, "minimum limit must be lower or equal than the maximum destroy limit");
-    eosio_assert(limit_inc > 0, "limit increment must be positive");
-    eosio_assert(max_issue_limit >= 0, "maximum issue limit must be non-negative");
-    eosio_assert(max_destroy_limit >= 0, "maximum destroy limit must be non-negative");
+    check(!settings_exists, "settings already defined");
+    check(min_reporters > 0, "minimum reporters must be positive");
+    check(min_limit >= 0, "minimum limit must be non-negative");
+    check(min_limit <= max_issue_limit, "minimum limit must be lower or equal than the maximum issue limit");
+    check(min_limit <= max_destroy_limit, "minimum limit must be lower or equal than the maximum destroy limit");
+    check(limit_inc > 0, "limit increment must be positive");
+    check(max_issue_limit >= 0, "maximum issue limit must be non-negative");
+    check(max_destroy_limit >= 0, "maximum destroy limit must be non-negative");
 
     settings_table.set(settings_t{ 
         x_token_name,
@@ -29,23 +29,23 @@ ACTION BancorX::init(name x_token_name, uint64_t min_reporters, uint64_t min_lim
         limit_inc,
         max_issue_limit,
         max_issue_limit,
-        (current_time() / 500000),
+        current_time_point().sec_since_epoch(),
         max_destroy_limit,
         max_destroy_limit,
-        (current_time() / 500000)
+        current_time_point().sec_since_epoch()
         }, _self);
 }
 
 ACTION BancorX::update(uint64_t min_reporters, uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit) {
     require_auth(_self);
 
-    eosio_assert(min_reporters > 0, "minimum reporters must be positive");
-    eosio_assert(min_limit >= 0, "minimum limit must be non-negative");
-    eosio_assert(min_limit <= max_issue_limit, "minimum limit must be lower or equal than the maximum issue limit");
-    eosio_assert(min_limit <= max_destroy_limit, "minimum limit must be lower or equal than the maximum destroy limit");
-    eosio_assert(limit_inc > 0, "limit increment must be positive");
-    eosio_assert(max_issue_limit >= 0, "maximum issue limit must be non-negative");
-    eosio_assert(max_destroy_limit >= 0, "maximum destroy limit must be non-negative");
+    check(min_reporters > 0, "minimum reporters must be positive");
+    check(min_limit >= 0, "minimum limit must be non-negative");
+    check(min_limit <= max_issue_limit, "minimum limit must be lower or equal than the maximum issue limit");
+    check(min_limit <= max_destroy_limit, "minimum limit must be lower or equal than the maximum destroy limit");
+    check(limit_inc > 0, "limit increment must be positive");
+    check(max_issue_limit >= 0, "maximum issue limit must be non-negative");
+    check(max_destroy_limit >= 0, "maximum destroy limit must be non-negative");
 
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
@@ -81,7 +81,7 @@ ACTION BancorX::addreporter(name reporter) {
     reporters reporters_table(_self, _self.value);
     auto it = reporters_table.find(reporter.value);
 
-    eosio_assert(it == reporters_table.end(), "reporter already defined");
+    check(it == reporters_table.end(), "reporter already defined");
     
     reporters_table.emplace(_self, [&](auto& s) {
         s.reporter  = reporter;
@@ -93,7 +93,7 @@ ACTION BancorX::rmreporter(name reporter) {
     reporters reporters_table(_self, _self.value);
     auto it = reporters_table.find(reporter.value);
 
-    eosio_assert(it != reporters_table.end(), "reporter does not exist");
+    check(it != reporters_table.end(), "reporter does not exist");
     
     reporters_table.erase(it);
 }
@@ -102,18 +102,18 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     // checks that the reporter signed on the tx
     require_auth(reporter);
 
-    eosio_assert(memo.size() <= 256, "memo has more than 256 bytes");
+    check(memo.size() <= 256, "memo has more than 256 bytes");
 
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
 
-    eosio_assert(st.rpt_enabled, "reporting is disabled");
+    check(st.rpt_enabled, "reporting is disabled");
 
     uint64_t prev_issue_limit = st.prev_issue_limit;
     uint64_t prev_issue_time = st.prev_issue_time;
     uint64_t limit_inc = st.limit_inc;
 
-    uint64_t timestamp = current_time() / 500000;
+    uint64_t timestamp = current_time_point().sec_since_epoch(); 
     
     uint64_t current_delta = 0;
     if (timestamp > prev_issue_time)
@@ -121,13 +121,13 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
 
     uint64_t current_limit = std::min(prev_issue_limit + limit_inc * current_delta, st.max_issue_limit);
 
-    eosio_assert(quantity.amount >= st.min_limit, "below min limit");
+    check(quantity.amount >= st.min_limit, "below min limit");
 
     // checks that the signer is known reporter
     reporters reporters_table(_self, _self.value);
     auto existing = reporters_table.find(reporter.value);
 
-    eosio_assert(existing != reporters_table.end(), "the signer is not a known reporter");
+    check(existing != reporters_table.end(), "the signer is not a known reporter");
 
     // checks if the reporters limits are valid
     transfers transfers_table(_self, _self.value);
@@ -135,7 +135,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
 
     // first reporter 
     if (transaction == transfers_table.end()) {
-        eosio_assert(quantity.amount <= current_limit, "above max limit");
+        check(quantity.amount <= current_limit, "above max limit");
         transfers_table.emplace(_self, [&](auto& s) {
             s.tx_id           = tx_id;
             s.x_transfer_id   = x_transfer_id;
@@ -155,18 +155,18 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     }
     else {
         // checks that the reporter didn't already report the transfer
-        eosio_assert(std::find(transaction->reporters.begin(), 
-                               transaction->reporters.end(),
-                               reporter) == transaction->reporters.end(),
-                               "the reporter already reported the transfer");
+        check(std::find(transaction->reporters.begin(), 
+                        transaction->reporters.end(),
+                        reporter) == transaction->reporters.end(),
+                        "the reporter already reported the transfer");
 
-        eosio_assert(transaction->x_transfer_id == x_transfer_id &&
-                     transaction->target == target &&
-                     transaction->quantity == quantity &&
-                     transaction->blockchain == blockchain &&
-                     transaction->memo == memo &&
-                     transaction->data == data,
-                     "transfer data doesn't match");
+        check(transaction->x_transfer_id == x_transfer_id &&
+              transaction->target == target &&
+              transaction->quantity == quantity &&
+              transaction->blockchain == blockchain &&
+              transaction->memo == memo &&
+              transaction->data == data,
+              "transfer data doesn't match");
 
         transfers_table.modify(transaction, _self, [&](auto& s) {
             s.reporters.push_back(reporter);
@@ -193,7 +193,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
         if (x_transfer_id) {
             amounts amounts_table(_self, _self.value);
             auto amount = amounts_table.find(x_transfer_id);
-            eosio_assert(amount == amounts_table.end(), "x_transfer_id already exists");
+            check(amount == amounts_table.end(), "x_transfer_id already exists");
             amounts_table.emplace(_self, [&](auto& a)  {
                 a.x_transfer_id = x_transfer_id;
                 a.target = target;
@@ -210,14 +210,13 @@ ACTION BancorX::clearamount(uint64_t x_transfer_id) {
     auto st = settings_table.get();
 
     // only the bnt contract or self
-    eosio_assert(
-        has_auth(st.x_token_name) || has_auth(_self),
-        "missing required authority to close row");
+    check(has_auth(st.x_token_name) || has_auth(_self),
+         "missing required authority to close row");
 
     amounts amounts_table(_self, _self.value);
     auto it = amounts_table.find(x_transfer_id);
 
-    eosio_assert(it != amounts_table.end(), "amount doesn't exist in table");
+    check(it != amounts_table.end(), "amount doesn't exist in table");
     
     amounts_table.erase(it);
 }
@@ -228,7 +227,7 @@ void BancorX::transfer(name from, name to, asset quantity, string memo) {
 
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
-    if (_code != st.x_token_name)
+    if (_first_receiver != st.x_token_name)
         return;
 
     auto memo_object = parse_memo(memo);
@@ -239,13 +238,13 @@ void BancorX::xtransfer(string blockchain, name from, string target, asset quant
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
 
-    eosio_assert(st.xt_enabled, "x transfers are disabled");
+    check(st.xt_enabled, "x transfers are disabled");
 
     uint64_t prev_destroy_limit = st.prev_destroy_limit;
     uint64_t prev_destroy_time = st.prev_destroy_time;
     uint64_t limit_inc = st.limit_inc;
 
-    uint64_t timestamp = current_time() / 500000;
+    uint64_t timestamp = current_time_point().sec_since_epoch();
 
     uint64_t current_delta = 0;
     if (timestamp > prev_destroy_time)
@@ -253,8 +252,8 @@ void BancorX::xtransfer(string blockchain, name from, string target, asset quant
 
     uint64_t current_limit = std::min(prev_destroy_limit + limit_inc * current_delta, st.max_destroy_limit);
 
-    eosio_assert(quantity.amount >= st.min_limit, "below min limit");
-    eosio_assert(quantity.amount <= current_limit, "above max limit");
+    check(quantity.amount >= st.min_limit, "below min limit");
+    check(quantity.amount <= current_limit, "above max limit");
 
     action(
         permission_level{ _self, "active"_n },
@@ -270,18 +269,12 @@ void BancorX::xtransfer(string blockchain, name from, string target, asset quant
     EMIT_X_TRANSFER_EVENT(blockchain, target, quantity, x_transfer_id);
 }
 
-extern "C" {
-    [[noreturn]] void apply(uint64_t receiver, uint64_t code, uint64_t action) {
-        if (action == "transfer"_n.value && code != receiver) {
-            eosio::execute_action(eosio::name(receiver), eosio::name(code), &BancorX::transfer);
-        }
-    
-        if (code == receiver) {
-            switch (action) { 
-                EOSIO_DISPATCH_HELPER(BancorX, (init)(update)(enablerpt)(enablext)(addreporter)(rmreporter)(reporttx)(clearamount)) 
-            }    
-        }
+extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
+    if (action == "transfer"_n.value && code != receiver)
+        eosio::execute_action(eosio::name(receiver), eosio::name(code), &BancorX::transfer);
 
-        eosio_exit(0);
-    }
+    if (code == receiver)
+        switch (action) { 
+            EOSIO_DISPATCH_HELPER(BancorX, (init)(update)(enablerpt)(enablext)(addreporter)(rmreporter)(reporttx)(clearamount)) 
+        }    
 }

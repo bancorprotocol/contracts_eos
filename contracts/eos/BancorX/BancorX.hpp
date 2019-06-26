@@ -1,12 +1,12 @@
 
 #pragma once
 
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/system.h>
-#include <eosiolib/transaction.hpp>
-#include <eosiolib/asset.hpp>
-#include <eosiolib/symbol.hpp>
-#include <eosiolib/singleton.hpp>
+#include <eosio/eosio.hpp>
+#include <eosio/system.hpp>
+#include <eosio/transaction.hpp>
+#include <eosio/asset.hpp>
+#include <eosio/symbol.hpp>
+#include <eosio/singleton.hpp>
 #include "../Common/common.hpp"
 using std::string;
 using std::vector;

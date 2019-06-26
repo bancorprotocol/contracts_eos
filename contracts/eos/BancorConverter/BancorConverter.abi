@@ -4,6 +4,16 @@
     "types": [],
     "structs": [
         {
+            "name": "extend_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "precise",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
             "name": "init",
             "base": "",
             "fields": [
@@ -120,6 +130,10 @@
                 {
                     "name": "fee",
                     "type": "uint64"
+                },
+                {
+                    "name": "extend",
+                    "type": "extend_t$"
                 }
             ]
         },
@@ -142,6 +156,10 @@
                 {
                     "name": "fee",
                     "type": "uint64"
+                },
+                {
+                    "name": "precise",
+                    "type": "int8$"
                 }
             ]
         }
@@ -164,6 +182,13 @@
         }
     ],
     "tables": [
+        {
+            "name": "extend_t",
+            "type": "extend_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
         {
             "name": "reserves",
             "type": "reserve_t",
