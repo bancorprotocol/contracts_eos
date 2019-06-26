@@ -47,7 +47,7 @@ ACTION BancorConverter::init(name smart_contract,
     settings_table.set(new_settings, _self);
 }
 
-ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee) {
+ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee, binary_extension<bool> precise) {
     require_auth(_self);
 
     settings settings_table(_self, _self.value);
@@ -58,6 +58,12 @@ ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_ba
     st.enabled         = enabled;
     st.require_balance = require_balance;
     st.fee             = fee;
+
+    if (precise && !st.extend.precise) {
+        st.extend.precise = true;
+        st.max_fee *= 1000;
+        st.fee *= 1000;
+    }
     settings_table.set(st, _self);
 }
 

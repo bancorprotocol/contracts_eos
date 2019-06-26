@@ -5,6 +5,7 @@
 #include <eosiolib/asset.hpp>
 #include <eosiolib/symbol.hpp>
 #include <eosiolib/singleton.hpp>
+#include <eosiolib/binary_extension.hpp>
 #include "../Common/common.hpp"
 
 using namespace eosio;
@@ -49,7 +50,9 @@ using std::vector;
 CONTRACT BancorConverter : public eosio::contract {
     using contract::contract;
     public:
-
+        TABLE extend_t {
+            bool precise = false;
+        }
         TABLE settings_t {
             name     smart_contract;
             asset    smart_currency;
@@ -59,6 +62,7 @@ CONTRACT BancorConverter : public eosio::contract {
             bool     require_balance;
             uint64_t max_fee;
             uint64_t fee;
+            eosio::binary_extension<eosio::name> extend_t;
             EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(require_balance)(max_fee)(fee))
         };
 
