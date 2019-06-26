@@ -1,12 +1,12 @@
 #pragma once
 
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/transaction.hpp>
-#include <eosiolib/asset.hpp>
-#include <eosiolib/symbol.hpp>
-#include <eosiolib/singleton.hpp>
-#include <eosiolib/binary_extension.hpp>
-#include "../Common/common.hpp"
+#include <eosio/eosio.hpp>
+#include <eosio/transaction.hpp>
+#include <eosio/asset.hpp>
+#include <eosio/symbol.hpp>
+#include <eosio/singleton.hpp>
+#include <eosio/binary_extension.hpp>
+#include "common.hpp"
 
 using namespace eosio;
 using std::string;
@@ -50,9 +50,9 @@ using std::vector;
 CONTRACT BancorConverter : public eosio::contract {
     using contract::contract;
     public:
-        TABLE extend_t {
+        /*TABLE extend_t {
             bool precise = false;
-        }
+        }*/
         TABLE settings_t {
             name     smart_contract;
             asset    smart_currency;
@@ -62,8 +62,8 @@ CONTRACT BancorConverter : public eosio::contract {
             bool     require_balance;
             uint64_t max_fee;
             uint64_t fee;
-            eosio::binary_extension<eosio::name> extend_t;
-            EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(require_balance)(max_fee)(fee))
+            eosio::binary_extension<char> precise;
+            EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(require_balance)(max_fee)(fee)(precise))
         };
 
         TABLE reserve_t {
@@ -94,7 +94,8 @@ CONTRACT BancorConverter : public eosio::contract {
         ACTION update(bool smart_enabled,    // true if the smart token can be converted to/from, false if not
                       bool enabled,          // true if conversions are enabled, false if not
                       bool require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
-                      uint64_t fee);         // conversion fee percentage, must be lower than the maximum fee, same precision
+                      uint64_t fee,          // conversion fee percentage, must be lower than the maximum fee, same precision
+                      eosio::binary_extension<char> precise); // backwards compatible flag to ensure that fee precision was updated only once
         
         // initializes a new reserve in the converter
         // can also be used to update an existing reserve, can only be called by the contract account
