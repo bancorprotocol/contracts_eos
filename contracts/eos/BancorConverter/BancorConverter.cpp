@@ -19,6 +19,28 @@ TABLE currency_stats {
 typedef eosio::multi_index<"stat"_n, currency_stats> stats;
 typedef eosio::multi_index<"accounts"_n, account> accounts;
 
+ACTION BancorConverter::upgrade() {
+    require_auth(_self);
+
+    reserves reserves_table(_self, _self.value);
+    settings settings_table(_self, _self.value);
+    
+    bool settings_exists = settings_table.exists();
+    check(settings_exists, "settings undefined");
+    auto st = settings_table.get();
+    
+    if (st.max_fee <= 30) {
+        st.max_fee *= 1000;
+        st.fee *= 1000;
+
+        for (auto& reserve : reserves_table) 
+            reserves_table.modify(reserve, _self, [&](auto& s) {
+                s.ratio *= 1000;
+            });
+        settings_table.set(st, _self);
+    }
+}
+
 ACTION BancorConverter::init(name smart_contract,
                              asset smart_currency,
                              bool  smart_enabled,
@@ -57,9 +79,6 @@ ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_ba
     auto st = settings_table.get();
     
     check(fee <= st.max_fee, "fee must be lower or equal to the maximum fee");
-
-    if (st.max_fee <= 30)
-        st.max_fee *= 1000;
 
     st.smart_enabled   = smart_enabled;
     st.enabled         = enabled;
@@ -376,6 +395,6 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
     
     if (code == receiver)
         switch (action) { 
-            EOSIO_DISPATCH_HELPER(BancorConverter, (init)(update)(setreserve)) 
+            EOSIO_DISPATCH_HELPER(BancorConverter, (upgrade)(init)(update)(setreserve)) 
         }          
 }
