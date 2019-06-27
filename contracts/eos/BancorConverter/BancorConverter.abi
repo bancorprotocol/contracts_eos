@@ -143,6 +143,11 @@
                     "type": "uint64"
                 }
             ]
+        },
+        {
+            "name": "migrate",
+            "base": "",
+            "fields": []
         }
     ],
     "types": [],
@@ -160,6 +165,11 @@
         {
             "name": "update",
             "type": "update",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "migrate",
+            "type": "migrate",
             "ricardian_contract": ""
         }
     ],
