@@ -386,7 +386,7 @@ void BancorConverter::transfer(name from, name to, asset quantity, string memo) 
         return;
     }
 
-    convert(from, quantity, memo, _first_receiver); 
+    convert(from, quantity, memo, _code); 
 }
 
 extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
