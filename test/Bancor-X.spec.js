@@ -8,7 +8,7 @@ const { ERRORS } = require('./constants');
 
 
 describe('BancorX Contract', () => {
-    const bancorXContract = 'bancorx';
+    const bancorXContract = 'bancorxoneos';
     const networkTokenSymbol = "BNT";
     const networkToken = 'bnt';
     const testUser = 'test1';

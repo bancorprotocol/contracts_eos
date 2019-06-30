@@ -4,6 +4,8 @@ var BancorNetwork = artifacts.require("./BancorNetwork/");
 var BancorConverter = artifacts.require("./BancorConverter/");
 var XTransferRerouter = artifacts.require("./XTransferRerouter/");
 
+let networkContract;
+
 async function regConverter(deployer, token, symbol, fee, networkContract, networkToken, networkTokenSymbol, issuerAccount, issuerPrivateKey) {
     const converter = await deployer.deploy(BancorConverter, `cnvt${token}`);
 
@@ -64,12 +66,14 @@ async function regConverter(deployer, token, symbol, fee, networkContract, netwo
 }
 
 module.exports = async function(deployer, network, accounts) {
-    const bancorxContract = await deployer.deploy(BancorX, "bancorx");
-    const networkContract = await deployer.deploy(BancorNetwork, "bancornetwrk");
+    const bancorxContract = await deployer.deploy(BancorX, "bancorxoneos");
+    
+    networkContract = await deployer.deploy(BancorNetwork, "thisisbancor");
     const tknbntContract = await deployer.deploy(Token, "bnt");
     await deployer.deploy(XTransferRerouter, "txrerouter");
 
     const converter = await deployer.deploy(BancorConverter, "bnt2eoscnvrt")
+    
     const bntrlyContract = await deployer.deploy(Token, "bnt2eosrelay");
 
     var networkTokenSymbol = "BNT";

@@ -14,6 +14,23 @@
 using std::string;
 using std::vector;
 
+using namespace eosio;
+
+typedef vector<string> path;
+
+struct memo_structure {
+    path           path;
+    vector<name>   converters;   
+    string         version;
+    string         min_return;
+    string         dest_account;
+    string         receiver_memo;
+};
+
+#define BANCOR_X "bancorxoneos"_n
+#define BANCOR_NETWORK "thisisbancor"_n
+#define BNT_TOKEN "bntbntbntbnt"_n
+
 vector<string> split(const string& str, const string& delim)
 {
     vector<string> tokens;
@@ -30,18 +47,6 @@ vector<string> split(const string& str, const string& delim)
     while (pos < str.length() && prev < str.length());
     return tokens;
 }
-
-using namespace eosio;
-
-typedef std::vector<std::string> path;
-
-struct memo_structure {
-    path    path;
-    std::string version;
-    std::string min_return;
-    std::string dest_account;
-    std::string receiver_memo;
-};
 
 path parse_memo_path(std::string memo) {
     size_t pos = memo.find(",", 2); // get the position of first comma after memo version
@@ -96,6 +101,10 @@ memo_structure parse_memo(std::string memo) {
         res.path = {};
     } else
         res.path = path_elements;
+
+    res.converters = {};
+    for (int i = 0; i < res.path.size(); i += 2)
+        res.converters.push_back(name(res.path[i].c_str()));
 
     if (split_memos.size() == 2) {
         res.receiver_memo = split_memos[1];
