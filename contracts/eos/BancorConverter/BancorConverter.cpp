@@ -195,8 +195,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         smart_tokens = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, from_ratio);
         current_smart_supply += smart_tokens;
         if (converter_settings.fee > 0) {
-            double ffee = (1.0 * converter_settings.fee / 1000000.0);
-            auto fee = smart_tokens * ffee;
+            double fee = smart_tokens * converter_settings.fee / 1000000.0;
             if (fee > 0) {
                 smart_tokens = smart_tokens - fee;
                 total_fee_amount += fee;
@@ -212,8 +211,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     }
     else if (!quick) {
         if (converter_settings.fee) {
-            double ffee = (1.0 * converter_settings.fee / 1000000.0);
-            auto fee = smart_tokens * ffee;
+            double fee = smart_tokens * converter_settings.fee / 1000000.0;
             if (fee > 0) {
                 smart_tokens = smart_tokens - fee;
                 total_fee_amount += fee;

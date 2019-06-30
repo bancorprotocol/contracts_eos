@@ -29,7 +29,7 @@ async function regConverter(deployer, token, symbol, fee, networkContract, netwo
         enabled: 1,
         network: networkContract.contract.address,
         require_balance: 0,
-        max_fee: 30,
+        max_fee: 30000,
         fee
     }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });        
 
@@ -217,5 +217,5 @@ module.exports = async function(deployer, network, accounts) {
 
 var tkns = [];
 tkns.push({ contract: "aa", symbol: "TKNA", fee: 0 });
-tkns.push({ contract: "bb", symbol: "TKNB", fee: 1 });
+tkns.push({ contract: "bb", symbol: "TKNB", fee: 1000 });
 tkns.push({ contract: "cc", symbol: "TKNC", fee: 0 });

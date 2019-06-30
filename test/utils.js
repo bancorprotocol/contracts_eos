@@ -2,9 +2,12 @@ const Eos = require('eosjs');
 const fs = require('fs');
 const path = require('path');
 import { assert } from 'chai';
+
+const testUser = 'test1';
+
 const getKeyFile = account => JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${account}.json`)).toString())
 
-const getEos = account => Eos({ httpEndpoint: host(), keyProvider: getKeyFile(account).privateKey })
+const getEos = (account=testUser) => Eos({ httpEndpoint: host(), keyProvider: getKeyFile(account).privateKey })
 
 async function ensureContractAssertionError(prom, expected_error) {
     try {
@@ -37,11 +40,20 @@ const host = () => {
 
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+export async function getBalance(tokenContract, owner) {
+    const eosInstance = getEos();
+
+    const data = (await eosInstance.getTableRows(true, tokenContract, owner, 'accounts')).rows[0];
+
+    return data ? data.balance.split(' ')[0] : '0';
+}
+
 module.exports ={
     getEos,
     getKeyFile,
     ensureContractAssertionError,
     ensurePromiseDoesntThrow,
     host,
-    snooze
+    snooze,
+    getBalance
 }

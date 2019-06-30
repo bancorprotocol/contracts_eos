@@ -24,9 +24,11 @@ using eosio::print;
 } while(0);
 
 #define START_EVENT(etype, version) \
+{ \
     print("{"); \
     EVENTKV("version",version) \
-    EVENTKV("etype",etype) 
+    EVENTKV("etype",etype) \
+}
 
 #define END_EVENT() \
     print("}\n");
