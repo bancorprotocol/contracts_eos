@@ -80,6 +80,10 @@ std::string build_memo(memo_structure data) {
     return memo;
 }
 
+/** @dev to_fixed 
+ *  formats a number to a fixed precision
+ *  e.g. - to_fixed(14.214212, 3) --> 14.214
+*/
 double to_fixed(double num, int precision) {
     return (int)(num * pow(10, precision)) / pow(10, precision);
 }
