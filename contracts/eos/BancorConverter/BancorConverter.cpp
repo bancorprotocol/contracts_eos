@@ -228,10 +228,10 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
 
     EMIT_CONVERSION_EVENT(memo, from_token.contract, from_currency.symbol.code(), to_token.contract, to_currency.symbol.code(), from_amount, to_tokens, formatted_total_fee_amount);
 
-    if (incoming_smart_token || !outgoing_smart_token)
-        EMIT_PRICE_DATA_EVENT(current_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_tokens, (to_ratio / 1000000.0));
-    if (outgoing_smart_token || !incoming_smart_token)
+    if (!incoming_smart_token)
         EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance + from_amount, (from_ratio / 1000000.0));
+    if (!outgoing_smart_token)
+        EMIT_PRICE_DATA_EVENT(current_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_tokens, (to_ratio / 1000000.0));
 
     path new_path = memo_object.path;
     new_path.erase(new_path.begin(), new_path.begin() + 2);
