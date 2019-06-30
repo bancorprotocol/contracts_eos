@@ -27,7 +27,7 @@ using std::vector;
 
 // triggered after a conversion with new tokens price data
 #define EMIT_PRICE_DATA_EVENT(smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) \
-    START_EVENT("price_data", "1.2") \
+    START_EVENT("price_data", "1.3") \
     EVENTKV("smart_supply", smart_supply) \
     EVENTKV("reserve_contract", reserve_contract) \
     EVENTKV("reserve_symbol", reserve_symbol) \
