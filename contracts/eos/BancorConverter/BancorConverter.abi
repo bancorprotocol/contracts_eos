@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Wed May  1 23:13:54 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Jun 30 09:38:41 2019",
     "version": "eosio::abi/1.0",
     "structs": [
         {
@@ -39,6 +39,11 @@
                     "type": "uint64"
                 }
             ]
+        },
+        {
+            "name": "migrate",
+            "base": "",
+            "fields": []
         },
         {
             "name": "reserve_t",
@@ -143,11 +148,6 @@
                     "type": "uint64"
                 }
             ]
-        },
-        {
-            "name": "migrate",
-            "base": "",
-            "fields": []
         }
     ],
     "types": [],
@@ -158,6 +158,11 @@
             "ricardian_contract": ""
         },
         {
+            "name": "migrate",
+            "type": "migrate",
+            "ricardian_contract": ""
+        },
+        {
             "name": "setreserve",
             "type": "setreserve",
             "ricardian_contract": ""
@@ -165,11 +170,6 @@
         {
             "name": "update",
             "type": "update",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "migrate",
-            "type": "migrate",
             "ricardian_contract": ""
         }
     ],

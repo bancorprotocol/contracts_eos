@@ -36,14 +36,14 @@ async function regConverter(deployer, token, symbol, fee, networkContract, netwo
     await converter.contractInstance.setreserve({
         contract:networkToken.contract.address,
         currency: `0.0000000000 ${networkTokenSymbol}`,
-        ratio: 500,
+        ratio: 500000,
         p_enabled: 1
     }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });
         
     await converter.contractInstance.setreserve({
         contract:tknContract.contract.address,
         currency: `0.00000000 ${symbol}`,
-        ratio: 500,
+        ratio: 500000,
         p_enabled: 1
     }, { authorization: `${converter.contract.address}@active`, broadcast: true, sign: true });
 
@@ -111,7 +111,7 @@ module.exports = async function(deployer, network, accounts) {
     await converter.contractInstance.setreserve({
         contract: tknbntContract.contract.address,
         currency: `0.0000000000 BNT`,
-        ratio: 500,
+        ratio: 500000,
         p_enabled: 1
     }, {
         authorization: `${converter.account}@active`
@@ -121,7 +121,7 @@ module.exports = async function(deployer, network, accounts) {
     await converter.contractInstance.setreserve({
         contract: "eosio.token",
         currency: `0.0000 SYS`,
-        ratio: 500,
+        ratio: 500000,
         p_enabled: 1
     }, {
         authorization: `${converter.account}@active`
