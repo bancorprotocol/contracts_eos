@@ -3,10 +3,11 @@ require("babel-polyfill");
 import Eos from 'eosjs';
 import { assert } from 'chai';
 import 'mocha';
-import { ensureContractAssertionError, getEos } from './utils';
+import { ensureContractAssertionError, getEos, getBalance } from './utils';
 import { ERRORS } from './constants';
 const fs = require('fs');
 const path = require('path');
+const BigNumber = require('bignumber.js');
 
 const host = () => {
     const h = process.env.NETWORK_HOST;
@@ -26,42 +27,69 @@ describe('BancorNetwork Contract', () => {
     const testUser1 = 'test1';
     const testUser2 = 'test2';
     const tokenContract= 'aa';
+    const tokenContract2 = 'bb';
     const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${testUser1}.json`)).toString());
     const codekey = keyFile.privateKey;
     const _self = Eos({ httpEndpoint:host(), keyProvider:codekey });
     const _selfopts = { authorization:[`${testUser1}@active`] };
     
     it('simple convert', async function() {
-        var minReturn = 0.100;
+        const minReturn = 0.100;
+        const amount = '2.0000000000'
+        
+        const initialFromTokenReserveBalance = await getBalance(networkToken, converter);
+        const initialToTokenReserveBalance = await getBalance(tokenContract, converter);
+    
         const token = await _self.contract(networkToken)
-        let res = await token.transfer({ from: testUser1, to: networkContract, quantity: `2.0000000000 ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser1}` }, _selfopts);
-        var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
-        // console.log(events)
+        const res = await token.transfer({ from: testUser1, to: networkContract, quantity: `${amount} ${networkTokenSymbol}`, memo: `1,${converter} ${tokenSymbol},${minReturn},${testUser1}` }, _selfopts);
+        const events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
+
         const convertEvent = JSON.parse(events[0]);
-        const priceDataEvent = JSON.parse(events[1]);
-        // assert.equal(convertEvent.return, 1.99996000, "unexpected conversion result");
-        assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
-        // console.log("result",jObj.target_amount);
+        const fromTokenPriceDataEvent = JSON.parse(events[1]);
+        const toTokenPriceDataEvent = JSON.parse(events[2]);
+
+        assert.equal(convertEvent.return, 1.99996000, "unexpected conversion return amount");
+        assert.equal(convertEvent.conversion_fee, 0, "unexpected conversion fee");
+
+        assert.equal(toTokenPriceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
+        
+        const expectedToTokenReserveBalance = parseFloat(new BigNumber(initialToTokenReserveBalance).minus(convertEvent.return));
+        assert.equal(parseFloat(toTokenPriceDataEvent.reserve_balance), expectedToTokenReserveBalance, "unexpected reserve_balance");
+
+        assert.equal(fromTokenPriceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
+        const expectedFromTokenReserveBalance = parseFloat(new BigNumber(initialFromTokenReserveBalance).plus(amount));
+        assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance, "unexpected reserve_balance");
     });
 
     it('2 hop convert', async function() {
-        var minReturn = 0.100;
+        const minReturn = 0.100;
+        const amount = '1.00000000'
         const token = await _self.contract(tokenContract)
-        let res = await token.transfer({ from: testUser1, to: networkContract, quantity: `1.00000000 ${tokenSymbol}`, memo: `1,${converter} ${networkTokenSymbol} ${converter2} ${tokenSymbol2},${minReturn},${testUser1}` }, _selfopts);
-        var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
-        console.log(events)
+        const initialToTokenReserveBalance = await getBalance(tokenContract2, converter2);
+        const initialTestUserTokenBBalance = await getBalance(tokenContract2, testUser1);
+        
+        const res = await token.transfer({ from: testUser1, to: networkContract, quantity: `${amount} ${tokenSymbol}`, memo: `1,${converter} ${networkTokenSymbol} ${converter2} ${tokenSymbol2},${minReturn},${testUser1}` }, _selfopts);
+        let events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
+
         let convertEvent = JSON.parse(events[0]);
-        let priceDataEvent = JSON.parse(events[1]);
-        assert.equal(convertEvent.return, 1.0000299998, "unexpected conversion result");
+        let priceDataEvent = JSON.parse(events[2]);
+        assert.equal(convertEvent.conversion_fee, 0, "unexpected conversion fee");
+
         assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
         
         events = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[2].inline_traces[1].console.split("\n");
-        console.log(events)
         convertEvent = JSON.parse(events[0]);
-        priceDataEvent = JSON.parse(events[1]);
-        assert.equal(convertEvent.return, 0.99802094, "unexpected conversion result");
-        assert.equal(convertEvent.conversion_fee, 0.00099951, "unexpected conversion result");
+        priceDataEvent = JSON.parse(events[2]);
+        
+        const currentTestUserTokenBBalance = await getBalance(tokenContract2, testUser1);;
+        const expectedReturn = parseFloat(new BigNumber(currentTestUserTokenBBalance).minus(initialTestUserTokenBBalance));
+        assert(Math.abs(parseFloat(convertEvent.return) - expectedReturn) <= 0.000001 , "unexpected conversion result"); // TODO: Remove this once we change formulas to be uint based, and precision issues are gone
+
+        assert.equal(convertEvent.conversion_fee, 0.00099951, "unexpected conversion fee");
+
         assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
+        const expectedFromTokenReserveBalance = parseFloat(new BigNumber(initialToTokenReserveBalance).minus(convertEvent.return));
+        assert(Math.abs(parseFloat(priceDataEvent.reserve_balance) - expectedFromTokenReserveBalance) <= 0.000001, "unexpected reserve_balance");
     });
 
 

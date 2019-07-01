@@ -1,21 +1,7 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Wed May  1 23:13:50 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Jun 30 14:18:05 2019",
     "version": "eosio::abi/1.0",
     "structs": [
-        {
-            "name": "converter_t",
-            "base": "",
-            "fields": [
-                {
-                    "name": "converter",
-                    "type": "name"
-                },
-                {
-                    "name": "isActive",
-                    "type": "bool"
-                }
-            ]
-        },
         {
             "name": "init",
             "base": "",
@@ -30,15 +16,7 @@
             "ricardian_contract": ""
         }
     ],
-    "tables": [
-        {
-            "name": "converters",
-            "type": "converter_t",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        }
-    ],
+    "tables": [],
     "ricardian_clauses": [],
     "abi_extensions": []
 }

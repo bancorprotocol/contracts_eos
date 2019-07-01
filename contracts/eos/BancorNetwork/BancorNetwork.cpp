@@ -9,7 +9,8 @@ ACTION BancorNetwork::init() {
 }
 
 void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
-    if (to != _self)
+    // avoid unstaking and system contract ops mishaps
+    if (to != _self || from == "eosio.ram"_n || from == "eosio.stake"_n)
         return;
     
     eosio_assert(quantity.symbol.is_valid(), "invalid quantity in transfer");
