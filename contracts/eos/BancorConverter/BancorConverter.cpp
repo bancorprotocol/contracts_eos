@@ -80,12 +80,18 @@ ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_ba
     
     eosio_assert(fee <= st.max_fee, "fee must be lower or equal to the maximum fee");
 
+    uint64_t prevFee = st.fee;
+
     st.smart_enabled   = smart_enabled;
     st.enabled         = enabled;
     st.require_balance = require_balance;
     st.fee             = fee;
 
     settings_table.set(st, _self);
+
+    // trigger the conversion fee update event
+    if (prevFee != fee)
+        EMIT_CONVERSION_FEE_UPDATE_EVENT(prevFee, fee);
 }
 
 ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio, bool p_enabled) {

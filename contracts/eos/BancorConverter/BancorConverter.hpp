@@ -12,6 +12,7 @@ using std::string;
 using std::vector;
 
 // events
+
 // triggered when a conversion between two tokens occurs
 #define EMIT_CONVERSION_EVENT(memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount) \
     START_EVENT("conversion", "1.2") \
@@ -33,6 +34,13 @@ using std::vector;
     EVENTKV("reserve_symbol", reserve_symbol) \
     EVENTKV("reserve_balance", reserve_balance) \
     EVENTKVL("reserve_ratio", reserve_ratio) \
+    END_EVENT()
+
+// triggered when the conversion fee is updated
+#define EMIT_CONVERSION_FEE_UPDATE_EVENT(prev_fee, new_fee) \
+    START_EVENT("conversion_fee_update", "1.0") \
+    EVENTKV("prev_fee", prev_fee) \
+    EVENTKVL("new_fee", new_fee) \
     END_EVENT()
 
 /*
