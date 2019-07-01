@@ -107,8 +107,6 @@ CONTRACT BancorConverter : public eosio::contract {
                           uint64_t ratio,       // reserve ratio, percentage, 0-1000000, precision a la max_fee
                           bool     p_enabled);  // true if purchases are enabled with the reserve, false if not
 
-        ACTION migrate(); // TODO: remove in the future
-
         // transfer intercepts
         // memo is in csv format, values -
         // version          version number, currently 1
