@@ -1,5 +1,5 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Sun Jun 30 14:18:09 2019",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Tue Jul  2 17:35:51 2019",
     "version": "eosio::abi/1.0",
     "structs": [
         {
@@ -39,11 +39,6 @@
                     "type": "uint64"
                 }
             ]
-        },
-        {
-            "name": "migrate",
-            "base": "",
-            "fields": []
         },
         {
             "name": "reserve_t",
@@ -155,11 +150,6 @@
         {
             "name": "init",
             "type": "init",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "migrate",
-            "type": "migrate",
             "ricardian_contract": ""
         },
         {

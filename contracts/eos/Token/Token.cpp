@@ -15,13 +15,13 @@ ACTION Token::create(name issuer, asset maximum_supply) {
     require_auth(_self);
 
     auto sym = maximum_supply.symbol;
-    eosio_assert(sym.is_valid(), "invalid symbol name");
-    eosio_assert(maximum_supply.is_valid(), "invalid supply");
-    eosio_assert(maximum_supply.amount > 0, "max-supply must be positive");
+    check(sym.is_valid(), "invalid symbol name");
+    check(maximum_supply.is_valid(), "invalid supply");
+    check(maximum_supply.amount > 0, "max-supply must be positive");
 
     stats statstable(_self, sym.code().raw());
     auto existing = statstable.find(sym.code().raw());
-    eosio_assert(existing == statstable.end(), "token with symbol already exists");
+    check(existing == statstable.end(), "token with symbol already exists");
 
     statstable.emplace(_self, [&](auto& s) {
         s.supply.symbol = maximum_supply.symbol;
@@ -32,20 +32,20 @@ ACTION Token::create(name issuer, asset maximum_supply) {
 
 ACTION Token::issue(name to, asset quantity, string memo) {
     auto sym = quantity.symbol;
-    eosio_assert(sym.is_valid(), "invalid symbol name");
-    eosio_assert(memo.size() <= 256, "memo has more than 256 bytes");
+    check(sym.is_valid(), "invalid symbol name");
+    check(memo.size() <= 256, "memo has more than 256 bytes");
 
     auto sym_name = sym.code().raw();
     stats statstable(_self, sym_name);
     auto existing = statstable.find(sym_name);
-    eosio_assert(existing != statstable.end(), "token with symbol does not exist, create token before issue");
+    check(existing != statstable.end(), "token with symbol does not exist, create token before issue");
     const auto& st = *existing;
     require_auth(st.issuer);
-    eosio_assert(quantity.is_valid(), "invalid quantity");
-    eosio_assert(quantity.amount > 0, "must issue positive quantity");
+    check(quantity.is_valid(), "invalid quantity");
+    check(quantity.amount > 0, "must issue positive quantity");
 
-    eosio_assert(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
-    eosio_assert(quantity.amount <= st.max_supply.amount - st.supply.amount, "quantity exceeds available supply");
+    check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
+    check(quantity.amount <= st.max_supply.amount - st.supply.amount, "quantity exceeds available supply");
 
     statstable.modify(st, eosio::same_payer, [&](auto& s) {
         s.supply += quantity;
@@ -60,19 +60,19 @@ ACTION Token::issue(name to, asset quantity, string memo) {
 
 ACTION Token::retire(asset quantity, string memo) {
     auto sym = quantity.symbol;
-    eosio_assert(sym.is_valid(), "invalid symbol name");
-    eosio_assert(memo.size() <= 256, "memo has more than 256 bytes");
+    check(sym.is_valid(), "invalid symbol name");
+    check(memo.size() <= 256, "memo has more than 256 bytes");
 
     auto sym_name = sym.code().raw();
     stats statstable(_self, sym_name);
     auto existing = statstable.find(sym_name);
-    eosio_assert(existing != statstable.end(), "token with symbol does not exist");
+    check(existing != statstable.end(), "token with symbol does not exist");
     const auto& st = *existing;
     require_auth(st.issuer);
-    eosio_assert(quantity.is_valid(), "invalid quantity");
-    eosio_assert(quantity.amount > 0, "must retire positive quantity");
+    check(quantity.is_valid(), "invalid quantity");
+    check(quantity.amount > 0, "must retire positive quantity");
 
-    eosio_assert(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
+    check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
 
     statstable.modify(st, eosio::same_payer, [&](auto& s) {
         s.supply -= quantity;
@@ -82,9 +82,9 @@ ACTION Token::retire(asset quantity, string memo) {
 }
 
 ACTION Token::transfer(name from, name to, asset quantity, string memo) {
-    eosio_assert(from != to, "cannot transfer to self");
+    check(from != to, "cannot transfer to self");
     require_auth(from);
-    eosio_assert(is_account(to), "to account does not exist");
+    check(is_account(to), "to account does not exist");
     auto sym = quantity.symbol.code().raw();
     stats statstable(_self, sym);
     const auto& st = statstable.get(sym);
@@ -92,10 +92,10 @@ ACTION Token::transfer(name from, name to, asset quantity, string memo) {
     require_recipient(from);
     require_recipient(to);
 
-    eosio_assert(quantity.is_valid(), "invalid quantity");
-    eosio_assert(quantity.amount > 0, "must transfer positive quantity");
-    eosio_assert(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
-    eosio_assert(memo.size() <= 256, "memo has more than 256 bytes");
+    check(quantity.is_valid(), "invalid quantity");
+    check(quantity.amount > 0, "must transfer positive quantity");
+    check(quantity.symbol == st.supply.symbol, "symbol precision mismatch");
+    check(memo.size() <= 256, "memo has more than 256 bytes");
 
     auto payer = has_auth(to) ? to : from;
 
@@ -109,7 +109,7 @@ ACTION Token::transferbyid(name from, name to, name amount_account, uint64_t amo
     amounts amounts_table(amount_account, amount_account.value);
     const auto& am = amounts_table.get(amount_id);
 
-    eosio_assert(from == am.target, "attempting to transfer by id meant for another account");
+    check(from == am.target, "attempting to transfer by id meant for another account");
     
     SEND_INLINE_ACTION(*this, transfer, {from,"active"_n}, {from, to, am.quantity, memo});
 
@@ -124,7 +124,7 @@ void Token::sub_balance(name owner, asset value) {
     accounts from_acnts(_self, owner.value);
 
     const auto& from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
-    eosio_assert(from.balance.amount >= value.amount, "overdrawn balance");
+    check(from.balance.amount >= value.amount, "overdrawn balance");
 
     from_acnts.modify(from, owner, [&](auto& a) {
         a.balance -= value;
@@ -152,7 +152,7 @@ ACTION Token::open(name owner, symbol_code symbol, name ram_payer) {
 
     stats statstable(_self, sym);
     const auto& st = statstable.get(sym, "symbol does not exist");
-    eosio_assert(st.supply.symbol.code().raw() == sym, "symbol precision mismatch");
+    check(st.supply.symbol.code().raw() == sym, "symbol precision mismatch");
 
     accounts acnts(_self, owner.value);
     auto it = acnts.find(sym);
@@ -168,8 +168,8 @@ ACTION Token::close(name owner, symbol_code symbol) {
 
     accounts acnts(_self, owner.value);
     auto it = acnts.find(symbol.raw());
-    eosio_assert(it != acnts.end(), "Balance row already deleted or never existed. Action won't have any effect.");
-    eosio_assert(it->balance.amount == 0, "Cannot close because the balance is not zero.");
+    check(it != acnts.end(), "Balance row already deleted or never existed. Action won't have any effect.");
+    check(it->balance.amount == 0, "Cannot close because the balance is not zero.");
     acnts.erase(it);
 }
 
