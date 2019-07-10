@@ -4,13 +4,16 @@
   "author": "Tal Muskal",
   "scripts": {
     "test": "mocha --require babel-core/register --require=dotenv/config --require babel-polyfill --exit --timeout 1000000",
-    "test-contracts": "funguy test"
+    "test-contracts": "funguy test",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "dependencies": {
     "dotenv": "^6.1.0",
     "eosjs": "^16.0.9",
     "eosjs-ecc": "^4.0.4",
-    "funguy": "^1.0.8"
+    "funguy": "^1.0.8",
+    "snyk": "^1.192.4"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
@@ -34,5 +37,6 @@
     "vue-loader": "^13.7.0",
     "vue-template-compiler": "^2.5.13",
     "webpack": "^3.10.0"
-  }
+  },
+  "snyk": true
 }
