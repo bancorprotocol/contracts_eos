@@ -169,7 +169,6 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         ).send();
 
         smart_tokens = from_amount;
-        current_smart_supply -= smart_tokens;
     }
     else if (!incoming_smart_token && !outgoing_smart_token && (from_ratio == to_ratio) && (converter_settings.fee == 0)) {
         to_tokens = quick_convert(current_from_balance, from_amount, current_to_balance);
@@ -177,7 +176,6 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     }
     else {
         smart_tokens = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, from_ratio);
-        current_smart_supply += smart_tokens;
         if (converter_settings.fee > 0) {
             double fee = smart_tokens * converter_settings.fee / 1000000.0;
             if (fee > 0) {
@@ -185,6 +183,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
                 total_fee_amount += fee;
             }
         }
+        current_smart_supply += smart_tokens;
     }
 
     auto issue = false;
@@ -194,6 +193,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         issue = true;
     }
     else if (!quick) {
+        current_smart_supply -= smart_tokens;
         if (converter_settings.fee) {
             double fee = smart_tokens * converter_settings.fee / 1000000.0;
             if (fee > 0) {

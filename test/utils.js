@@ -1,15 +1,23 @@
-const Eos = require('eosjs');
-const fs = require('fs');
-const path = require('path');
+import Eos from 'eosjs';
+import fs from 'fs';
+import path from 'path';
 import { assert } from 'chai';
 
 const testUser = 'test1';
 
-const getKeyFile = account => JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${account}.json`)).toString())
+export const getKeyFile = account => JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${account}.json`)).toString())
 
-const getEos = (account=testUser) => Eos({ httpEndpoint: host(), keyProvider: getKeyFile(account).privateKey })
+export const getEos = (account = testUser) => Eos({ httpEndpoint: host(), keyProvider: getKeyFile(account).privateKey })
 
-async function ensureContractAssertionError(prom, expected_error) {
+export const host = () => {
+    const h = process.env.NETWORK_HOST;
+    const p = process.env.NETWORK_PORT;
+    return `http://${h}:${p}`;
+};
+
+export const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+export async function ensureContractAssertionError(prom, expected_error) {
     try {
         await prom;
         assert(false, 'should have failed');
@@ -19,7 +27,7 @@ async function ensureContractAssertionError(prom, expected_error) {
     }
 }
 
-async function ensurePromiseDoesntThrow(prom) {
+export async function ensurePromiseDoesntThrow(prom) {
     let wasRejected = false;
 
     try {
@@ -32,14 +40,6 @@ async function ensurePromiseDoesntThrow(prom) {
     assert.equal(wasRejected, false, 'promise should have resolved');
 }
 
-const host = () => {
-    const h = process.env.NETWORK_HOST;
-    const p = process.env.NETWORK_PORT;
-    return `http://${h}:${p}`;
-};
-
-const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
-
 export async function getBalance(tokenContract, owner) {
     const eosInstance = getEos();
 
@@ -48,12 +48,10 @@ export async function getBalance(tokenContract, owner) {
     return data ? data.balance.split(' ')[0] : '0';
 }
 
-module.exports ={
-    getEos,
-    getKeyFile,
-    ensureContractAssertionError,
-    ensurePromiseDoesntThrow,
-    host,
-    snooze,
-    getBalance
+export async function getSupply(tokenContract, symbol) {
+    const eosInstance = getEos();
+
+    const data = (await eosInstance.getTableRows(true, tokenContract, symbol, 'stat')).rows[0];
+
+    return data ? data.supply.split(' ')[0] : '0';
 }

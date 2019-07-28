@@ -16,7 +16,7 @@ async function regConverter(deployer, token, symbol, fee, networkContract, netwo
         { authorization: `${tknContract.contract.address}@active`, broadcast: true, sign: true });
 
     const tknrlyContract = await deployer.deploy(Token, `tkn${networkToken.contract.address}${token}`);
-    var rlySymbol = networkTokenSymbol + symbol;
+    const rlySymbol = networkTokenSymbol + symbol;
     await tknrlyContract.contractInstance.create({
         issuer: converter.contract.address,
         maximum_supply: `250000000.0000000000 ${rlySymbol}`},
