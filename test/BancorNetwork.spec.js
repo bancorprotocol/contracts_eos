@@ -145,6 +145,38 @@ describe('BancorNetwork Contract', () => {
         assert.equal(parseFloat(expectedSmartSupply).toFixed(8), parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
     });
 
+    it('TEST', async function() {
+        const minReturn = '0.0000000001';
+        const amount = '5.0000000000';
+        
+        const bntTokenUser1 = await getEos(testUser1).contract(networkToken);
+
+        const bntTokenUser2 = await getEos(testUser2).contract(networkToken);
+        const tokenDRelay = await getEos(testUser2).contract('tknbntdd');
+        
+        await bntTokenUser1.transfer(
+            { from: testUser1, to: networkContract, quantity: `${amount} ${networkTokenSymbol}`, memo: `1,cnvtee TKNE,${minReturn},${testUser1}` }, 
+            { authorization: `${testUser1}@active` }
+        );
+        
+        await bntTokenUser2.transfer(
+            { from: testUser2, to: networkContract, quantity: `${amount} ${networkTokenSymbol}`, memo: `1,cnvtdd BNTTKND,${minReturn},${testUser2}` }, 
+            { authorization: `${testUser2}@active` }
+        );
+        
+        const relayBalance = await getBalance('tknbntdd', testUser2);
+        
+        await tokenDRelay.transfer(
+            { from: testUser2, to: networkContract, quantity: `${relayBalance} BNTTKND`, memo: `1,cnvtdd TKND,${minReturn},${testUser2}` }, 
+            { authorization: `${testUser2}@active` }
+        );
+        
+        const tokenBalanceUser1 = await getBalance('ee', testUser1);
+        const tokenBalanceUser2 = await getBalance('dd', testUser2);
+
+        assert.equal(tokenBalanceUser1, tokenBalanceUser2, 'balanced should be equal');
+    });
+
 
     it("verifies it's not possible to do a conversion with a destination wallet that's different than the origin account", async () => {
         const bntToken = await getEos(testUser1).contract(networkToken);

@@ -175,6 +175,7 @@ module.exports = async function(deployer, network, accounts) {
     await accounts.getCreateAccount('reporter3');
     await accounts.getCreateAccount('reporter4');
     await accounts.getCreateAccount('test1');
+    await accounts.getCreateAccount('test2');
 
     await bancorxContract.contractInstance.addreporter({
         reporter: 'reporter1'},
@@ -203,6 +204,12 @@ module.exports = async function(deployer, network, accounts) {
         memo: "test money"
     }, { authorization: `${bancorxContract.contract.address}@active`, broadcast: true, sign: true });
 
+    await contract1.issue({
+        to: 'test2',
+        quantity: `10000.0000000000 ${networkTokenSymbol}`,
+        memo: "test money"
+    }, { authorization: `${bancorxContract.contract.address}@active`, broadcast: true, sign: true });
+
     contract1.issue({
         to: 'reporter1',
         quantity: `100.0000000000 ${networkTokenSymbol}`,
@@ -219,3 +226,5 @@ var tkns = [];
 tkns.push({ contract: "aa", symbol: "TKNA", fee: 0 });
 tkns.push({ contract: "bb", symbol: "TKNB", fee: 1000 });
 tkns.push({ contract: "cc", symbol: "TKNC", fee: 0 });
+tkns.push({ contract: "dd", symbol: "TKND", fee: 1400 });
+tkns.push({ contract: "ee", symbol: "TKNE", fee: 1400 });

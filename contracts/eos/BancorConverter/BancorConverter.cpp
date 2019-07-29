@@ -153,7 +153,10 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     eosio_assert(code == from_contract, "unknown 'from' contract");
     auto current_from_balance = ((get_balance(from_contract, _self, from_currency.symbol.code())).amount + from_currency.amount - quantity.amount) / pow(10, from_currency.symbol.precision()); 
     auto current_to_balance = ((get_balance(to_contract, _self, to_currency.symbol.code())).amount + to_currency.amount) / pow(10, to_currency_precision);
-    auto current_smart_supply = ((get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount) / pow(10, converter_settings.smart_currency.symbol.precision());
+    
+    const double initial_smart_supply = ((get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount) / pow(10, converter_settings.smart_currency.symbol.precision());
+
+    double current_smart_supply = initial_smart_supply;
 
     name final_to = name(memo_object.dest_account.c_str());
     double smart_tokens = 0;
@@ -193,7 +196,6 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         issue = true;
     }
     else if (!quick) {
-        current_smart_supply -= smart_tokens;
         if (converter_settings.fee) {
             double fee = smart_tokens * converter_settings.fee / 1000000.0;
             if (fee > 0) {
@@ -201,19 +203,19 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
                 total_fee_amount += fee;
             }
         }
-
         to_tokens = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_ratio);
+        current_smart_supply -= smart_tokens;
     }
 
     double formatted_total_fee_amount = to_fixed(total_fee_amount, to_currency_precision);
     to_tokens = to_fixed(to_tokens, to_currency_precision);
 
     EMIT_CONVERSION_EVENT(memo, from_token.contract, from_currency.symbol.code(), to_token.contract, to_currency.symbol.code(), from_amount, to_tokens, formatted_total_fee_amount);
-
+    
     if (!incoming_smart_token)
-        EMIT_PRICE_DATA_EVENT(current_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance + from_amount, from_ratio / 1000000.0);
+        EMIT_PRICE_DATA_EVENT(outgoing_smart_token ? current_smart_supply : initial_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance + from_amount, from_ratio / 1000000.0);
     if (!outgoing_smart_token)
-        EMIT_PRICE_DATA_EVENT(current_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_tokens, to_ratio / 1000000.0);
+        EMIT_PRICE_DATA_EVENT(incoming_smart_token ? current_smart_supply : initial_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_tokens, to_ratio / 1000000.0);
 
     path new_path = memo_object.path;
     new_path.erase(new_path.begin(), new_path.begin() + 2);
