@@ -124,6 +124,7 @@ CONTRACT BancorConverter : public eosio::contract {
         void convert(name from, eosio::asset quantity, std::string memo, name code);
         const reserve_t& get_reserve(uint64_t name, const settings_t& settings);
 
+        double calculate_fee(uint64_t amount, uint64_t fee, uint8_t magnitude);
         asset get_balance(name contract, name owner, symbol_code sym);
         uint64_t get_balance_amount(name contract, name owner, symbol_code sym);
         asset get_supply(name contract, symbol_code sym);

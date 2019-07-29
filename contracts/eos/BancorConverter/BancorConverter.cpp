@@ -179,12 +179,6 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     }
     else {
         smart_tokens = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, from_ratio);
-
-        // Apply fee
-        double fee = smart_tokens * converter_settings.fee / FEE_DENOMINATOR;
-        smart_tokens = smart_tokens - fee;
-        total_fee_amount += fee;
-
         current_smart_supply += smart_tokens;
     }
 
@@ -195,14 +189,14 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         issue = true;
     }
     else if (!quick) {
-        // Apply fee
-        double fee = smart_tokens * converter_settings.fee / FEE_DENOMINATOR;
-        smart_tokens = smart_tokens - fee;
-        total_fee_amount += fee;
-
         to_tokens = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_ratio);
         current_smart_supply -= smart_tokens;
     }
+
+    uint8_t magnitude = (outgoing_smart_token || incoming_smart_token) ? 1 : 2;
+    double fee = calculate_fee(to_tokens, converter_settings.fee, magnitude);
+    total_fee_amount = fee;
+    to_tokens -= fee;
 
     double formatted_total_fee_amount = to_fixed(total_fee_amount, to_currency_precision);
     to_tokens = to_fixed(to_tokens, to_currency_precision);
@@ -243,6 +237,10 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
             to_contract, "transfer"_n,
             std::make_tuple(_self, inner_to, new_asset, new_memo)
         ).send();
+}
+
+double BancorConverter::calculate_fee(uint64_t amount, uint64_t fee, uint8_t magnitude) {
+    return amount * (1 - pow((1 - fee / FEE_DENOMINATOR), magnitude));
 }
 
  // returns a reserve object
