@@ -118,6 +118,9 @@ CONTRACT BancorConverter : public eosio::contract {
         void transfer(name from, name to, asset quantity, string memo);
 
     private:
+        constexpr static double RATIO_DENOMINATOR = 1000000.0;
+        constexpr static double FEE_DENOMINATOR = 1000000.0;
+
         void convert(name from, eosio::asset quantity, std::string memo, name code);
         const reserve_t& get_reserve(uint64_t name, const settings_t& settings);
 

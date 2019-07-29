@@ -145,7 +145,7 @@ describe('BancorNetwork Contract', () => {
         assert.equal(parseFloat(expectedSmartSupply).toFixed(8), parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
     });
 
-    it('TEST', async function() {
+    it('verifies that converting connector --> connector returns the same amount (after fees are deducted) as converting connector --> relay & relay --> connector (2 different transactions)', async function() {
         const minReturn = '0.0000000001';
         const amount = '5.0000000000';
         

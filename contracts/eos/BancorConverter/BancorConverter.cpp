@@ -28,7 +28,7 @@ ACTION BancorConverter::init(name smart_contract,
                              uint64_t max_fee,
                              uint64_t fee) {
     require_auth(_self);
-    eosio_assert(max_fee <= 1000000, "maximum fee must be lower or equal to 100.0000%");
+    eosio_assert(max_fee <= FEE_DENOMINATOR, ("maximum fee must be lower or equal to " + std::to_string(FEE_DENOMINATOR)).c_str());
     eosio_assert(fee <= max_fee, "fee must be lower or equal to the maximum fee");
 
     settings settings_table(_self, _self.value);
@@ -74,7 +74,7 @@ ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_ba
 
 ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio, bool p_enabled) {
     require_auth(_self);
-    eosio_assert(ratio > 0 && ratio <= 1000000, "ratio must be between 0.0001% and 100.0000%");
+    eosio_assert(ratio > 0 && ratio <= RATIO_DENOMINATOR, ("ratio must be between 1 and " + std::to_string(RATIO_DENOMINATOR)).c_str());
 
     reserves reserves_table(_self, _self.value);
     auto existing = reserves_table.find(currency.symbol.code().raw());
@@ -98,7 +98,7 @@ ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio
     for (auto& reserve : reserves_table)
         total_ratio += reserve.ratio;
     
-    eosio_assert(total_ratio <= 1000000, "total ratio cannot exceed 100.0000%");
+    eosio_assert(total_ratio <= RATIO_DENOMINATOR, ("total ratio cannot exceed " + std::to_string(RATIO_DENOMINATOR)).c_str());
 
     settings settings_table(_self, _self.value);
     bool settings_exists = settings_table.exists();
@@ -107,7 +107,7 @@ ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio
 
     auto current_smart_supply = ((get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount) / pow(10, converter_settings.smart_currency.symbol.precision());
     auto reserve_balance = ((get_balance_amount(contract, _self, currency.symbol.code())) + currency.amount) / pow(10, currency.symbol.precision()); 
-    EMIT_PRICE_DATA_EVENT(current_smart_supply, contract, currency.symbol.code(), reserve_balance, ratio / 1000000.0);
+    EMIT_PRICE_DATA_EVENT(current_smart_supply, contract, currency.symbol.code(), reserve_balance, ratio / RATIO_DENOMINATOR);
 }
 
 void BancorConverter::convert(name from, eosio::asset quantity, std::string memo, name code) {
@@ -179,13 +179,12 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     }
     else {
         smart_tokens = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, from_ratio);
-        if (converter_settings.fee > 0) {
-            double fee = smart_tokens * converter_settings.fee / 1000000.0;
-            if (fee > 0) {
-                smart_tokens = smart_tokens - fee;
-                total_fee_amount += fee;
-            }
-        }
+
+        // Apply fee
+        double fee = smart_tokens * converter_settings.fee / FEE_DENOMINATOR;
+        smart_tokens = smart_tokens - fee;
+        total_fee_amount += fee;
+
         current_smart_supply += smart_tokens;
     }
 
@@ -196,13 +195,11 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         issue = true;
     }
     else if (!quick) {
-        if (converter_settings.fee) {
-            double fee = smart_tokens * converter_settings.fee / 1000000.0;
-            if (fee > 0) {
-                smart_tokens = smart_tokens - fee;
-                total_fee_amount += fee;
-            }
-        }
+        // Apply fee
+        double fee = smart_tokens * converter_settings.fee / FEE_DENOMINATOR;
+        smart_tokens = smart_tokens - fee;
+        total_fee_amount += fee;
+
         to_tokens = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_ratio);
         current_smart_supply -= smart_tokens;
     }
@@ -213,9 +210,9 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     EMIT_CONVERSION_EVENT(memo, from_token.contract, from_currency.symbol.code(), to_token.contract, to_currency.symbol.code(), from_amount, to_tokens, formatted_total_fee_amount);
     
     if (!incoming_smart_token)
-        EMIT_PRICE_DATA_EVENT(outgoing_smart_token ? current_smart_supply : initial_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance + from_amount, from_ratio / 1000000.0);
+        EMIT_PRICE_DATA_EVENT(outgoing_smart_token ? current_smart_supply : initial_smart_supply, from_token.contract, from_currency.symbol.code(), current_from_balance + from_amount, from_ratio / RATIO_DENOMINATOR);
     if (!outgoing_smart_token)
-        EMIT_PRICE_DATA_EVENT(incoming_smart_token ? current_smart_supply : initial_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_tokens, to_ratio / 1000000.0);
+        EMIT_PRICE_DATA_EVENT(incoming_smart_token ? current_smart_supply : initial_smart_supply, to_token.contract, to_currency.symbol.code(), current_to_balance - to_tokens, to_ratio / RATIO_DENOMINATOR);
 
     path new_path = memo_object.path;
     new_path.erase(new_path.begin(), new_path.begin() + 2);
@@ -310,7 +307,7 @@ void BancorConverter::verify_min_return(eosio::asset quantity, std::string min_r
 double BancorConverter::calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio) {
     double R(supply);
     double C(balance + deposit_amount);
-    double F(ratio / 1000000.0);
+    double F(ratio / RATIO_DENOMINATOR);
     double T(deposit_amount);
     double ONE(1.0);
 
@@ -323,7 +320,7 @@ double BancorConverter::calculate_purchase_return(double balance, double deposit
 double BancorConverter::calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio) {
     double R(supply - sell_amount);
     double C(balance);
-    double F(1000000.0 / ratio);
+    double F(RATIO_DENOMINATOR / ratio);
     double E(sell_amount);
     double ONE(1.0);
 
