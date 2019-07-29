@@ -23,8 +23,8 @@ CYAN='\033[1;36m'
 NC='\033[0m'
 
 # CHANGE PATH
-EOSIO_CONTRACTS_ROOT=/home/ricardo/Documents/eosio.contracts/build
-MY_CONTRACTS_BUILD=/home/ricardo/Documents/liquidapps/bancor/relayswarmio/contracts/eos/build
+EOSIO_CONTRACTS_ROOT=/home/{username}/Documents/eosio.contracts/build
+MY_CONTRACTS_BUILD=/home/{username}/Documents/{contracts_eos}/build
 
 NODEOS_HOST="127.0.0.1"
 NODEOS_PROTOCOL="http"
@@ -140,8 +140,8 @@ cleos system newaccount eosio stakebnt2eos $CON_PUB --stake-cpu "50 EOS" --stake
 cleos system newaccount eosio bnt2eoscnvrt $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 cleos system newaccount eosio bnt2eosrelay $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 
-cleos system newaccount eosio rick $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio yudi $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bnttestuser1 $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bnttestuser2 $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 cleos system newaccount eosio fakeos $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 
 cleos system newaccount eosio bnt2syscnvrt $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer

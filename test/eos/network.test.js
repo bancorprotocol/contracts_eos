@@ -15,7 +15,7 @@ const {
 
 const { ERRORS } = require('./common/errors')
 const BigNumber = require('bignumber.js');
-const user = 'rick'
+const user1 = 'bnttestuser1'
 
 describe('Test: BancorNetwork', () => {
     it('test 1 hop conversion - sell bnt to buy eos', async function () {
@@ -32,12 +32,12 @@ describe('Test: BancorNetwork', () => {
         assert.equal(result.rows.length, 1)    
         const initialReserveBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
         
-        //user starting balance of bnt
-        result = await getBalance('rick','bntbntbntbnt','BNT')
+        //user1 starting balance of bnt
+        result = await getBalance(user1,'bntbntbntbnt','BNT')
         assert.equal(result.rows.length, 1)    
         const initialUserBalanceFrom = parseFloat(result.rows[0].balance.split(' ')[0])
-        //user starting balance of bnteos
-        result = await getBalance('rick','eosio.token','EOS')
+        //user1 starting balance of bnteos
+        result = await getBalance(user1,'eosio.token','EOS')
         assert.equal(result.rows.length, 1) 
         const initialUserBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
         
@@ -74,9 +74,9 @@ describe('Test: BancorNetwork', () => {
         const expectedUserBalanceFrom = initialUserBalanceFrom - amount;
         const expectedUserBalanceTo = initialUserBalanceTo - convertReturn;
 
-        result = await getBalance('rick','bntbntbntbnt','BNT')
+        result = await getBalance(user1,'bntbntbntbnt','BNT')
         const currentUserBalanceFrom = parseFloat(result.rows[0].balance.split(' ')[0])
-        result = await getBalance('rick','bnt2eosrelay','BNTEOS')
+        result = await getBalance(user1,'bnt2eosrelay','BNTEOS')
         const currentUserBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
 
         assert.isAtMost(currentUserBalanceFrom, expectedUserBalanceFrom, "unexpected user_balance - bnt");
@@ -90,16 +90,16 @@ describe('Test: BancorNetwork', () => {
         const tolerance = 0.00035992 //maximum discrepancy, same as before
         const amountStr = '1.0000'; 
         
-        // get user's initial EOS balance
-        result = await getBalance('rick', 'eosio.token', 'EOS');
+        // get user1's initial EOS balance
+        result = await getBalance(user1, 'eosio.token', 'EOS');
         assert.equal(result.rows.length, 1)    
         const initialUserBalanceFrom = parseFloat(result.rows[0].balance.split(' ')[0])
         // get BNTSYS relay's initial BNT balance
         var result = await getBalance('bnt2syscnvrt','bntbntbntbnt', 'BNT');
         assert.equal(result.rows.length, 1)    
         const initialReserveBalanceFrom = parseFloat(result.rows[0].balance.split(' ')[0])
-        // get user's initial SYS balance
-        result = await getBalance('rick', 'fakeos', 'SYS');
+        // get user1's initial SYS balance
+        result = await getBalance(user1, 'fakeos', 'SYS');
         assert.equal(result.rows.length, 1)    
         const initialUserBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
         // get BNTSYS relay's initial SYS balance
@@ -116,21 +116,21 @@ describe('Test: BancorNetwork', () => {
         const toTokenPriceDataEvent = JSON.parse(events[2]);
         //console.log(events) TODO
 
-        const expectedUserBalanceFrom = initialUserBalanceFrom - amount //EOS - user
-        const expectedUserBalanceTo = initialUserBalanceTo + sysReturn //SYS - user
+        const expectedUserBalanceFrom = initialUserBalanceFrom - amount //EOS - user1
+        const expectedUserBalanceTo = initialUserBalanceTo + sysReturn //SYS - user1
         const expectedReserveBalanceFrom = initialReserveBalanceFrom + bntReturn //BNT - relay
         const expectedReserveBalanceTo = initialReserveBalanceTo - sysReturn //SYS - relay
 
-        // get user's current EOS balance
-        result = await getBalance('rick', 'eosio.token', 'EOS');
+        // get user1's current EOS balance
+        result = await getBalance(user1, 'eosio.token', 'EOS');
         assert.equal(result.rows.length, 1)    
         const currentUserBalanceFrom = parseFloat(result.rows[0].balance.split(' ')[0])
         // get BNTSYS relay's current BNT balance
         var result = await getBalance('bnt2syscnvrt','bntbntbntbnt', 'BNT');
         assert.equal(result.rows.length, 1)    
         const currentReserveBalanceFrom = parseFloat(result.rows[0].balance.split(' ')[0])
-        // get user's current SYS balance
-        result = await getBalance('rick', 'fakeos', 'SYS');
+        // get user1's current SYS balance
+        result = await getBalance(user1, 'fakeos', 'SYS');
         assert.equal(result.rows.length, 1)    
         const currentUserBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
         // get BNTSYS relay's current SYS balance
@@ -147,24 +147,24 @@ describe('Test: BancorNetwork', () => {
         assert.isAtMost(deltaReserveBalanceTo, tolerance, "fakeos sys invalid");
         // check that SYS relay's new BNT balance increased appropriately
         assert.isAtMost(deltaReserveBalanceFrom, tolerance, "fakeos bnt inavlid");
-        // check that user's EOS balance decreased appropriately
-        assert.isAtMost(deltaUserBalanceFrom, tolerance, "user's eos invalid");
-        // check that user's SYS balance increased appropriately
-        assert.isAtMost(deltaUserBalanceTo, tolerance, "user's sys invalid");
+        // check that user1's EOS balance decreased appropriately
+        assert.isAtMost(deltaUserBalanceFrom, tolerance, "user1's eos invalid");
+        // check that user1's SYS balance increased appropriately
+        assert.isAtMost(deltaUserBalanceTo, tolerance, "user1's sys invalid");
     })
     it("verifies throw error with a destination wallet different than the origin account", async () => {
         expectError(
-            convertBNT('5.00000000', 'BNT', undefined, user, 'eosio'), 
+            convertBNT('5.00000000', 'BNT', undefined, user1, 'eosio'), 
             ERRORS.INVALID_TARGET_ACCOUNT
         );
     });
     it("verifies thrown error when using a non-converter account name as part of the path", async () => {
         expectError(
-            convertBNT('5.00000000', 'BNT', user), 
+            convertBNT('5.00000000', 'BNT', user1), 
             ERRORS.CONVERTER_DOESNT_EXIST
         );
     })
-    it("verifies thrown error when exceeding user's available balance", async () => {
+    it("verifies thrown error when exceeding user1's available balance", async () => {
         expectError(
             convertBNT('500.00000000'), 
             ERRORS.OVER_SPENDING

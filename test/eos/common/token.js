@@ -11,7 +11,7 @@ const bntRelay = 'bnt2eosrelay';
 const bntRelaySymbol = 'BNTEOS';
 const sysRelaySymbol = 'BNTSYS';
 
-const user = 'rick';
+const user = 'bnttestuser1';
 
 const get = async function (token, symbol) {
     try {

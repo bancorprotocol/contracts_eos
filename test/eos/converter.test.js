@@ -29,6 +29,8 @@ const {
 
 const { ERRORS } = require('./common/errors')
 
+user1 = 'bnttestuser1'
+
 describe('Test: BancorConverter', () => {
     describe('setup token contracts and issue tokens', function () {
         it('create and issue fakeos token - EOS', async function () {
@@ -115,7 +117,7 @@ describe('Test: BancorConverter', () => {
     describe('setup converters and transfer tokens', function () {
         it('initialize the converters', async function () {
             await expectError( //same key but different account from that of bnt2eos converter owner
-                init('bnt2eoscnvrt', 'rick'),
+                init('bnt2eoscnvrt', user1),
                 ERRORS.PERMISSIONS
             );
             await expectNoError( 
@@ -159,13 +161,13 @@ describe('Test: BancorConverter', () => {
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].ratio, 500000, "SYS reserve ratio not set correctly - bntsys")
         })
-        it('transfer eos to rick and converter', async function () {
+        it('transfer eos to user1 and converter', async function () {
             await expectNoError( 
-                transfer('eosio.token', '100.0000 EOS', 'rick', 'eosio') 
+                transfer('eosio.token', '100.0000 EOS', user1, 'eosio') 
             )
-            result = await getBalance('rick', 'eosio.token', 'EOS')
+            result = await getBalance(user1, 'eosio.token', 'EOS')
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].balance, '100.0000 EOS', "wrong initial balance - rick's eos")
+            assert.equal(result.rows[0].balance, '100.0000 EOS', "wrong initial balance - user1's eos")
             
             await expectNoError( 
                 transfer('eosio.token', '10000.0000 EOS', 'bnt2eoscnvrt', 'eosio') 
@@ -174,20 +176,20 @@ describe('Test: BancorConverter', () => {
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '10000.0000 EOS', "wrong initial balance - converter's eos")
         })
-        it('transfer fakeos EOS to rick and SYS to converter', async function () {
+        it('transfer fakeos EOS to user1 and SYS to converter', async function () {
             await expectNoError( 
-                transfer('fakeos', '100.0000 EOS', 'rick', 'fakeos') 
+                transfer('fakeos', '100.0000 EOS', user1, 'fakeos') 
             )
-            var result = await getBalance('rick', 'fakeos', 'EOS')
+            var result = await getBalance(user1, 'fakeos', 'EOS')
             assert.equal(result.rows.length, 1)    
-            assert.equal(result.rows[0].balance, '100.0000 EOS', "wrong initial balance - rick's fakeos EOS")
+            assert.equal(result.rows[0].balance, '100.0000 EOS', "wrong initial balance - user1's fakeos EOS")
             //
             await expectNoError( 
-                transfer('fakeos', '100.0000 SYS', 'rick', 'fakeos') 
+                transfer('fakeos', '100.0000 SYS', user1, 'fakeos') 
             )
-            var result = await getBalance('rick', 'fakeos', 'SYS')
+            var result = await getBalance(user1, 'fakeos', 'SYS')
             assert.equal(result.rows.length, 1)    
-            assert.equal(result.rows[0].balance, '100.0000 SYS', "wrong initial balance - rick's fakeos SYS")
+            assert.equal(result.rows[0].balance, '100.0000 SYS', "wrong initial balance - user1's fakeos SYS")
             //
             await expectNoError( 
                 transfer('fakeos', '10000.0000 SYS', 'bnt2syscnvrt') 
@@ -196,11 +198,11 @@ describe('Test: BancorConverter', () => {
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '10000.0000 SYS', "bad amount in reserve - fakeos SYS")
         })
-        it('transfer BNT to rick and converters', async function () {
+        it('transfer BNT to user1 and converters', async function () {
             await expectNoError( 
-                transfer('bntbntbntbnt','100.00000000 BNT', 'rick', 'bancorxoneos') 
+                transfer('bntbntbntbnt','100.00000000 BNT', user1, 'bancorxoneos') 
             )
-            var result = await getBalance('rick', 'bntbntbntbnt', 'BNT')
+            var result = await getBalance(user1, 'bntbntbntbnt', 'BNT')
             assert.equal(result.rows.length, 1)            
             assert.equal(result.rows[0].balance, '100.00000000 BNT', "wrong initial balance - bnt")
             //
@@ -218,18 +220,18 @@ describe('Test: BancorConverter', () => {
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '10000.00000000 BNT', "bnt2eos - bad amount in reserve - bnt")
         })
-        it('transfer BNTEOS and BNTSYS to rick', async function () {
-            await expectNoError( //issue to rick
-                transfer('bnt2eosrelay',  '100.00000000 BNTEOS', 'rick', 'bnt2eoscnvrt') 
+        it('transfer BNTEOS and BNTSYS to user1', async function () {
+            await expectNoError( //issue to user1
+                transfer('bnt2eosrelay',  '100.00000000 BNTEOS', user1, 'bnt2eoscnvrt') 
             )
-            var result = await getBalance('rick', 'bnt2eosrelay', 'BNTEOS')
+            var result = await getBalance(user1, 'bnt2eosrelay', 'BNTEOS')
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '100.00000000 BNTEOS', "wrong initial balance - bnteos")
             //
             await expectNoError( 
-                transfer(token='bnt2sysrelay', '100.00000000 BNTSYS', 'rick', 'bnt2syscnvrt') 
+                transfer(token='bnt2sysrelay', '100.00000000 BNTSYS', user1, 'bnt2syscnvrt') 
             )
-            var result = await getBalance('rick', 'bnt2sysrelay', 'BNTSYS')
+            var result = await getBalance(user1, 'bnt2sysrelay', 'BNTSYS')
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '100.00000000 BNTSYS', "wrong initial balance - bntsys")
         })
@@ -267,7 +269,7 @@ describe('Test: BancorConverter', () => {
         })            
         it('update with bad auth', async function () {
             await expectError(
-                update(0, 'bnt2eoscnvrt', 'rick'), 
+                update(0, 'bnt2eoscnvrt', user1), 
                 ERRORS.PERMISSIONS
             );
         }) 
