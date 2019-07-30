@@ -62,7 +62,7 @@ describe('BancorNetwork Contract', () => {
         assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance, "unexpected reserve_balance");
     
         const expectedSmartSupply = await getSupply('tknbntaa', 'BNTTKNA');
-        assert.equal(parseFloat(expectedSmartSupply).toFixed(8), parseFloat(toTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
+        assert.equal(parseFloat(expectedSmartSupply).toFixed(9), parseFloat(toTokenPriceDataEvent.smart_supply).toFixed(9), 'unexpected smart supply');
     });
 
     it('2 hop convert', async function() {
@@ -119,7 +119,7 @@ describe('BancorNetwork Contract', () => {
         assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance, "unexpected reserve_balance");
     
         const expectedSmartSupply = await getSupply('tknbntaa', RelaySymbol);
-        assert.equal(parseFloat(expectedSmartSupply).toFixed(8), parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
+        assert.equal(parseFloat(expectedSmartSupply).toFixed(9), parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(9), 'unexpected smart supply');
     });
 
     it('[PriceDataEvents: smart --> reserve] 1 hop conversion', async function() {
@@ -142,7 +142,7 @@ describe('BancorNetwork Contract', () => {
         assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance, "unexpected reserve_balance");
     
         const expectedSmartSupply = await getSupply('tknbntaa', RelaySymbol);
-        assert.equal(parseFloat(expectedSmartSupply).toFixed(8), parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
+        assert.equal(parseFloat(expectedSmartSupply).toFixed(9), parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(9), 'unexpected smart supply');
     });
 
     it.skip('verifies that converting reserve --> reserve returns the same amount (after fees are deducted) as converting reserve --> relay & relay --> reserve (2 different transactions)', async function() {

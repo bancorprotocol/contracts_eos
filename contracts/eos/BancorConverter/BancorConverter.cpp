@@ -190,9 +190,11 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         current_smart_supply -= smart_tokens;
     }
 
-    uint8_t magnitude = (outgoing_smart_token || incoming_smart_token) ? 1 : 2;
+    uint8_t magnitude = (incoming_smart_token || outgoing_smart_token) ? 1 : 2;
     double fee = calculate_fee(to_tokens, converter_settings.fee, magnitude);
     to_tokens -= fee;
+    if (outgoing_smart_token)
+        current_smart_supply -= fee;
 
     double formatted_total_fee_amount = to_fixed(fee, to_currency_precision);
     to_tokens = to_fixed(to_tokens, to_currency_precision);
