@@ -235,7 +235,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         ).send();
 }
 
-double BancorConverter::calculate_fee(uint64_t amount, uint64_t fee, uint8_t magnitude) {
+double BancorConverter::calculate_fee(double amount, uint64_t fee, uint8_t magnitude) {
     return amount * (1 - pow((1 - fee / FEE_DENOMINATOR), magnitude));
 }
 

@@ -84,7 +84,6 @@ describe('BancorNetwork Contract', () => {
         events = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[2].inline_traces[1].console.split("\n");
         convertEvent = JSON.parse(events[0]);
         priceDataEvent = JSON.parse(events[2]);
-        
         const currentTestUserTokenBBalance = await getBalance(tokenContract2, testUser1);
         const expectedReturn = parseFloat(new BigNumber(currentTestUserTokenBBalance).minus(initialTestUserTokenBBalance));
         assert(Math.abs(parseFloat(convertEvent.return) - expectedReturn) <= 0.000001 , "unexpected conversion result"); // TODO: Remove this once we change formulas to be uint based, and precision issues are gone
@@ -92,15 +91,16 @@ describe('BancorNetwork Contract', () => {
         const expectedSmartSupply = await getSupply('tknbntbb', 'BNTTKNB');
         
         assert.equal(expectedSmartSupply, parseFloat(priceDataEvent.smart_supply), 'unexpected smart supply');
-        assert.equal(convertEvent.conversion_fee, 0.00099951, "unexpected conversion fee");
+        const expectedConversionFee = (parseFloat(convertEvent.conversion_fee) / (parseFloat(convertEvent.conversion_fee) + parseFloat(convertEvent.return))).toFixed(5);
+        assert.equal(expectedConversionFee, 0.002, "unexpected conversion fee");
+        
         assert.equal(priceDataEvent.reserve_ratio, 0.5, "unexpected reserve_ratio");
-
 
         const expectedFromTokenReserveBalance = parseFloat(new BigNumber(initialToTokenReserveBalance).minus(convertEvent.return));
         assert(Math.abs(parseFloat(priceDataEvent.reserve_balance) - expectedFromTokenReserveBalance) <= 0.000001, "unexpected reserve_balance");
     });
 
-    it('[connector --> smart] 1 hop conversion', async function() {
+    it('[PriceDataEvents: reserve --> smart] 1 hop conversion', async function() {
         const minReturn = '0.00000001';
         const amount = '1.0000000000'
         const RelaySymbol = `BNT${tokenSymbol}`;
@@ -122,7 +122,7 @@ describe('BancorNetwork Contract', () => {
         assert.equal(parseFloat(expectedSmartSupply).toFixed(8), parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
     });
 
-    it('[smart --> connector] 1 hop conversion', async function() {
+    it('[PriceDataEvents: smart --> reserve] 1 hop conversion', async function() {
         const minReturn = '0.0000000001';
         const amount = '0.0100000000';
         const RelaySymbol = `BNT${tokenSymbol}`;
@@ -145,7 +145,7 @@ describe('BancorNetwork Contract', () => {
         assert.equal(parseFloat(expectedSmartSupply).toFixed(8), parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
     });
 
-    it('verifies that converting connector --> connector returns the same amount (after fees are deducted) as converting connector --> relay & relay --> connector (2 different transactions)', async function() {
+    it.skip('verifies that converting reserve --> reserve returns the same amount (after fees are deducted) as converting reserve --> relay & relay --> reserve (2 different transactions)', async function() {
         const minReturn = '0.0000000001';
         const amount = '5.0000000000';
         
