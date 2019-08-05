@@ -14,8 +14,8 @@ using std::vector;
 // events
 
 // triggered when a conversion between two tokens occurs
-#define EMIT_CONVERSION_EVENT(memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount) \
-    START_EVENT("conversion", "1.2") \
+#define EMIT_CONVERSION_EVENT(memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount) { \
+    START_EVENT("conversion", "1.3") \
     EVENTKV("memo", memo) \
     EVENTKV("from_contract", from_contract) \
     EVENTKV("from_symbol", from_symbol) \
@@ -24,25 +24,27 @@ using std::vector;
     EVENTKV("amount", from_amount) \
     EVENTKV("return", to_amount) \
     EVENTKVL("conversion_fee", fee_amount) \
-    END_EVENT()
+    END_EVENT() \
+}
 
 // triggered after a conversion with new tokens price data
-#define EMIT_PRICE_DATA_EVENT(smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) \
-    START_EVENT("price_data", "1.3") \
+#define EMIT_PRICE_DATA_EVENT(smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) { \
+    START_EVENT("price_data", "1.4") \
     EVENTKV("smart_supply", smart_supply) \
     EVENTKV("reserve_contract", reserve_contract) \
     EVENTKV("reserve_symbol", reserve_symbol) \
     EVENTKV("reserve_balance", reserve_balance) \
     EVENTKVL("reserve_ratio", reserve_ratio) \
-    END_EVENT()
+    END_EVENT() \
+}
 
 // triggered when the conversion fee is updated
-#define EMIT_CONVERSION_FEE_UPDATE_EVENT(prev_fee, new_fee) \
-    START_EVENT("conversion_fee_update", "1.0") \
+#define EMIT_CONVERSION_FEE_UPDATE_EVENT(prev_fee, new_fee) { \
+    START_EVENT("conversion_fee_update", "1.1") \
     EVENTKV("prev_fee", prev_fee) \
     EVENTKVL("new_fee", new_fee) \
-    END_EVENT()
-
+    END_EVENT() \
+}
 /*
     Bancor Converter
 
@@ -116,9 +118,13 @@ CONTRACT BancorConverter : public eosio::contract {
         void transfer(name from, name to, asset quantity, string memo);
 
     private:
+        constexpr static double RATIO_DENOMINATOR = 1000000.0;
+        constexpr static double FEE_DENOMINATOR = 1000000.0;
+
         void convert(name from, eosio::asset quantity, std::string memo, name code);
         const reserve_t& get_reserve(uint64_t name, const settings_t& settings);
 
+        double calculate_fee(double amount, uint64_t fee, uint8_t magnitude);
         asset get_balance(name contract, name owner, symbol_code sym);
         uint64_t get_balance_amount(name contract, name owner, symbol_code sym);
         asset get_supply(name contract, symbol_code sym);
