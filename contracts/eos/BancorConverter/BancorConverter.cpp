@@ -302,7 +302,7 @@ void BancorConverter::verify_min_return(eosio::asset quantity, std::string min_r
 // calculates the return for a given conversion (in the main token)
 double BancorConverter::calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio) {
     double R(supply);
-    double C(balance + deposit_amount);
+    double C(balance);
     double F(ratio / RATIO_DENOMINATOR);
     double T(deposit_amount);
     double ONE(1.0);
@@ -314,13 +314,14 @@ double BancorConverter::calculate_purchase_return(double balance, double deposit
 // given a token supply, reserve balance, ratio and a input amount (in the main token),
 // calculates the return for a given conversion (in the reserve token)
 double BancorConverter::calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio) {
-    double R(supply - sell_amount);
+    double R(supply);
     double C(balance);
     double F(RATIO_DENOMINATOR / ratio);
     double E(sell_amount);
     double ONE(1.0);
 
-    double T = C * (pow(ONE + E/R, F) - ONE);
+    double T = C * (ONE - pow(ONE - E/R, F));
+
     return T;
 }
 
