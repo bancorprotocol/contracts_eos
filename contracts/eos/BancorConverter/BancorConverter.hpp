@@ -15,7 +15,7 @@ using std::vector;
 
 // triggered when a conversion between two tokens occurs
 #define EMIT_CONVERSION_EVENT(memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount) { \
-    START_EVENT("conversion", "1.2") \
+    START_EVENT("conversion", "1.3") \
     EVENTKV("memo", memo) \
     EVENTKV("from_contract", from_contract) \
     EVENTKV("from_symbol", from_symbol) \
@@ -29,7 +29,7 @@ using std::vector;
 
 // triggered after a conversion with new tokens price data
 #define EMIT_PRICE_DATA_EVENT(smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) { \
-    START_EVENT("price_data", "1.3") \
+    START_EVENT("price_data", "1.4") \
     EVENTKV("smart_supply", smart_supply) \
     EVENTKV("reserve_contract", reserve_contract) \
     EVENTKV("reserve_symbol", reserve_symbol) \
@@ -40,7 +40,7 @@ using std::vector;
 
 // triggered when the conversion fee is updated
 #define EMIT_CONVERSION_FEE_UPDATE_EVENT(prev_fee, new_fee) { \
-    START_EVENT("conversion_fee_update", "1.0") \
+    START_EVENT("conversion_fee_update", "1.1") \
     EVENTKV("prev_fee", prev_fee) \
     EVENTKVL("new_fee", new_fee) \
     END_EVENT() \
