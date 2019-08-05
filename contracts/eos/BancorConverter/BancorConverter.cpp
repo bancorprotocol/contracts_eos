@@ -170,7 +170,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
 
         smart_tokens = from_amount;
     }
-    else if (!incoming_smart_token && !outgoing_smart_token && (from_ratio == to_ratio) && (converter_settings.fee == 0)) {
+    else if (!incoming_smart_token && !outgoing_smart_token && (from_ratio == to_ratio)) {
         to_tokens = quick_convert(current_from_balance, from_amount, current_to_balance);
         quick = true;
     }
