@@ -225,18 +225,18 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         new_memo = memo_object.receiver_memo;
     }
 
-    if (issue)
+    if (issue) {
         action(
             permission_level{ _self, "active"_n },
             to_contract, "issue"_n,
-            std::make_tuple(inner_to, new_asset, new_memo) 
+            std::make_tuple(_self, new_asset, new_memo) 
         ).send();
-    else
-        action(
-            permission_level{ _self, "active"_n },
-            to_contract, "transfer"_n,
-            std::make_tuple(_self, inner_to, new_asset, new_memo)
-        ).send();
+    }
+    action(
+        permission_level{ _self, "active"_n },
+        to_contract, "transfer"_n,
+        std::make_tuple(_self, inner_to, new_asset, new_memo)
+    ).send();
 }
 
 double BancorConverter::calculate_fee(double amount, uint64_t fee, uint8_t magnitude) {
