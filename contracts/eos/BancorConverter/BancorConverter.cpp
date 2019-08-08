@@ -228,7 +228,7 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     if (issue) {
         action(
             permission_level{ _self, "active"_n },
-            _self, "issue"_n,
+            to_contract, "issue"_n,
             std::make_tuple(_self, new_asset, new_memo) 
         ).send();
     }
