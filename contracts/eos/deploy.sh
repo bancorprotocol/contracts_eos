@@ -3,7 +3,8 @@
 
 # Assumptions: nodeos already running somewhere, 
 # wallet created, ENV vars set for wallet name and password
-# contracts already compiled (with abi's generated) in their respective directories
+# contracts already compiled (with abi's generated), 
+# located in their respective directories, placed into user's root home folder
 
 # Create wallet with command:
 #   cleos wallet create -n testwallet --to-console
@@ -23,8 +24,8 @@ CYAN='\033[1;36m'
 NC='\033[0m'
 
 # CHANGE PATH
-EOSIO_CONTRACTS_ROOT=/home/{username}/Documents/eosio.contracts/build
-MY_CONTRACTS_BUILD=/home/{username}/Documents/{contracts_eos}/build
+EOSIO_CONTRACTS_ROOT=~/eosio.contracts/build
+MY_CONTRACTS_BUILD=~/contracts_eos/build
 
 NODEOS_HOST="127.0.0.1"
 NODEOS_PROTOCOL="http"
