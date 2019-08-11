@@ -26,10 +26,8 @@ Tests are included and can be run using fungi.
 Alternatively to using fungi, tests are included which may be run by following these steps:
 
 - make sure you have the latest eosio binaries and eosio.cdt globally installed (via `brew` or `apt-get`)
-- run `npm install --save bignumber.js mocha chai eosjs node-fetch` from the root project directory
-- read the prerequisites for deployment (use the exact `nodeos` params described there): `head -20 ./contracts/eos/deploy.sh`
-- at the top of the deploy script file, modify the *absolute path* variables for your `EOSIO_CONTRACTS_ROOT=/home/ricardo/Documents/eosio.contracts/build`
-and `MY_CONTRACTS_BUILD`(this is the build folder in ./contracts/eos/)
+- run `npm install --save mocha chai eosjs node-fetch` from the root project directory
+- read the prerequisites for deployment (set your filepaths and use the exact `nodeos` params described there): `head -20 ./contracts/eos/deploy.sh`
 - after you've went through them, run the deploy script `./contracts/eos/deploy.sh`
 - FIRST run the converter test because it does some necessary setup work `mocha ./test/eos/converter.test.js`
 
