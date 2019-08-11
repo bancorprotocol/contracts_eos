@@ -23,6 +23,18 @@ See each contract for a description and general usage information.
 
 ## Testing
 Tests are included and can be run using fungi.
+Alternatively to using fungi, tests are included which may be run by following these steps:
+
+- make sure you have the latest eosio binaries and eosio.cdt globally installed (via `brew` or `apt-get`)
+- run from the root project directory:
+  - `npm install --save mocha chai eosjs node-fetch` 
+- read the prerequisites for deployment (set your filepaths and use the exact `nodeos` params described there): 
+  - `head -20 ./contracts/eos/deploy.sh`
+- after you've went through them, run the deploy script:
+  - `./contracts/eos/deploy.sh`
+- FIRST run the converter test because it does some necessary setup work:
+  - `mocha ./test/eos/converter.test.js`
+
 
 ### Prerequisites
 * Node.js v7.6.0+
@@ -33,6 +45,7 @@ Tests are included and can be run using fungi.
 * **[Yudi Levi](https://github.com/yudilevi)**
 * **[Or Dadosh](https://github.com/ordd)**
 * **[Yuval Weiss](https://github.com/yuval-weiss)**
+* **[Rick Tobacco](https://github.com/ricktobacco)**
 
 
 ## License

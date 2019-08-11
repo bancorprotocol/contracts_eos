@@ -15,7 +15,7 @@ ACTION XTransferRerouter::reroutetx(uint64_t tx_id, string blockchain, string ta
     settings settings_table(_self, _self.value);
     auto st = settings_table.get();
     
-    eosio_assert(st.rrt_enabled, "transaction rerouting is disabled");
+    check(st.rrt_enabled, "transaction rerouting is disabled");
 
     EMIT_TX_REROUTE_EVENT(tx_id, blockchain, target);
 

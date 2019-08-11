@@ -1,9 +1,9 @@
 #pragma once
 
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/transaction.hpp>
-#include <eosiolib/asset.hpp>
-#include <eosiolib/symbol.hpp>
+#include <eosio/eosio.hpp>
+#include <eosio/transaction.hpp>
+#include <eosio/asset.hpp>
+#include <eosio/symbol.hpp>
 
 #include <string>
 #include <vector>

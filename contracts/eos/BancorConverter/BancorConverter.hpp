@@ -1,10 +1,10 @@
 #pragma once
 
-#include <eosiolib/eosio.hpp>
-#include <eosiolib/transaction.hpp>
-#include <eosiolib/asset.hpp>
-#include <eosiolib/symbol.hpp>
-#include <eosiolib/singleton.hpp>
+#include <eosio/eosio.hpp>
+#include <eosio/transaction.hpp>
+#include <eosio/asset.hpp>
+#include <eosio/symbol.hpp>
+#include <eosio/singleton.hpp>
 #include "../Common/common.hpp"
 
 using namespace eosio;
@@ -92,7 +92,7 @@ CONTRACT BancorConverter : public eosio::contract {
                     bool  enabled,          // true if conversions are enabled, false if not
                     name  network,          // bancor network contract name
                     bool  require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
-                    uint64_t max_fee,       // // maximum conversion fee percentage, 0-1000000, 4-pt precision a la eosio.asset
+                    uint64_t max_fee,       // maximum conversion fee percentage, 0-1000000, 4-pt precision a la eosio.asset
                     uint64_t fee);          // conversion fee percentage, must be lower than the maximum fee, same precision
 
         // updates the converter settings
