@@ -1,19 +1,22 @@
-import Eos from 'eosjs';
+import { Api, JsonRpc } from 'eosjs';
+import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig';
 import fs from 'fs';
 import path from 'path';
 import { assert } from 'chai';
+import fetch from 'node-fetch';
 
 const testUser = 'test1';
 
 export const getKeyFile = account => JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${account}.json`)).toString())
-
-export const getEos = (account = testUser) => Eos({ httpEndpoint: host(), keyProvider: getKeyFile(account).privateKey })
 
 export const host = () => {
     const h = process.env.NETWORK_HOST;
     const p = process.env.NETWORK_PORT;
     return `http://${h}:${p}`;
 };
+
+const rpc = new JsonRpc(host(), { fetch });
+export const getEos = (account = testUser) => new Api({ rpc, keyProvider: new JsSignatureProvider([getKeyFile(account).privateKey]) })
 
 export const snooze = ms => new Promise(resolve => setTimeout(resolve, ms));
 

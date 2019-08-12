@@ -1,6 +1,7 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Mon Aug  5 14:31:19 2019",
-    "version": "eosio::abi/1.0",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
     "structs": [
         {
             "name": "init",
@@ -8,7 +9,6 @@
             "fields": []
         }
     ],
-    "types": [],
     "actions": [
         {
             "name": "init",
@@ -18,5 +18,5 @@
     ],
     "tables": [],
     "ricardian_clauses": [],
-    "abi_extensions": []
+    "variants": []
 }

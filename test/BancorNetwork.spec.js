@@ -1,6 +1,8 @@
 require("babel-core/register");
 require("babel-polyfill");
-import Eos from 'eosjs';
+import { Api, JsonRpc } from 'eosjs';
+import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig';
+import fetch from 'node-fetch';
 import { assert } from 'chai';
 import 'mocha';
 import { ensureContractAssertionError, getEos, getBalance, getSupply } from './utils';
@@ -24,14 +26,15 @@ describe('BancorNetwork Contract', () => {
     const networkContract = 'thisisbancor';
     const bntConverter = 'bnt2eoscnvrt';
     const networkTokenSymbol = "BNT";
-    const networkToken = 'bnt';
+    const networkToken = 'bntbntbntbnt';
     const tokenSymbol2 = "TKNB";
     const testUser1 = 'test1';
     const testUser2 = 'test2';
     const tokenContract2 = 'bb';
     const keyFile = JSON.parse(fs.readFileSync(path.resolve(process.env.ACCOUNTS_PATH, `${testUser1}.json`)).toString());
     const codekey = keyFile.privateKey;
-    const _self = Eos({ httpEndpoint:host(), keyProvider:codekey });
+    const rpc = new JsonRpc(host(), { fetch });
+    const _self = new Api({ rpc, keyProvider: new JsSignatureProvider([codekey]) });
     const _selfopts = { authorization:[`${testUser1}@active`] };
     
     it('simple convert', async function() {
