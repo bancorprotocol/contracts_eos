@@ -6,7 +6,8 @@
     "start-nodeos-in-background": "./scripts/start_nodeos.sh &> /dev/null &",
     "kill-nodeos": "./scripts/kill_nodeos.sh",
     "migrate": "./scripts/migrate.sh",
-    "test": "npm run start-nodeos-in-background && npm run migrate && mocha ./test/eos/converter.test.js ./test/eos/ && npm run kill-nodeos"
+    "compile": "./scripts/compile.sh",
+    "test": "npm run compile && npm run start-nodeos-in-background && npm run migrate && mocha ./test/eos/converter.test.js ./test/eos/ && npm run kill-nodeos"
   },
   "dependencies": {
     "dotenv": "^6.1.0",

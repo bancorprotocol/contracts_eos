@@ -7,6 +7,20 @@
             "name": "init",
             "base": "",
             "fields": []
+        },
+        {
+            "name": "settings_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "max_fee",
+                    "type": "uint64"
+                }
+            ]
         }
     ],
     "actions": [
@@ -16,7 +30,15 @@
             "ricardian_contract": ""
         }
     ],
-    "tables": [],
+    "tables": [
+        {
+            "name": "settings",
+            "type": "settings_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
     "ricardian_clauses": [],
     "variants": []
 }

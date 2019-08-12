@@ -7,25 +7,13 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <iterator>
 #include <math.h>
 #include "events.hpp"
 
 using std::string;
 using std::vector;
-
-using namespace eosio;
-
-typedef vector<string> path;
-
-struct memo_structure {
-    path           path;
-    vector<name>   converters;   
-    string         version;
-    string         min_return;
-    string         dest_account;
-    string         receiver_memo;
-};
 
 #define BANCOR_X "bancorxoneos"_n
 #define BANCOR_NETWORK "thisisbancor"_n
@@ -48,16 +36,23 @@ vector<string> split(const string& str, const string& delim)
     return tokens;
 }
 
-path parse_memo_path(std::string memo) {
-    size_t pos = memo.find(",", 2); // get the position of first comma after memo version
-    std::string path = memo.substr(2, pos);
-    auto path_elements = split(path, " ");
-    if (path_elements.size() == 1 && path_elements[0] == "") {
-        return {};
-    }
-    else
-        return path_elements;
-}
+using namespace eosio;
+
+typedef std::vector<std::string> path;
+
+struct converter {
+    name        account;
+    string      sym;
+};
+
+struct memo_structure {
+    path           path;
+    vector<converter>   converters;   
+    string         version;
+    string         min_return;
+    string         dest_account;
+    string         receiver_memo;
+};
 
 std::string build_memo(memo_structure data) {
     std::string pathstr = "";
@@ -103,8 +98,16 @@ memo_structure parse_memo(std::string memo) {
         res.path = path_elements;
 
     res.converters = {};
-    for (int i = 0; i < res.path.size(); i += 2)
-        res.converters.push_back(name(res.path[i].c_str()));
+    for (int i = 0; i < res.path.size(); i += 2) {
+        auto converter_data = split(res.path[i], ":");
+        
+        auto cnvrt = converter();
+        cnvrt.account = name(converter_data[0].c_str());
+        cnvrt.sym = converter_data.size() > 1 ? converter_data[1] : "";
+
+        res.converters.push_back(cnvrt);
+    }
+        
 
     if (split_memos.size() == 2) {
         res.receiver_memo = split_memos[1];
@@ -126,4 +129,15 @@ memo_structure next_hop(memo_structure data){
     res.dest_account = data.dest_account;
     res.receiver_memo = data.receiver_memo;
     return res;
+}
+
+asset string_to_asset(string st) {
+    auto parts = split(st, " ");
+    auto precision = split(parts[0], ".")[1].length();
+
+    symbol sym = symbol(parts[1], precision);
+    parts[0].erase(std::remove(parts[0].begin(), parts[0].end(), '.'), parts[0].end());
+    asset final_asset = asset(std::strtoull(parts[0].c_str(), nullptr, 10), sym);
+
+    return final_asset;
 }

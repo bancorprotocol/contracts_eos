@@ -3,6 +3,7 @@
 #include <eosio/eosio.hpp>
 #include <eosio/transaction.hpp>
 #include <eosio/asset.hpp>
+#include <eosio/singleton.hpp>
 
 using namespace eosio;
 
@@ -47,5 +48,13 @@ CONTRACT BancorNetwork : public eosio::contract {
         void transfer(name from, name to, asset quantity, string memo);
     
     private:
+        TABLE settings_t {
+                bool enabled;
+                uint64_t max_fee;
+                EOSLIB_SERIALIZE(settings_t, (enabled)(max_fee))
+            };
+
+        typedef eosio::singleton<"settings"_n, settings_t> settings;
+        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
         bool isConverter(name converter);
 };
