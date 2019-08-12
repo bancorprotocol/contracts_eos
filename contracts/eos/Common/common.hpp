@@ -14,6 +14,23 @@
 
 using std::string;
 using std::vector;
+using namespace eosio;
+
+typedef std::vector<std::string> path;
+
+struct converter {
+    name        account;
+    string      sym;
+};
+
+struct memo_structure {
+    path           path;
+    vector<converter>   converters;   
+    string         version;
+    string         min_return;
+    string         dest_account;
+    string         receiver_memo;
+};
 
 #define BANCOR_X "bancorxoneos"_n
 #define BANCOR_NETWORK "thisisbancor"_n
@@ -35,24 +52,6 @@ vector<string> split(const string& str, const string& delim)
     while (pos < str.length() && prev < str.length());
     return tokens;
 }
-
-using namespace eosio;
-
-typedef std::vector<std::string> path;
-
-struct converter {
-    name        account;
-    string      sym;
-};
-
-struct memo_structure {
-    path           path;
-    vector<converter>   converters;   
-    string         version;
-    string         min_return;
-    string         dest_account;
-    string         receiver_memo;
-};
 
 std::string build_memo(memo_structure data) {
     std::string pathstr = "";
