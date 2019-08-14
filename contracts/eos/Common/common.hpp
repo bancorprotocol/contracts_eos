@@ -129,14 +129,3 @@ memo_structure next_hop(memo_structure data){
     res.receiver_memo = data.receiver_memo;
     return res;
 }
-
-asset string_to_asset(string st) {
-    auto parts = split(st, " ");
-    auto precision = split(parts[0], ".")[1].length();
-
-    symbol sym = symbol(parts[1], precision);
-    parts[0].erase(std::remove(parts[0].begin(), parts[0].end(), '.'), parts[0].end());
-    asset final_asset = asset(std::strtoull(parts[0].c_str(), nullptr, 10), sym);
-
-    return final_asset;
-}
