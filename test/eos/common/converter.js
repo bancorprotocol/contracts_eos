@@ -6,7 +6,6 @@ const networkToken = 'bntbntbntbnt';
 const networkTokenSymbol = "BNT";
 
 const bntConverter = 'bnt2eoscnvrt';
-const bntStaking = 'stakebnt2eos';
 const bntRelay = 'bnt2eosrelay';
 const bntRelaySymbol = 'BNTEOS';
 
@@ -99,40 +98,7 @@ const update = async function(fee = 0, converter = bntConverter, auth = converte
         throw(err)
     }
 }
-const updateStaking = async function(stake_contract = bntStaking, stake_enabled = true, fee = 0, 
-                                     converter = bntConverter, auth = converter, smart_enabled = true, 
-                                     enabled = true, require_balance = false) {
-    try {
-        extend = {
-            stake_contract,
-            stake_enabled
-        }
-        const result = await api.transact({ 
-            actions: [{
-                account: converter,
-                name: "update",
-                authorization: [{
-                    actor: auth,
-                    permission: 'active',
-                }],
-                data: {
-                    smart_enabled, 
-                    enabled, 
-                    require_balance, 
-                    fee,
-                    extend
-                }
-            }]
-        }, 
-        {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        })
-        return result
-    } catch(err) {
-        throw(err)
-    }
-}
+
 const setreserve = async function(precise=true, token = networkToken, symbol = networkTokenSymbol, converter = bntConverter) {
     var precision = '0.00000000'
     if (!precise)
@@ -163,4 +129,4 @@ const setreserve = async function(precise=true, token = networkToken, symbol = n
         throw(err)
     }
 }
-module.exports = { init, update, updateStaking, setreserve, getReserve, getSettings }
+module.exports = { init, update, setreserve, getReserve, getSettings }

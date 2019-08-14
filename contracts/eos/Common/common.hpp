@@ -7,20 +7,25 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <iterator>
 #include <math.h>
 #include "events.hpp"
 
 using std::string;
 using std::vector;
-
 using namespace eosio;
 
-typedef vector<string> path;
+typedef std::vector<std::string> path;
+
+struct converter {
+    name        account;
+    string      sym;
+};
 
 struct memo_structure {
     path           path;
-    vector<name>   converters;   
+    vector<converter>   converters;   
     string         version;
     string         min_return;
     string         dest_account;
@@ -46,17 +51,6 @@ vector<string> split(const string& str, const string& delim)
     }
     while (pos < str.length() && prev < str.length());
     return tokens;
-}
-
-path parse_memo_path(std::string memo) {
-    size_t pos = memo.find(",", 2); // get the position of first comma after memo version
-    std::string path = memo.substr(2, pos);
-    auto path_elements = split(path, " ");
-    if (path_elements.size() == 1 && path_elements[0] == "") {
-        return {};
-    }
-    else
-        return path_elements;
 }
 
 std::string build_memo(memo_structure data) {
@@ -103,8 +97,16 @@ memo_structure parse_memo(std::string memo) {
         res.path = path_elements;
 
     res.converters = {};
-    for (int i = 0; i < res.path.size(); i += 2)
-        res.converters.push_back(name(res.path[i].c_str()));
+    for (int i = 0; i < res.path.size(); i += 2) {
+        auto converter_data = split(res.path[i], ":");
+        
+        auto cnvrt = converter();
+        cnvrt.account = name(converter_data[0].c_str());
+        cnvrt.sym = converter_data.size() > 1 ? converter_data[1] : "";
+
+        res.converters.push_back(cnvrt);
+    }
+        
 
     if (split_memos.size() == 2) {
         res.receiver_memo = split_memos[1];
