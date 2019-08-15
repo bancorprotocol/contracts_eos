@@ -1,4 +1,3 @@
-
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig'); 
 const { TextDecoder, TextEncoder } = require('util'); 
 const { Api, JsonRpc } = require('eosjs');

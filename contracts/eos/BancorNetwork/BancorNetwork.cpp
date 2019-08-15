@@ -1,6 +1,5 @@
 #include "./BancorNetwork.hpp"
 #include "../Common/common.hpp"
-#include "../BancorConverter/BancorConverter.hpp"
 
 using namespace eosio;
 
@@ -19,7 +18,7 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
     auto memo_object = parse_memo(memo);
     check(memo_object.path.size() >= 2, "bad path format");
 
-    name next_converter = memo_object.converters[0];
+    name next_converter = memo_object.converters[0].account;
     check(isConverter(next_converter), "converter doesn\'t exist");
 
     const name destination_account = name(memo_object.dest_account.c_str());
@@ -36,7 +35,7 @@ void BancorNetwork::transfer(name from, name to, asset quantity, string memo) {
 }
 
 bool BancorNetwork::isConverter(name converter) {
-    BancorConverter::settings settings_table(converter, converter.value);
+    settings settings_table(converter, converter.value);
     bool settings_exists = settings_table.exists();
     if (!settings_exists)
         return false;

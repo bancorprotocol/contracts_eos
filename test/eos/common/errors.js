@@ -23,7 +23,7 @@ module.exports = Object.freeze({
         CONVERTER_DOESNT_EXIST: 'converter doesn\'t exist',
         NO_ZERO: 'must transfer positive quantity',
         NO_RESERVE: 'reserve not found',
-        SETTINGS_EXIST: 'settings already exist',
+        SETTINGS_EXIST: 'settings already defined',
         BELOW_MIN:'below min return',
         BAD_ORIGIN: 'unknown \'from\' contract'
 
