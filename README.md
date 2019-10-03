@@ -30,10 +30,9 @@ Tests are included that can be `run` using their corresponding `npm` commands. a
 Setup:
 - make sure you have node.js+npm installed globally
 - make sure you have both eosio installed and the eosio.CDT globally installed (via `apt` or `brew`), or in order to compile latest eosio.contracts, masters cloned from git, built and installed inside the user home directory.
+- `npm install` from the root project directory, then finally:
 
 Running:
-- `npm install` from the root project directory, then finally:
-* Running
 - if you already HAVE `nodeos` running, run `npm run restart` 
 - if you DON'T already have `nodeos`running, run `npm run start`
 - if you don't have the contracts compiled before either of the above, run `npm run cstart`
