@@ -4,18 +4,17 @@
 #include <eosio/transaction.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
-#include <eosio/singleton.hpp>
+#include <eosio/binary_extension.hpp>
 #include "../Common/common.hpp"
 
 using namespace eosio;
-using std::string;
-using std::vector;
+using namespace std;
 
 // events
 
 // triggered when a conversion between two tokens occurs
-#define EMIT_CONVERSION_EVENT(memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount) \
-    START_EVENT("conversion", "1.2") \
+#define EMIT_CONVERSION_EVENT(memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount) { \
+    START_EVENT("conversion", "1.3") \
     EVENTKV("memo", memo) \
     EVENTKV("from_contract", from_contract) \
     EVENTKV("from_symbol", from_symbol) \
@@ -24,24 +23,27 @@ using std::vector;
     EVENTKV("amount", from_amount) \
     EVENTKV("return", to_amount) \
     EVENTKVL("conversion_fee", fee_amount) \
-    END_EVENT()
+    END_EVENT() \
+}
 
 // triggered after a conversion with new tokens price data
-#define EMIT_PRICE_DATA_EVENT(smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) \
-    START_EVENT("price_data", "1.3") \
+#define EMIT_PRICE_DATA_EVENT(smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) { \
+    START_EVENT("price_data", "1.4") \
     EVENTKV("smart_supply", smart_supply) \
     EVENTKV("reserve_contract", reserve_contract) \
     EVENTKV("reserve_symbol", reserve_symbol) \
     EVENTKV("reserve_balance", reserve_balance) \
     EVENTKVL("reserve_ratio", reserve_ratio) \
-    END_EVENT()
+    END_EVENT() \
+}
 
 // triggered when the conversion fee is updated
-#define EMIT_CONVERSION_FEE_UPDATE_EVENT(prev_fee, new_fee) \
-    START_EVENT("conversion_fee_update", "1.0") \
+#define EMIT_CONVERSION_FEE_UPDATE_EVENT(prev_fee, new_fee) { \
+    START_EVENT("conversion_fee_update", "1.1") \
     EVENTKV("prev_fee", prev_fee) \
     EVENTKVL("new_fee", new_fee) \
-    END_EVENT()
+    END_EVENT() \
+}
 
 /*
     Bancor Converter
@@ -55,8 +57,13 @@ using std::vector;
     (and valuable) balance in a single contract.
 */
 CONTRACT BancorConverter : public eosio::contract {
-    using contract::contract;
     public:
+        using contract::contract;
+        
+        struct extend_t {		
+            name stake_contract; // contract name of the staking/voting governing the converter
+            bool stake_enabled; // true if the smart token can be staked/unstaked, false if not		
+        };
         TABLE settings_t {
             name     smart_contract;
             asset    smart_currency;
@@ -66,8 +73,12 @@ CONTRACT BancorConverter : public eosio::contract {
             bool     require_balance;
             uint64_t max_fee;
             uint64_t fee;
+            
+            eosio::binary_extension<extend_t> extend;		
+            
+            uint64_t primary_key() const { return "settings"_n.value; }
 
-            EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(require_balance)(max_fee)(fee))
+            EOSLIB_SERIALIZE(settings_t, (smart_contract)(smart_currency)(smart_enabled)(enabled)(network)(require_balance)(max_fee)(fee)(extend))
         };
 
         TABLE reserve_t {
@@ -78,31 +89,32 @@ CONTRACT BancorConverter : public eosio::contract {
             uint64_t primary_key() const { return currency.symbol.code().raw(); }
         };
 
-        typedef eosio::singleton<"settings"_n, settings_t> settings;
-        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
+        typedef eosio::multi_index<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
 
         // initializes the converter settings
         // can only be called once, by the contract account
-        ACTION init(name smart_contract,    // contract name of the smart token governed by the converter
-                    asset smart_currency,   // currency of the smart token governed by the converter
-                    bool  smart_enabled,    // true if the smart token can be converted to/from, false if not
-                    bool  enabled,          // true if conversions are enabled, false if not
-                    name  network,          // bancor network contract name
-                    bool  require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
-                    uint64_t max_fee,       // maximum conversion fee percentage, 0-1000000, 4-pt precision a la eosio.asset
-                    uint64_t fee);          // conversion fee percentage, must be lower than the maximum fee, same precision
+        ACTION init(name     smart_contract,   // contract name of the smart token governed by the converter
+                    asset    smart_currency,   // currency of the smart token governed by the converter
+                    bool     smart_enabled,    // true if the smart token can be converted to/from, false if not
+                    bool     enabled,          // true if conversions are enabled, false if not
+                    name     network,          // bancor network contract name
+                    bool     require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
+                    uint64_t max_fee,          // maximum conversion fee percentage, 0-30000, 4-pt precision a la eosio.asset
+                    uint64_t fee,              // conversion fee percentage, must be lower than the maximum fee, same precision
+                    eosio::binary_extension<extend_t> extend);
 
         // updates the converter settings
         // can only be called by the contract account
-        ACTION update(bool smart_enabled,    // true if the smart token can be converted to/from, false if not
-                      bool enabled,          // true if conversions are enabled, false if not
-                      bool require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
-                      uint64_t fee);         // conversion fee percentage, must be lower than the maximum fee, same precision
+        ACTION update(bool     smart_enabled,    // true if the smart token can be converted to/from, false if not
+                      bool     enabled,          // true if conversions are enabled, false if not
+                      bool     require_balance,  // true if conversions that require creating new balance for the calling account should fail, false if not
+                      uint64_t fee,              // conversion fee percentage, must be lower than the maximum fee, same precision
+                      eosio::binary_extension<extend_t> extend);
         
         // initializes a new reserve in the converter
         // can also be used to update an existing reserve, can only be called by the contract account
-        ACTION setreserve(name contract,        // reserve token contract name
+        ACTION setreserve(name     contract,    // reserve token contract name
                           asset    currency,    // reserve token currency
                           uint64_t ratio,       // reserve ratio, percentage, 0-1000000, precision a la max_fee
                           bool     p_enabled);  // true if purchases are enabled with the reserve, false if not
@@ -116,6 +128,9 @@ CONTRACT BancorConverter : public eosio::contract {
         void transfer(name from, name to, asset quantity, string memo);
 
     private:
+        constexpr static double RATIO_DENOMINATOR = 1000000.0;
+        constexpr static double FEE_DENOMINATOR = 1000000.0;
+
         void convert(name from, eosio::asset quantity, std::string memo, name code);
         const reserve_t& get_reserve(uint64_t name, const settings_t& settings);
 
@@ -126,9 +141,11 @@ CONTRACT BancorConverter : public eosio::contract {
         void verify_entry(name account, name currency_contact, eosio::asset currency);
         void verify_min_return(eosio::asset quantity, std::string min_return);
 
+        double calculate_fee(double amount, uint64_t fee, uint8_t magnitude);
         double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);
         double calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio);
         double quick_convert(double balance, double in, double toBalance);
+
 
         float stof(const char* s);
 };

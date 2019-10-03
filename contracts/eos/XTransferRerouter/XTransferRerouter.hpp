@@ -21,8 +21,8 @@ using std::string;
     sent to the BancorX contract with invalid parameters
 */
 CONTRACT XTransferRerouter : public contract {
-    using contract::contract;
     public:
+        using contract::contract;
 
         TABLE settings_t {
             bool     rrt_enabled;
@@ -39,7 +39,7 @@ CONTRACT XTransferRerouter : public contract {
         // allows an account to change xtransfer transaction details if the original transaction
         // parameters were invalid (e.g non-existent destination blockchain/target)
         // note: only the original sender may reroute an invalid transaction
-        ACTION reroutetx(uint64_t tx_id,    // unique transaction id
-                        string blockchain,  // target blockchain
-                        string target);     // target account/address
+        ACTION reroutetx(uint64_t tx_id,       // unique transaction id
+                         string blockchain,    // target blockchain
+                         string target);       // target account/address
 };

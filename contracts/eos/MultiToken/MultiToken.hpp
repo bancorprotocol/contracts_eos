@@ -7,7 +7,7 @@
 using namespace eosio;
 using std::string;
 
-CONTRACT Token : public contract {
+CONTRACT MultiToken : public contract {
     public:
         using contract::contract;
 
@@ -17,6 +17,21 @@ CONTRACT Token : public contract {
             asset   quantity;
             string  memo;
         };
+
+        TABLE account {
+            asset balance;
+            uint64_t primary_key() const { return balance.symbol.code().raw(); }
+        };
+
+        TABLE currency_stats {
+            asset   supply;
+            asset   max_supply;
+            name    issuer;
+            uint64_t primary_key() const { return supply.symbol.code().raw(); }
+        };
+
+        typedef eosio::multi_index<"accounts"_n, account> accounts;
+        typedef eosio::multi_index<"stat"_n, currency_stats> stats;
 
         ACTION create(name issuer, asset maximum_supply);
 
@@ -42,21 +57,6 @@ CONTRACT Token : public contract {
         }
 
     private:
-        TABLE account {
-            asset balance;
-            uint64_t primary_key() const { return balance.symbol.code().raw(); }
-        };
-
-        TABLE currency_stats {
-            asset   supply;
-            asset   max_supply;
-            name    issuer;
-            uint64_t primary_key() const { return supply.symbol.code().raw(); }
-        };
-
-        typedef eosio::multi_index<"accounts"_n, account> accounts;
-        typedef eosio::multi_index<"stat"_n, currency_stats> stats;
-
         void sub_balance(name owner, asset value);
         void add_balance(name owner, asset value, name ram_payer);
 };

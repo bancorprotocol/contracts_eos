@@ -1,7 +1,22 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Tue Jul  2 17:35:51 2019",
-    "version": "eosio::abi/1.0",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
     "structs": [
+        {
+            "name": "extend_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "stake_contract",
+                    "type": "name"
+                },
+                {
+                    "name": "stake_enabled",
+                    "type": "bool"
+                }
+            ]
+        },
         {
             "name": "init",
             "base": "",
@@ -37,6 +52,10 @@
                 {
                     "name": "fee",
                     "type": "uint64"
+                },
+                {
+                    "name": "extend",
+                    "type": "extend_t$"
                 }
             ]
         },
@@ -119,6 +138,10 @@
                 {
                     "name": "fee",
                     "type": "uint64"
+                },
+                {
+                    "name": "extend",
+                    "type": "extend_t$"
                 }
             ]
         },
@@ -141,11 +164,14 @@
                 {
                     "name": "fee",
                     "type": "uint64"
+                },
+                {
+                    "name": "extend",
+                    "type": "extend_t$"
                 }
             ]
         }
     ],
-    "types": [],
     "actions": [
         {
             "name": "init",
@@ -180,5 +206,5 @@
         }
     ],
     "ricardian_clauses": [],
-    "abi_extensions": []
+    "variants": []
 }

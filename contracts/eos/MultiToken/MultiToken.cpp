@@ -1,4 +1,4 @@
-#include "Token.hpp"
+#include "MultiToken.hpp"
 
 TABLE amounts_t {
     uint64_t custom_id;
@@ -9,8 +9,8 @@ TABLE amounts_t {
 
 typedef eosio::multi_index<"amounts"_n, amounts_t> amounts;
 
-ACTION Token::create(name issuer, asset maximum_supply) {
-    require_auth(get_self());
+ACTION MultiToken::create(name issuer, asset maximum_supply) {
+    require_auth(issuer);
 
     auto sym = maximum_supply.symbol;
     check(sym.is_valid(), "invalid symbol name");
@@ -28,7 +28,7 @@ ACTION Token::create(name issuer, asset maximum_supply) {
     });
 }
 
-ACTION Token::issue(name to, asset quantity, string memo) {
+ACTION MultiToken::issue(name to, asset quantity, string memo) {
     auto sym = quantity.symbol;
     check(sym.is_valid(), "invalid symbol name");
     check(memo.size() <= 256, "memo has more than 256 bytes");
@@ -39,7 +39,7 @@ ACTION Token::issue(name to, asset quantity, string memo) {
     check(existing != statstable.end(), "token with symbol does not exist, create token before issue");
     const auto& st = *existing;
     check(to == st.issuer, "tokens can only be issued to issuer account");
-
+    
     require_auth(st.issuer);
     check(quantity.is_valid(), "invalid quantity");
     check(quantity.amount > 0, "must issue positive quantity");
@@ -54,7 +54,7 @@ ACTION Token::issue(name to, asset quantity, string memo) {
     add_balance(st.issuer, quantity, st.issuer);
 }
 
-ACTION Token::retire(asset quantity, string memo) {
+ACTION MultiToken::retire(asset quantity, string memo) {
     auto sym = quantity.symbol;
     check(sym.is_valid(), "invalid symbol name");
     check(memo.size() <= 256, "memo has more than 256 bytes");
@@ -77,7 +77,7 @@ ACTION Token::retire(asset quantity, string memo) {
     sub_balance(st.issuer, quantity);
 }
 
-ACTION Token::transfer(name from, name to, asset quantity, string memo) {
+ACTION MultiToken::transfer(name from, name to, asset quantity, string memo) {
     check(from != to, "cannot transfer to self");
     require_auth(from);
     check(is_account(to), "to account does not exist");
@@ -99,7 +99,7 @@ ACTION Token::transfer(name from, name to, asset quantity, string memo) {
     add_balance(to, quantity, payer);
 }
 
-ACTION Token::transferbyid(name from, name to, name amount_account, uint64_t amount_id, string memo) {
+ACTION MultiToken::transferbyid(name from, name to, name amount_account, uint64_t amount_id, string memo) {
     require_auth(from);
 
     amounts amounts_table(amount_account, amount_account.value);
@@ -116,7 +116,7 @@ ACTION Token::transferbyid(name from, name to, name amount_account, uint64_t amo
     ).send();
 }
 
-void Token::sub_balance(name owner, asset value) {
+void MultiToken::sub_balance(name owner, asset value) {
     accounts from_acnts(get_self(), owner.value);
 
     const auto& from = from_acnts.get(value.symbol.code().raw(), "no balance object found");
@@ -127,7 +127,7 @@ void Token::sub_balance(name owner, asset value) {
     });
 }
 
-void Token::add_balance(name owner, asset value, name ram_payer) {
+void MultiToken::add_balance(name owner, asset value, name ram_payer) {
     accounts to_acnts(get_self(), owner.value);
     auto to = to_acnts.find(value.symbol.code().raw());
     if (to == to_acnts.end()) {
@@ -141,7 +141,7 @@ void Token::add_balance(name owner, asset value, name ram_payer) {
     }
 }
 
-ACTION Token::open(name owner, symbol_code symbol, name ram_payer) {
+ACTION MultiToken::open(name owner, symbol_code symbol, name ram_payer) {
     require_auth(ram_payer);
 
     auto sym = symbol.raw();
@@ -159,7 +159,7 @@ ACTION Token::open(name owner, symbol_code symbol, name ram_payer) {
     }
 }
 
-ACTION Token::close(name owner, symbol_code symbol) {
+ACTION MultiToken::close(name owner, symbol_code symbol) {
     require_auth(owner);
 
     accounts acnts(get_self(), owner.value);
@@ -169,4 +169,5 @@ ACTION Token::close(name owner, symbol_code symbol) {
     acnts.erase(it);
 }
 
-EOSIO_DISPATCH(Token, (create)(issue)(transfer)(transferbyid)(open)(close)(retire))
+
+EOSIO_DISPATCH(MultiToken, (create)(issue)(transfer)(transferbyid)(open)(close)(retire))

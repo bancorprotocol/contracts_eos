@@ -1,14 +1,28 @@
 {
-    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT Tue Jul  2 17:35:44 2019",
-    "version": "eosio::abi/1.0",
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
     "structs": [
         {
             "name": "init",
             "base": "",
             "fields": []
+        },
+        {
+            "name": "settings_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "max_fee",
+                    "type": "uint64"
+                }
+            ]
         }
     ],
-    "types": [],
     "actions": [
         {
             "name": "init",
@@ -16,7 +30,15 @@
             "ricardian_contract": ""
         }
     ],
-    "tables": [],
+    "tables": [
+        {
+            "name": "settings",
+            "type": "settings_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
     "ricardian_clauses": [],
-    "abi_extensions": []
+    "variants": []
 }

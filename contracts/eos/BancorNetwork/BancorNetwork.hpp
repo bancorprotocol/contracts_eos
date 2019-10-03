@@ -5,9 +5,7 @@
 #include <eosio/asset.hpp>
 
 using namespace eosio;
-
-using std::string;
-using std::vector;
+using namespace std;
 
 /*
     The BancorNetwork contract is the main entry point for bancor token conversions.
@@ -32,9 +30,8 @@ using std::vector;
     1,bnt2eoscnvrt BNT,1.0000000000,receiver_account_name
 */
 CONTRACT BancorNetwork : public eosio::contract {
-    using contract::contract;
     public:
-
+        using contract::contract;
 
         ACTION init();
 
@@ -47,5 +44,15 @@ CONTRACT BancorNetwork : public eosio::contract {
         void transfer(name from, name to, asset quantity, string memo);
     
     private:
+        TABLE settings_t {
+            bool enabled;
+            uint64_t max_fee;
+            
+            uint64_t primary_key() const { return "settings"_n.value; }
+            
+            EOSLIB_SERIALIZE(settings_t, (enabled)(max_fee))
+        };
+
+        typedef eosio::multi_index<"settings"_n, settings_t> settings;
         bool isConverter(name converter);
 };

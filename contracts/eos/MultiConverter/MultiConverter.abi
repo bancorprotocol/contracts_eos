@@ -1,0 +1,365 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
+    "structs": [
+        {
+            "name": "account_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "balance",
+                    "type": "asset"
+                },
+                {
+                    "name": "id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "converter_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "launched",
+                    "type": "bool"
+                },
+                {
+                    "name": "stake_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "create",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "initial_supply",
+                    "type": "asset"
+                },
+                {
+                    "name": "maximum_supply",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "enablecnvrt",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "enablestake",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "fund",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "reserve_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "ratio",
+                    "type": "uint64"
+                },
+                {
+                    "name": "sale_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "balance",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "setenabled",
+            "base": "",
+            "fields": [
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "setmaxfee",
+            "base": "",
+            "fields": [
+                {
+                    "name": "maxfee",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "setmultitokn",
+            "base": "",
+            "fields": [
+                {
+                    "name": "multi_token",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "setreserve",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_currency_code",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "sale_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "ratio",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "setstaking",
+            "base": "",
+            "fields": [
+                {
+                    "name": "staking",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "settings_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "max_fee",
+                    "type": "uint64"
+                },
+                {
+                    "name": "multi_token",
+                    "type": "name"
+                },
+                {
+                    "name": "staking",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "updatefee",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "updateowner",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "withdraw",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "converter_currency_code",
+                    "type": "symbol_code"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "create",
+            "type": "create",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "enablecnvrt",
+            "type": "enablecnvrt",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "enablestake",
+            "type": "enablestake",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "fund",
+            "type": "fund",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setenabled",
+            "type": "setenabled",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setmaxfee",
+            "type": "setmaxfee",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setmultitokn",
+            "type": "setmultitokn",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setreserve",
+            "type": "setreserve",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setstaking",
+            "type": "setstaking",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "updatefee",
+            "type": "updatefee",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "updateowner",
+            "type": "updateowner",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "withdraw",
+            "type": "withdraw",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "accounts",
+            "type": "account_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "converters",
+            "type": "converter_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "reserves",
+            "type": "reserve_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "settings",
+            "type": "settings_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}

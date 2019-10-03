@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <eosio/eosio.hpp>
@@ -8,10 +7,9 @@
 #include <eosio/symbol.hpp>
 #include <eosio/singleton.hpp>
 #include "../Common/common.hpp"
-using std::string;
-using std::vector;
 
 using namespace eosio;
+using namespace std;
 
 // events
 // triggered when an account initiates a cross chain transafer
@@ -67,8 +65,8 @@ using namespace eosio;
     callers are required to report a transfer before tokens are issued to the target account.
 */
 CONTRACT BancorX : public contract {
-    using contract::contract;
     public:
+        using contract::contract;
 
         TABLE settings_t {
             name     x_token_name;
