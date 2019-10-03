@@ -87,7 +87,7 @@ cleos create account eosio eosio.saving EOS8ioLmKrCyy5VyZqMNdimSpPjVF2tKbT5WKhE6
 cleos create account eosio eosio.stake EOS5an8bvYFHZBmiCAzAtVSiEiixbJhLY8Uy5Z7cpf3S9UoqA3bJb
 cleos create account eosio eosio.token EOS7JPVyejkbQHzE9Z4HwewNzGss11GB21NPkwTX2MQFmruYFqGXm
 cleos create account eosio eosio.vpay EOS6szGbnziz224T1JGoUUFu2LynVG72f8D3UVAS25QgwawdH983U
-
+cleos create account eosio eosio.rex EOS6szGbnziz224T1JGoUUFu2LynVG72f8D3UVAS25QgwawdH983U
 
 # Activate consensus upgrade
 echo -e "${CYAN}-----------------------ACTIVATING BIOS, PROTOCOL FEATURES-----------------------${NC}"
@@ -106,25 +106,26 @@ cleos push action eosio activate '["4e7bf348da00a945489b2a681749eb56f5de00b90001
 
 # Bootstrap new system contracts
 echo -e "${CYAN}-----------------------SYSTEM CONTRACTS-----------------------${NC}"
-cleos set contract eosio $EOSIO_CONTRACTS_ROOT/eosio.system/ -p eosio
-echo -e "      SYSTEM SET"
-cleos push action eosio init '[0, "4,EOS"]' -p eosio
+cleos set contract eosio.token $EOSIO_CONTRACTS_ROOT/eosio.token/ 
+cleos set contract eosio.msig $EOSIO_CONTRACTS_ROOT/eosio.msig/ 
 cleos push action eosio setpriv '["eosio.msig", 1]' -p eosio
 
-
-cleos set contract eosio.msig $EOSIO_CONTRACTS_ROOT/eosio.msig/
-cleos set contract eosio.token $EOSIO_CONTRACTS_ROOT/eosio.token/ 
 cleos push action eosio.token create '[ "eosio", "100000000000.0000 EOS" ]' -p eosio.token
 cleos push action eosio.token create '[ "eosio", "100000000000.0000 SYS" ]' -p eosio.token
 echo -e "      EOS TOKEN CREATED"
 cleos push action eosio.token issue '[ "eosio", "10000000000.0000 EOS", "memo" ]' -p eosio
 cleos push action eosio.token issue '[ "eosio", "10000000000.0000 SYS", "memo" ]' -p eosio
 echo -e "      EOS TOKEN ISSUED"
+
+cleos set contract eosio $EOSIO_CONTRACTS_ROOT/eosio.system/
+echo -e "      SYSTEM SET"
+cleos push action eosio init '[0, "4,EOS"]' -p eosio
+
 # Deploy eosio.wrap
 echo -e "${CYAN}-----------------------EOSIO WRAP-----------------------${NC}"
 cleos wallet import --private-key 5J3JRDhf4JNhzzjEZAsQEgtVuqvsPPdZv4Tm6SjMRx1ZqToaray
 cleos system newaccount eosio eosio.wrap EOS7LpGN1Qz5AbCJmsHzhG7sWEGd9mwhTXWmrYXqxhTknY2fvHQ1A --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos push action eosio setpriv '["eosio.wrap", 1]' -p eosio@active
+cleos push action eosio setpriv '["eosio.wrap", 1]' -p eosio
 cleos set contract eosio.wrap $EOSIO_CONTRACTS_ROOT/eosio.wrap/
 
 
@@ -152,6 +153,7 @@ cleos system newaccount eosio bntxrerouter $BNT_PUB --stake-cpu "50 EOS" --stake
 cleos system newaccount eosio bnt2eoscnvrt $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 cleos system newaccount eosio bnt2eosrelay $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 
+cleos system newaccount eosio votingforugt $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 cleos system newaccount eosio multiconvert $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 cleos system newaccount eosio multi4tokens $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 
