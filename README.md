@@ -25,15 +25,14 @@ In order to execute a conversion, the caller needs to transfer tokens to the Ban
 See each contract for a description and general usage information.
 
 ## Testing
-Tests are included that can be `run` using their corresponding `npm` commands. and can be run using either using `funguy`. Legacy tests using the `funguy` (legacy `zeus`), SDK are included for historical purposes. Additionally included is a convenience script (`chmod u+x` it or run with `bash`) for compiling contracts and deploying on a fresh `nodeos` instance alongside eosio.contracts binaries, 1.8.0 latest release candidate on 2/10/19.
+Tests are included that can be `run` using their corresponding `npm` commands. Legacy tests using the `funguy` (legacy `zeus`), SDK are included for historical purposes. Additionally included is a convenience script (`chmod u+x` it or run with `bash`) for compiling contracts and deploying on a fresh `nodeos` instance alongside eosio.contracts binaries, 1.7.0 latest release on 2/10/19.
 
 * Setup:
 - make sure you have node.js+npm installed globally
 - make sure you have both eosio installed and the eosio.CDT globally installed (via `apt` or `brew`), or in order to compile latest eosio.contracts, masters cloned from git, built and installed inside the user home directory.
+- `npm install` from the root project directory, then finally:
 
 * Running:
-- `npm install` from the root project directory, then finally:
-* Running
 - if you already HAVE `nodeos` running, run `npm run restart` 
 - if you DON'T already have `nodeos`running, run `npm run start`
 - if you don't have the contracts compiled before either of the above, run `npm run cstart`

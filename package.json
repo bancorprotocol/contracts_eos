@@ -7,7 +7,7 @@
     "kill": "./scripts/eos/kill_nodeos.sh",
     "deploy": "./scripts/eos/deploy.sh",
     "compile": "./scripts/eos/compile.sh",
-    "test": "mocha --bail ./test/eos/converter.test.js ./test/eos/multiConvert.test.js",
+    "test": "mocha --bail ./test/eos/converter.test.js ./test/eos/multiConvert.test.js ./test/eos/multiStake.test.js",
     "tests": "mocha --bail ./test/eos/*.test.js",
     "test-old": "mocha --require babel-core/register --require=dotenv/config --require babel-polyfill --exit --timeout 1000000",
     "test-funguy": "funguy test",

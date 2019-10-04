@@ -7,7 +7,7 @@ source ~/.bashrc
 GREEN='\033[0;32m'
 NC='\033[0m'
 
-declare -a contracts=("MultiConverter" "MultiToken" "BancorConverter" "BancorNetwork" "Token" "BancorX" "XTransferRerouter")
+declare -a contracts=("MultiConverter" "MultiToken"  "MultiStaking" "BancorConverter" "BancorNetwork" "Token" "BancorX" "XTransferRerouter")
 for contract in "${contracts[@]}"
 do
     echo -e "${GREEN}Compiling $contract...${NC}"

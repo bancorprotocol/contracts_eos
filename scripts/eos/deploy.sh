@@ -91,7 +91,7 @@ cleos create account eosio eosio.rex EOS6szGbnziz224T1JGoUUFu2LynVG72f8D3UVAS25Q
 
 # Activate consensus upgrade
 echo -e "${CYAN}-----------------------ACTIVATING BIOS, PROTOCOL FEATURES-----------------------${NC}"
-cleos set contract eosio $EOSIO_CONTRACTS_ROOT/eosio.bios/ -p eosio
+cleos set contract eosio $EOSIO_CONTRACTS_ROOT/eosio.bios/
 echo -e "      BIOS SET"
 cleos push action eosio activate '["f0af56d2c5a48d60a4a5b5c903edfb7db3a736a94ed589d0b797df33ff9d3e1d"]' -p eosio # GET_SENDER
 cleos push action eosio activate '["2652f5f96006294109b3dd0bbde63693f55324af452b799ee137a81a905eed25"]' -p eosio # FORWARD_SETCODE
@@ -185,6 +185,7 @@ cleos set contract thisisbancor $MY_CONTRACTS_BUILD/BancorNetwork
 cleos set contract bancorxoneos $MY_CONTRACTS_BUILD/BancorX
 cleos set contract bntbntbntbnt $MY_CONTRACTS_BUILD/Token
 
+cleos set contract votingforugt $MY_CONTRACTS_BUILD/MultiStaking
 cleos set contract multiconvert $MY_CONTRACTS_BUILD/MultiConverter
 cleos set contract multi4tokens $MY_CONTRACTS_BUILD/MultiToken
 
@@ -208,6 +209,7 @@ cleos set account permission bntbntbntbnt active '{ "threshold": 1, "keys": [{ "
 
 cleos set account permission multiconvert active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multiconvert","permission":"eosio.code" }, "weight":1 }] }' owner -p multiconvert
 cleos set account permission multi4tokens active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multi4tokens","permission":"eosio.code" }, "weight":1 }] }' owner -p multi4tokens
+cleos set account permission votingforugt active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"votingforugt","permission":"eosio.code" }, "weight":1 }] }' owner -p votingforugt
 
 cleos set account permission bnt2eoscnvrt active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2eoscnvrt","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2eoscnvrt
 cleos set account permission bnt2eosrelay active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2eosrelay","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2eosrelay
