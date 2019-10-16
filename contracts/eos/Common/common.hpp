@@ -7,16 +7,15 @@
 
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <iterator>
+#include <algorithm>
 #include <math.h>
 #include "events.hpp"
 
-using std::string;
-using std::vector;
 using namespace eosio;
+using namespace std;
 
-typedef std::vector<std::string> path;
+typedef vector<string> path;
 
 struct converter {
     name        account;
@@ -24,12 +23,12 @@ struct converter {
 };
 
 struct memo_structure {
-    path           path;
-    vector<converter>   converters;   
-    string         version;
-    string         min_return;
-    string         dest_account;
-    string         receiver_memo;
+    path              path;
+    vector<converter> converters;   
+    string            version;
+    string            min_return;
+    string            dest_account;
+    string            receiver_memo;
 };
 
 #define BANCOR_X "bancorxoneos"_n
@@ -103,10 +102,8 @@ memo_structure parse_memo(std::string memo) {
         auto cnvrt = converter();
         cnvrt.account = name(converter_data[0].c_str());
         cnvrt.sym = converter_data.size() > 1 ? converter_data[1] : "";
-
         res.converters.push_back(cnvrt);
     }
-        
 
     if (split_memos.size() == 2) {
         res.receiver_memo = split_memos[1];

@@ -1,3 +1,8 @@
+
+/**
+ *  @file
+ *  @copyright defined in ../../../LICENSE
+ */
 #pragma once
 
 #include <eosio/eosio.hpp>
@@ -7,8 +12,7 @@
 using namespace eosio;
 using std::string;
 
-// events
-// triggered when an account reroutes an xtransfer transaction
+/// events triggered when an account reroutes an xtransfer transaction
 #define EMIT_TX_REROUTE_EVENT(tx_id, blockchain, target) \
     START_EVENT("txreroute", "1.1") \
     EVENTKV("tx_id",tx_id) \
@@ -16,30 +20,38 @@ using std::string;
     EVENTKVL("target",target) \
     END_EVENT()
 
-/*
-    the XTransferRerouter contract allows rerouting transactions that were
-    sent to the BancorX contract with invalid parameters
+/**
+ * @defgroup bancorxtransfer XTransferRerouter
+ * @ingroup bancorcontracts
+ * @brief XTransferRerouter contract
+ * @details allows rerouting transactions sent to BancorX with invalid parameters 
+ * @{
 */
 CONTRACT XTransferRerouter : public contract {
-    using contract::contract;
     public:
+        using contract::contract;
 
         TABLE settings_t {
             bool     rrt_enabled;
-            EOSLIB_SERIALIZE(settings_t, (rrt_enabled));
         };
 
         typedef eosio::singleton<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
         
-        // true to enable rerouting xtransfers, false to disable it
-        // note: can only be called by the contract account
+        /**
+         * @brief can only be called by the contract account 
+         * @param enable - true to enable rerouting xtransfers, false to disable it
+         */
         ACTION enablerrt(bool enable);
-        
-        // allows an account to change xtransfer transaction details if the original transaction
-        // parameters were invalid (e.g non-existent destination blockchain/target)
-        // note: only the original sender may reroute an invalid transaction
-        ACTION reroutetx(uint64_t tx_id,    // unique transaction id
-                        string blockchain,  // target blockchain
-                        string target);     // target account/address
+    
+        /**
+         * @brief only the original sender may reroute an invalid transaction
+         * @details allows an account to change xtransfer transaction details if the original transaction
+         * parameters were invalid (e.g non-existent destination blockchain/target)
+         * @param tx_id - unique transaction id
+         * @param blockchain - target blockchain
+         * @param target - target account/address
+         */
+        ACTION reroutetx(uint64_t tx_id, string blockchain, string target);
 };
+/** @}*/ // end of @defgroup bancorxtransfer XTransferRerouter

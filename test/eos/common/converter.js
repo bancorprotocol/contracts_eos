@@ -1,20 +1,24 @@
 
-const { api, rpc } = require('./utils');
+const { api, rpc } = require('./utils')
 
-const networkContract = 'thisisbancor';
-const networkToken = 'bntbntbntbnt';
-const networkTokenSymbol = "BNT";
+const networkContract = 'thisisbancor'
+const networkToken = 'bntbntbntbnt'
+const networkTokenSymbol = "BNT"
 
-const bntConverter = 'bnt2eoscnvrt';
-const bntRelay = 'bnt2eosrelay';
-const bntRelaySymbol = 'BNTEOS';
+const multiConverter = 'multiconvert'
+const multiToken = 'multi4tokens'
+const multiStaking = 'votingforugt'
+const bntConverter = 'bnt2eoscnvrt'
+const bntStaking = 'stakebnt2eos'
+const bntRelay = 'bnt2eosrelay'
+const bntRelaySymbol = 'BNTEOS'
 
 const getSettings = async function (converter = bntConverter) {
     try {
         const result = await rpc.get_table_rows({
             "code": converter,
             "scope": converter,
-            "table": "settings",
+            "table": 'settings',
             //"limit": 1,
             //"lower_bound": pk,
             //"upper_bound": pk+1
@@ -24,11 +28,11 @@ const getSettings = async function (converter = bntConverter) {
         throw(err)
     }
 }
-const getReserve = async function (symbol, converter = bntConverter) {
+const getReserve = async function (symbol, converter = bntConverter, scope = converter) {
     try {
         const result = await rpc.get_table_rows({
             "code": converter,
-            "scope": converter,
+            "scope": scope,
             "table": "reserves",
             "limit": 1,
             "lower_bound": symbol
@@ -38,25 +42,39 @@ const getReserve = async function (symbol, converter = bntConverter) {
         throw(err)
     }
 }
-const init = async function (converter = bntConverter, auth = converter, relay = bntRelay, symbol = bntRelaySymbol) {
+const getConverter = async function (symbol) {
+    try {
+        const result = await rpc.get_table_rows({
+            "code": multiConverter,
+            "scope": symbol,
+            "table": "converters",
+            "limit": 1,
+            "lower_bound": symbol
+        })
+        return result
+    } catch (err) {
+        throw(err)
+    }
+}
+const init = async function (converter = bntConverter, actor = converter, relay = bntRelay, symbol = bntRelaySymbol, fee = 0, smart_enabled = false) {
     try {
         const result = await api.transact({ 
             actions: [{
                 account: converter,
                 name: "init",
                 authorization: [{
-                    actor: auth,
+                    actor,
                     permission: 'active',
                 }],
                 data: {
                     smart_contract: relay,
                     smart_currency: `0.00000000 ${symbol}`,
-                    smart_enabled: false,
+                    smart_enabled: smart_enabled,
                     enabled: true,
                     network: networkContract,
                     require_balance: false,
                     max_fee: 30000,
-                    fee: 0
+                    fee: fee
                 }
             }]
         }, 
@@ -69,7 +87,7 @@ const init = async function (converter = bntConverter, auth = converter, relay =
         throw(err)
     }
 }
-const update = async function(fee = 0, converter = bntConverter, auth = converter, 
+const update = async function(fee = 0, converter = bntConverter, actor = converter, 
                               smart_enabled = true, enabled = true, 
                               require_balance = false) {
     try {
@@ -78,7 +96,7 @@ const update = async function(fee = 0, converter = bntConverter, auth = converte
                 account: converter,
                 name: "update",
                 authorization: [{
-                    actor: auth,
+                    actor,
                     permission: 'active',
                 }],
                 data: {
@@ -98,25 +116,28 @@ const update = async function(fee = 0, converter = bntConverter, auth = converte
         throw(err)
     }
 }
-
-const setreserve = async function(precise=true, token = networkToken, symbol = networkTokenSymbol, converter = bntConverter) {
-    var precision = '0.00000000'
-    if (!precise)
-        precision = '0.0000'
+const activateStaking = async function(stake_contract = bntStaking, stake_enabled = true, fee = 0, 
+                                       converter = bntConverter, actor = converter, smart_enabled = true, 
+                                       enabled = true, require_balance = false) {
     try {
+        extend = {
+            stake_contract,
+            stake_enabled
+        }
         const result = await api.transact({ 
             actions: [{
                 account: converter,
-                name: "setreserve",
+                name: "update",
                 authorization: [{
-                    actor: converter,
+                    actor,
                     permission: 'active',
                 }],
                 data: {
-                    contract: token,
-                    currency: `${precision} ${symbol}`,
-                    ratio: 500000,
-                    p_enabled: true
+                    smart_enabled, 
+                    enabled, 
+                    require_balance, 
+                    fee,
+                    extend
                 }
             }]
         }, 
@@ -129,4 +150,256 @@ const setreserve = async function(precise=true, token = networkToken, symbol = n
         throw(err)
     }
 }
-module.exports = { init, update, setreserve, getReserve, getSettings }
+const setreserve = async function(precise = true, token = networkToken, 
+                                  symbol = networkTokenSymbol, 
+                                  converter = bntConverter,
+                                  converterScope = null, 
+                                  actor = converter, 
+                                  ratio = 500000) {
+    var precision = '0.00000000'
+    if (!precise)
+        precision = '0.0000'
+    try {
+        const result = await api.transact({ 
+            actions: [{
+                account: converter,
+                name: "setreserve",
+                authorization: [{
+                    actor,
+                    permission: 'active',
+                }],
+                data: {
+                    contract: token,
+                    currency: `${precision} ${symbol}`,
+                    ratio,
+                    ...(converterScope ? { converter_currency_code: converterScope, sale_enabled: true } : { p_enabled: true })
+                }
+            }]
+        }, 
+        {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        })
+        return result
+    } catch(err) {
+        throw(err)
+    }
+}
+const setEnabled = async function(actor, enabled = true) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "setenabled",
+            authorization: [{
+                actor,
+                permission: 'active',
+            }], data: { enabled }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+const setMaxfee = async function(actor, maxfee) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "setmaxfee",
+            authorization: [{
+                actor,
+                permission: 'active',
+            }], data: { maxfee }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+const setStaking = async function(actor, staking = multiStaking) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "setstaking",
+            authorization: [{
+                actor,
+                permission: 'active',
+            }], data: { staking }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+const setMultitoken = async function(actor, token = multiToken) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "setmultitokn",
+            authorization: [{
+                actor,
+                permission: 'active',
+            }], data: { multi_token: token }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+// Creates a converter (MultiConverter sub-converter)
+const createConverter = async function(owner, initial_supply, maximum_supply) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: 'create',
+            authorization: [{
+                actor: owner,
+                permission: 'active',
+            }],
+            data: {
+                owner,
+                initial_supply,
+                maximum_supply
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+const enableConvert = async function(actor, currency, enabled = true) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "enablecnvrt",
+            authorization: [{
+                actor,
+                permission: 'active',
+            }], data: { currency, enabled }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+const enableStake = async function(actor, currency, enabled = true) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "enablestake",
+            authorization: [{
+                actor,
+                permission: 'active',
+            }], data: { currency, enabled }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+const updateOwner = async function(actor, currency, owner) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "updateowner",
+            authorization: [{
+                actor,
+                permission: 'active',
+            }],
+            data: {
+                currency,
+                owner
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+const updateFee = async function(actor, currency, fee) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "updatefee",
+            authorization: [{
+                actor,
+                permission: 'active',
+            }],
+            data: {
+                currency,
+                fee
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+const withdraw = async function(owner, quantity, converter_currency_code) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "withdraw",
+            authorization: [{
+                actor: owner,
+                permission: 'active',
+            }],
+            data: {
+                owner,
+                quantity,
+                converter_currency_code
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+const fund = async function(owner, quantity) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: "fund",
+            authorization: [{
+                actor: owner,
+                permission: 'active',
+            }],
+            data: {
+                owner,
+                quantity
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result;
+}
+module.exports = { init, update, enableStake,
+                   activateStaking, setStaking, 
+                   setreserve, getReserve, 
+                   getSettings, setMultitoken, 
+                   setMaxfee, updateFee, updateOwner, 
+                   setEnabled, enableConvert,   
+                   getConverter, createConverter,
+                   withdraw, fund }

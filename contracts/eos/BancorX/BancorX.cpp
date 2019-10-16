@@ -1,14 +1,13 @@
-#include <algorithm>
-#include <math.h>
-#include "./BancorX.hpp"
-#include "../Common/common.hpp"
-
-using namespace eosio;
+/**
+ *  @file
+ *  @copyright defined in ../../../LICENSE
+ */
+#include "BancorX.hpp"
 
 ACTION BancorX::init(name x_token_name, uint64_t min_reporters, uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit) {
-    require_auth(_self);
+    require_auth(get_self());
 
-    settings settings_table(_self, _self.value);
+    settings settings_table(get_self(), get_self().value);
     bool settings_exists = settings_table.exists();
 
     check(!settings_exists, "settings already defined");
@@ -35,11 +34,11 @@ ACTION BancorX::init(name x_token_name, uint64_t min_reporters, uint64_t min_lim
         max_destroy_limit,
         max_destroy_limit,
         current_time,
-    }, _self);
+    }, get_self());
 }
 
 ACTION BancorX::update(uint64_t min_reporters, uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit) {
-    require_auth(_self);
+    require_auth(get_self());
 
     check(min_reporters > 0, "minimum reporters must be positive");
     check(min_limit >= 0, "minimum limit must be non-negative");
@@ -49,7 +48,7 @@ ACTION BancorX::update(uint64_t min_reporters, uint64_t min_limit, uint64_t limi
     check(max_issue_limit >= 0, "maximum issue limit must be non-negative");
     check(max_destroy_limit >= 0, "maximum destroy limit must be non-negative");
 
-    settings settings_table(_self, _self.value);
+    settings settings_table(get_self(), get_self().value);
     auto st = settings_table.get();
     st.min_reporters = min_reporters;
     st.max_issue_limit = max_issue_limit;
@@ -57,42 +56,42 @@ ACTION BancorX::update(uint64_t min_reporters, uint64_t min_limit, uint64_t limi
     st.limit_inc = limit_inc;
     st.max_destroy_limit = max_destroy_limit;
 
-    settings_table.set(st, _self);
+    settings_table.set(st, get_self());
 }
 
 ACTION BancorX::enablerpt(bool enable) {
-    require_auth(_self);
+    require_auth(get_self());
 
-    settings settings_table(_self, _self.value);
+    settings settings_table(get_self(), get_self().value);
     auto st = settings_table.get();
     st.rpt_enabled = enable;
-    settings_table.set(st, _self);
+    settings_table.set(st, get_self());
 }
 
 ACTION BancorX::enablext(bool enable) {
-    require_auth(_self);
+    require_auth(get_self());
 
-    settings settings_table(_self, _self.value);
+    settings settings_table(get_self(), get_self().value);
     auto st = settings_table.get();
     st.xt_enabled = enable;
-    settings_table.set(st, _self);
+    settings_table.set(st, get_self());
 }
 
 ACTION BancorX::addreporter(name reporter) {
-    require_auth(_self);
-    reporters reporters_table(_self, _self.value);
+    require_auth(get_self());
+    reporters reporters_table(get_self(), get_self().value);
     auto it = reporters_table.find(reporter.value);
 
     check(it == reporters_table.end(), "reporter already defined");
     
-    reporters_table.emplace(_self, [&](auto& s) {
+    reporters_table.emplace(get_self(), [&](auto& s) {
         s.reporter  = reporter;
     });
 }
 
 ACTION BancorX::rmreporter(name reporter) {
-    require_auth(_self);
-    reporters reporters_table(_self, _self.value);
+    require_auth(get_self());
+    reporters reporters_table(get_self(), get_self().value);
     auto it = reporters_table.find(reporter.value);
 
     check(it != reporters_table.end(), "reporter does not exist");
@@ -106,7 +105,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
 
     check(memo.size() <= 256, "memo has more than 256 bytes");
 
-    settings settings_table(_self, _self.value);
+    settings settings_table(get_self(), get_self().value);
     auto st = settings_table.get();
 
     check(st.rpt_enabled, "reporting is disabled");
@@ -126,19 +125,19 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     check(quantity.amount >= st.min_limit, "below min limit");
 
     // checks that the signer is known reporter
-    reporters reporters_table(_self, _self.value);
+    reporters reporters_table(get_self(), get_self().value);
     auto existing = reporters_table.find(reporter.value);
 
     check(existing != reporters_table.end(), "the signer is not a known reporter");
 
     // checks if the reporters limits are valid
-    transfers transfers_table(_self, _self.value);
+    transfers transfers_table(get_self(), get_self().value);
     auto transaction = transfers_table.find(tx_id);
 
     // first reporter 
     if (transaction == transfers_table.end()) {
         check(quantity.amount <= current_limit, "above max limit");
-        transfers_table.emplace(_self, [&](auto& s) {
+        transfers_table.emplace(get_self(), [&](auto& s) {
             s.tx_id           = tx_id;
             s.x_transfer_id   = x_transfer_id;
             s.target          = target;
@@ -151,7 +150,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
 
         st.prev_issue_limit = current_limit - quantity.amount;
         st.prev_issue_time  = timestamp;
-        settings_table.set(st, _self);
+        settings_table.set(st, get_self());
 
         EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, x_transfer_id, memo);
     }
@@ -170,7 +169,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
               transaction->data == data,
               "transfer data doesn't match");
 
-        transfers_table.modify(transaction, _self, [&](auto& s) {
+        transfers_table.modify(transaction, get_self(), [&](auto& s) {
             s.reporters.push_back(reporter);
         });
         
@@ -183,9 +182,14 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     if (transaction->reporters.size() >= st.min_reporters) {
         // issue tokens
         action(
-            permission_level{ _self, "active"_n },
+            permission_level{ get_self(), "active"_n },
             st.x_token_name, "issue"_n,
-            std::make_tuple(transaction->target, transaction->quantity, memo)
+            std::make_tuple(get_self(), transaction->quantity, memo)
+        ).send();
+        action(
+            permission_level{ get_self(), "active"_n },
+            st.x_token_name, "transfer"_n,
+            std::make_tuple(get_self(), transaction->target, transaction->quantity, memo)
         ).send();
 
         EMIT_ISSUE_EVENT(target, quantity);
@@ -193,10 +197,10 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
         transfers_table.erase(transaction);
 
         if (x_transfer_id) {
-            amounts amounts_table(_self, _self.value);
+            amounts amounts_table(get_self(), get_self().value);
             auto amount = amounts_table.find(x_transfer_id);
             check(amount == amounts_table.end(), "x_transfer_id already exists");
-            amounts_table.emplace(_self, [&](auto& a)  {
+            amounts_table.emplace(get_self(), [&](auto& a)  {
                 a.x_transfer_id = x_transfer_id;
                 a.target = target;
                 a.quantity = quantity;
@@ -208,14 +212,14 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
 }
 
 ACTION BancorX::clearamount(uint64_t x_transfer_id) {
-    settings settings_table(_self, _self.value);
+    settings settings_table(get_self(), get_self().value);
     auto st = settings_table.get();
 
     // only the bnt contract or self
-    check(has_auth(st.x_token_name) || has_auth(_self),
+    check(has_auth(st.x_token_name) || has_auth(get_self()),
           "missing required authority to close row");
 
-    amounts amounts_table(_self, _self.value);
+    amounts amounts_table(get_self(), get_self().value);
     auto it = amounts_table.find(x_transfer_id);
 
     check(it != amounts_table.end(), "amount doesn't exist in table");
@@ -223,13 +227,13 @@ ACTION BancorX::clearamount(uint64_t x_transfer_id) {
     amounts_table.erase(it);
 }
 
-void BancorX::transfer(name from, name to, asset quantity, string memo) {
-    if (from == _self || to != _self)
-        return;
+void BancorX::on_transfer(name from, name to, asset quantity, string memo) {
+    if (to != get_self() || from == get_self() || 
+        from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) return;
 
-    settings settings_table(_self, _self.value);
+    settings settings_table(get_self(), get_self().value);
     auto st = settings_table.get();
-    if (_first_receiver != st.x_token_name)
+    if (get_first_receiver() != st.x_token_name)
         return;
 
     auto memo_object = parse_memo(memo);
@@ -237,7 +241,7 @@ void BancorX::transfer(name from, name to, asset quantity, string memo) {
 }
 
 void BancorX::xtransfer(string blockchain, name from, string target, asset quantity, std::string x_transfer_id) {
-    settings settings_table(_self, _self.value);
+    settings settings_table(get_self(), get_self().value);
     auto st = settings_table.get();
 
     check(st.xt_enabled, "x transfers are disabled");
@@ -258,25 +262,15 @@ void BancorX::xtransfer(string blockchain, name from, string target, asset quant
     check(quantity.amount <= current_limit, "above max limit");
 
     action(
-        permission_level{ _self, "active"_n },
+        permission_level{ get_self(), "active"_n },
         st.x_token_name, "retire"_n,
         std::make_tuple(quantity,std::string("destroy on x transfer"))
     ).send();
 
     st.prev_destroy_limit = current_limit - quantity.amount;
     st.prev_destroy_time  = timestamp;
-    settings_table.set(st, _self);
+    settings_table.set(st, get_self());
 
     EMIT_DESTROY_EVENT(from, quantity);
     EMIT_X_TRANSFER_EVENT(blockchain, target, quantity, x_transfer_id);
-}
-
-extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
-    if (action == "transfer"_n.value && code != receiver)
-        eosio::execute_action(eosio::name(receiver), eosio::name(code), &BancorX::transfer);
-
-    if (code == receiver)
-        switch (action) { 
-            EOSIO_DISPATCH_HELPER(BancorX, (init)(update)(enablerpt)(enablext)(addreporter)(rmreporter)(reporttx)(clearamount)) 
-        }    
 }
