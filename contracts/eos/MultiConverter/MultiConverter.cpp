@@ -1,8 +1,10 @@
+
 /**
  *  @file
  *  @copyright defined in ../../../LICENSE
  */
 
+#include "../Common/common.hpp"
 #include "../Token/Token.hpp"
 #include "MultiConverter.hpp"
 
@@ -173,16 +175,48 @@ ACTION MultiConverter::updatefee(symbol_code currency, uint64_t fee) {
     }
 }
 
-ACTION MultiConverter::setreserve(symbol_code converter_currency_code, asset currency, name contract, bool sale_enabled, uint64_t ratio) {
+ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, bool sale_enabled, uint64_t ratio) {
     converters converters_table(get_self(), converter_currency_code.raw());
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     require_auth(converter.owner);
     
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-    asset smart_supply = get_supply(st.multi_token, converter.currency.code());
+
+    string error = string("ratio must be between 1 and ") + std::to_string(MAX_RATIO);
+    check(ratio > 0 && ratio <= MAX_RATIO, error.c_str());
     
-    _setreserve(converter_currency_code, converter.owner, currency.symbol, contract, sale_enabled, ratio, smart_supply.amount); 
+    check(is_account(contract), "token's contract is not an account");
+    check(currency.is_valid(), "invalid reserve symbol");
+    
+    reserves reserves_table(get_self(), converter_currency_code.raw());
+    auto reserve = reserves_table.find(currency.code().raw());
+    asset smart_supply = get_supply(st.multi_token, converter.currency.code());
+
+    if (reserve != reserves_table.end()) {
+        reserves_table.modify(reserve, get_self(), [&](auto& r) {
+            r.ratio = ratio;
+            r.sale_enabled = sale_enabled;
+            if (!r.balance.amount)
+                r.contract = contract;
+        });
+        auto reserve_balance = reserve->balance.amount / pow(10, currency.precision()); 
+        EMIT_PRICE_DATA_EVENT(converter_currency_code, 
+                              smart_supply.amount / pow(10, currency.precision()), 
+                              reserve->contract, currency.code(), reserve_balance, ratio);
+    } else 
+        reserves_table.emplace(converter.owner, [&](auto& r) {
+            r.contract = contract;
+            r.ratio = ratio;
+            r.sale_enabled = sale_enabled;
+            r.balance = asset(0, currency);
+        });
+    
+    double total_ratio = 0.0;
+    for (auto& reserve : reserves_table)
+        total_ratio += reserve.ratio;
+    
+    check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
 }
 
 ACTION MultiConverter::fund(name owner, asset quantity) {
@@ -331,39 +365,6 @@ void MultiConverter::mod_reserve_balance(symbol converter_currency, asset value)
     EMIT_PRICE_DATA_EVENT(converter_currency.code(), current_smart_supply, 
                           reserve.contract, reserve.balance.symbol.code(), 
                           reserve_balance, reserve.ratio);
-}
-
-void MultiConverter::_setreserve(symbol_code converter_currency_code, name owner, symbol currency, name contract, bool sale_enabled, uint64_t ratio, uint64_t smart_token_supply) {
-    string error = "ratio must be between 1 and " + std::to_string(MAX_RATIO);
-    check(ratio > 0 && ratio <= MAX_RATIO, error.c_str());
-    
-    check(is_account(contract), "token's contract is not an account");
-    check(currency.is_valid(), "invalid reserve symbol");
-    
-    reserves reserves_table(get_self(), converter_currency_code.raw());
-    auto reserve = reserves_table.find(currency.code().raw());
-    if (reserve != reserves_table.end()) {
-        reserves_table.modify(reserve, get_self(), [&](auto& r) {
-            r.ratio     = ratio;
-            r.sale_enabled = sale_enabled;
-        });
-        auto reserve_balance = reserve->balance.amount / pow(10, currency.precision()); 
-        EMIT_PRICE_DATA_EVENT(converter_currency_code, 
-                              smart_token_supply / pow(10, currency.precision()), 
-                              reserve->contract, currency.code(), reserve_balance, ratio);
-    } else 
-        reserves_table.emplace(owner, [&](auto& r) {
-            r.contract  = contract;
-            r.ratio     = ratio;
-            r.sale_enabled = sale_enabled;
-            r.balance   = asset(0, currency);
-        });
-    
-    double total_ratio = 0.0;
-    for (auto& reserve : reserves_table)
-        total_ratio += reserve.ratio;
-    
-    check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
 }
 
 void MultiConverter::convert(name from, asset quantity, string memo, name code) {

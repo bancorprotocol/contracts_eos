@@ -122,7 +122,7 @@ const getBalance = async function (user, token, symbol) {
         throw(err)
     }
 }
-const convertUGT = async function (amount, symbol, targetSymbol, 
+const convertMulti = async function (amount, symbol, targetSymbol, 
                                    converter = multiConverter, 
                                    from = user, min = '0.00000001') {
     try {
@@ -305,5 +305,5 @@ module.exports = {
     transfer, getBalance, 
     convertTwice, convertBNT,
     convertEOS, convertSYS, 
-    convertRelay, convertUGT
+    convertRelay, convertMulti
 }

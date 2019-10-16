@@ -7,7 +7,7 @@ const networkTokenSymbol = "BNT"
 
 const multiConverter = 'multiconvert'
 const multiToken = 'multi4tokens'
-const multiStaking = 'votingforugt'
+const multiStaking = 'multistaking'
 const bntConverter = 'bnt2eoscnvrt'
 const bntStaking = 'stakebnt2eos'
 const bntRelay = 'bnt2eosrelay'
@@ -156,9 +156,9 @@ const setreserve = async function(precise = true, token = networkToken,
                                   converterScope = null, 
                                   actor = converter, 
                                   ratio = 500000) {
-    var precision = '0.00000000'
+    var precision = 8
     if (!precise)
-        precision = '0.0000'
+        precision = 4
     try {
         const result = await api.transact({ 
             actions: [{
@@ -170,7 +170,7 @@ const setreserve = async function(precise = true, token = networkToken,
                 }],
                 data: {
                     contract: token,
-                    currency: `${precision} ${symbol}`,
+                    currency: `${precision},${symbol}`,
                     ratio,
                     ...(converterScope ? { converter_currency_code: converterScope, sale_enabled: true } : { p_enabled: true })
                 }

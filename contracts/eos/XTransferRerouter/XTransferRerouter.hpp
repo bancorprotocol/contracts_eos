@@ -7,10 +7,9 @@
 
 #include <eosio/eosio.hpp>
 #include <eosio/singleton.hpp>
-#include "../Common/common.hpp"
 
 using namespace eosio;
-using std::string;
+using namespace std;
 
 /// events triggered when an account reroutes an xtransfer transaction
 #define EMIT_TX_REROUTE_EVENT(tx_id, blockchain, target) \
@@ -32,7 +31,7 @@ CONTRACT XTransferRerouter : public contract {
         using contract::contract;
 
         TABLE settings_t {
-            bool     rrt_enabled;
+            bool rrt_enabled;
         };
 
         typedef eosio::singleton<"settings"_n, settings_t> settings;

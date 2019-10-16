@@ -24,20 +24,19 @@ In order to execute a conversion, the caller needs to transfer tokens to the Ban
 
 See each contract for a description and general usage information.
 
-## Testing
-Tests are included that can be `run` using their corresponding `npm` commands. Legacy tests using the `funguy` (legacy `zeus`) SDK may be found in older commits for historical purposes. Additionally included is a convenience script (`chmod u+x` it or run with `bash`) for compiling contracts and deploying on a fresh `nodeos` instance alongside eosio.contracts binaries, 1.7.0 latest stable release on 10/16/19.
-
-* Setup:
+## Setup:
 - make sure you have node.js+npm installed globally
 - make sure you have both eosio installed and the eosio.CDT globally installed (via `apt` or `brew`), or in order to compile latest eosio.contracts, masters cloned from git, built and installed inside the user home directory.
-- `npm install` from the root project directory, then finally:
+- `npm install` from the root project directory.
 
-* Running:
+## Testing
+Tests are included that may be executed using `npm run test` commands. Legacy tests using the `funguy` (legacy `zeus`) SDK may be found in older commits for historical purposes. Additionally included is a convenience script (`chmod u+x` it or run with `bash`) for compiling contracts and deploying on a fresh `nodeos` instance loaded with eosio.contracts binaries, 1.7.0 latest stable release on 10/16/19:
+
+## Running:
 - if you already HAVE `nodeos` running, run `npm run restart`
 - if you don't have the contracts compiled before the above, run `npm run cstart`
 - "restart" and "cstart" will also run tests for you
 - if you DON'T already have `nodeos`running, run `npm run start`
-- run tests with `npm run test`
 
 A local folder called "nodeos" will be created storing the "config" and "data" related to your last deployment session. 
 All nodeos console output will be written to a local file called "stderr".
@@ -45,8 +44,8 @@ All nodeos console output will be written to a local file called "stderr".
 ### Prerequisite Software
 * Node.js v8.11.4+
 * npm v6.4.1+
-* (latest) eosio v1.8.4+
-* (latest) eosio.cdt v1.6.2+
+* eosio v1.8.4
+* eosio.cdt v1.6.2
 
 ## Collaborators
 

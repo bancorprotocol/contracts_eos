@@ -1,3 +1,4 @@
+
 {
   "name": "bancor-contracts",
   "version": "0.0.7",
@@ -22,17 +23,13 @@
     "cstart": "npm run compile && npm run restart",
     "all": "npm run compile && npm run start && npm run tests && npm run kill"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://gitlab.com/localcoin/contracts/eos/ugt.git"
-  },
   "keywords": [
-    "bancor"
+    "bancor", "automated market maker", "bonding curve", "relay token", "converter", "smart token", "bnt"
   ],
   "author": "Bprotocol Foundation",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://gitlab.com/localcoin/contracts/eos/ugt/issues"
+    "url": "https://github.com/bancorprotocol/contracts_eos/issues"
   },
-  "homepage": "https://gitlab.com/localcoin/contracts/eos/ugt#readme"
+  "homepage": "https://github.com/bancorprotocol/contracts_eos/#readme"
 }

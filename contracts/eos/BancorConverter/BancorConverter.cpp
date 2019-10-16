@@ -1,8 +1,10 @@
+
 /**
  *  @file
  *  @copyright defined in ../../../LICENSE
  */
 
+#include "../Common/common.hpp"
 #include "BancorConverter.hpp"
 
 struct account {
@@ -65,27 +67,30 @@ ACTION BancorConverter::update(bool smart_enabled, bool enabled,
         EMIT_CONVERSION_FEE_UPDATE_EVENT(prevFee, fee);
 }
 
-ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio, bool p_enabled) {
+ACTION BancorConverter::setreserve(name contract, symbol currency, uint64_t ratio, bool p_enabled) {
     require_auth(get_self());
+    check(currency.is_valid(), "invalid symbol");
+    check(is_account(contract), "token's contract is not an account");
     check(ratio > 0 && ratio <= RATIO_DENOMINATOR,
          ("ratio must be between 1 and " + std::to_string(RATIO_DENOMINATOR)).c_str());
 
     reserves reserves_table(get_self(), get_self().value);
-    auto existing = reserves_table.find(currency.symbol.code().raw());
+    auto existing = reserves_table.find(currency.code().raw());
     if (existing != reserves_table.end()) {
         check(existing->contract == contract, "cannot update the reserve contract name");
 
         reserves_table.modify(existing, get_self(), [&](auto& s) {
-            s.currency    = currency;
-            s.ratio       = ratio;
-            s.p_enabled   = p_enabled;
+            s.ratio = ratio;
+            s.p_enabled = p_enabled;
+            if (!s.currency.amount)
+                s.contract = contract;
         });
     }
     else reserves_table.emplace(get_self(), [&](auto& s) {
-        s.contract    = contract;
-        s.currency    = currency;
-        s.ratio       = ratio;
-        s.p_enabled   = p_enabled;
+        s.contract  = contract;
+        s.currency  = asset(0, currency);
+        s.ratio     = ratio;
+        s.p_enabled = p_enabled;
     });
     uint64_t total_ratio = 0;
     for (auto& reserve : reserves_table)
@@ -98,8 +103,8 @@ ACTION BancorConverter::setreserve(name contract, asset currency, uint64_t ratio
     const auto& converter_settings = settings_table.get("settings"_n.value, "settings do not exist");
 
     auto current_smart_supply = ((get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount) / pow(10, converter_settings.smart_currency.symbol.precision());
-    auto reserve_balance = ((get_balance_amount(contract, get_self(), currency.symbol.code())) + currency.amount) / pow(10, currency.symbol.precision()); 
-    EMIT_PRICE_DATA_EVENT(current_smart_supply, contract, currency.symbol.code(), reserve_balance, ratio / RATIO_DENOMINATOR);
+    auto reserve_balance = (get_balance_amount(contract, get_self(), currency.code())) / pow(10, currency.precision()); 
+    EMIT_PRICE_DATA_EVENT(current_smart_supply, contract, currency.code(), reserve_balance, ratio / RATIO_DENOMINATOR);
 }
 
 void BancorConverter::convert(name from, eosio::asset quantity, std::string memo, name code) {

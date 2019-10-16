@@ -9,7 +9,6 @@
 #include <eosio/transaction.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
-#include "../Common/common.hpp"
 
 using namespace eosio;
 using namespace std;
@@ -115,11 +114,11 @@ CONTRACT BancorConverter : public eosio::contract {
          * @brief initializes a new reserve in the converter
          * @details can also be used to update an existing reserve, can only be called by the contract account
          * @param contract - reserve token contract name
-         * @param currency - reserve token currency
+         * @param currency - reserve token currency symbol
          * @param ratio - reserve ratio, percentage, 0-1000000, precision a la max_fee
          * @param p_enabled - true if purchases are enabled with the reserve, false if not
          */ 
-        ACTION setreserve(name contract, asset currency, uint64_t ratio, bool p_enabled);
+        ACTION setreserve(name contract, symbol currency, uint64_t ratio, bool p_enabled);
 
         /**
          * @brief transfer intercepts

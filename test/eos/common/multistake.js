@@ -2,7 +2,7 @@
 const { api, rpc, getTableBoundsForName, getTableBoundsForSymbol } = require('./utils');
 
 const multiConverter = 'multiconvert'
-const multiStaking = 'votingforugt'
+const multiStaking = 'multistaking'
 const bntRelaySymbol = 'BNTEOS'
 const defaultAmt = '1.00000000'
 const user1 = 'bnttestuser1'

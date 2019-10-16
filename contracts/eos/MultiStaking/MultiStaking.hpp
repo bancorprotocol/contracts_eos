@@ -10,7 +10,6 @@
 #include <eosio/system.hpp>
 #include <eosio/singleton.hpp>
 //#include <boost/container/flat_set.hpp>
-#include "../Common/common.hpp"
 
 using namespace eosio;
 using namespace std;

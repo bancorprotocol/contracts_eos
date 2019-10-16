@@ -73,7 +73,7 @@
                 },
                 {
                     "name": "currency",
-                    "type": "asset"
+                    "type": "symbol"
                 },
                 {
                     "name": "ratio",

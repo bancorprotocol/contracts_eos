@@ -1,7 +1,10 @@
+
 /**
  *  @file
  *  @copyright defined in ../../../LICENSE
  */
+
+#include "../Common/common.hpp"
 #include "BancorX.hpp"
 
 ACTION BancorX::init(name x_token_name, uint64_t min_reporters, uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit) {

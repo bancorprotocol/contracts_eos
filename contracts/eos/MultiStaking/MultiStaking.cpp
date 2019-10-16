@@ -1,9 +1,11 @@
+
 /**
  *  @file
  *  @copyright defined in ../../../LICENSE
  */
 
 #include "../MultiConverter/MultiConverter.hpp"
+#include "../Common/common.hpp"
 #include "MultiStaking.hpp"
 
 ACTION MultiStaking::setconfig(uint32_t refund_delay_sec, uint32_t start_vote_after, const name& converter, bool enabled) {

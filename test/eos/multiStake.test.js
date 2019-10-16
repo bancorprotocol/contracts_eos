@@ -21,7 +21,7 @@ const { ERRORS } = require('./common/errors')
 const { getConverter} = require('./common/converter')
 const { getBalance, transfer } = require('./common/token')
 
-const multiStaking = 'votingforugt'
+const multiStaking = 'multistaking'
 const multiToken = 'multi4tokens'
 const bntRelaySymbol = 'BNTEOS'
 const bntRelay = 'bnt2eosrelay'

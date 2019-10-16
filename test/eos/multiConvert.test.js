@@ -17,7 +17,7 @@ const {
     transfer,
     getBalance,
     convertBNT,
-    convertUGT
+    convertMulti
 } = require('./common/token')
 
 const {
@@ -66,11 +66,11 @@ describe('Test: multiConverter', () => {
             )
         })
         it('setup converters', async function() {
-            let AinitSupply = '1000.0000 UGTTKNA'
-            let AmaxSupply = '100000030.0096 UGTTKNA'
+            let AinitSupply = '1000.0000 TKNA'
+            let AmaxSupply = '100000030.0096 TKNA'
             
-            let BinitSupply = '1000.0000 UGTTKNB'
-            let BmaxSupply = '10002012.1090 UGTTKNB'
+            let BinitSupply = '1000.0000 TKNB'
+            let BmaxSupply = '10002012.1090 TKNB'
 
             let CinitSupply = '99000.00000000 BNTEOS'
             let CmaxSupply = '100000000.00000000 BNTEOS'
@@ -78,9 +78,9 @@ describe('Test: multiConverter', () => {
             await expectNoError(
                 createConverter(user1, AinitSupply, AmaxSupply) 
             )
-            result = await getConverter('UGTTKNA')
+            result = await getConverter('TKNA')
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].fee, 0, "converter fee not set correctly - UGTTKNA")
+            assert.equal(result.rows[0].fee, 0, "converter fee not set correctly - TKNA")
 
             await expectNoError(
                 createConverter(user2, BinitSupply, BmaxSupply) 
@@ -94,10 +94,10 @@ describe('Test: multiConverter', () => {
             let Bratio = 300000
             let Cratio = 500000
             await expectNoError(
-                setreserve(true, bntToken, 'BNT', multiConverter, 'UGTTKNA', user1, Aratio) 
+                setreserve(true, bntToken, 'BNT', multiConverter, 'TKNA', user1, Aratio) 
             )
             await expectNoError(
-                setreserve(true, bntToken, 'BNT', multiConverter, 'UGTTKNB', user2, Bratio) 
+                setreserve(true, bntToken, 'BNT', multiConverter, 'TKNB', user2, Bratio) 
             )
             await expectNoError(
                 setreserve(true, bntToken, 'BNT', multiConverter, 'BNTEOS', user2, Cratio) 
@@ -109,17 +109,17 @@ describe('Test: multiConverter', () => {
         it('fund reserves', async function () {        
             //just for opening accounts
             await expectNoError(
-                transfer(multiToken, '0.0001 UGTTKNA', user2, user1, "")
+                transfer(multiToken, '0.0001 TKNA', user2, user1, "")
             )
             await expectNoError(
-                transfer(multiToken, '0.0001 UGTTKNB', user1, user2, "")
+                transfer(multiToken, '0.0001 TKNB', user1, user2, "")
             )
 
             await expectNoError( 
-                transfer(bntToken, '1000.00000000 BNT', multiConverter, user1, 'setup;UGTTKNA') 
+                transfer(bntToken, '1000.00000000 BNT', multiConverter, user1, 'setup;TKNA') 
             )
             await expectNoError( 
-                transfer(bntToken, '1000.00000000 BNT', multiConverter, user2, 'setup;UGTTKNB') 
+                transfer(bntToken, '1000.00000000 BNT', multiConverter, user2, 'setup;TKNB') 
             )
             await expectNoError( 
                 transfer(bntToken, '999.00000000 BNT', multiConverter, user1, 'setup;BNTEOS') 
@@ -141,44 +141,44 @@ describe('Test: multiConverter', () => {
         it("should throw error when trying to convert while disabled", async () => {
             await expectError(
                 transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, 'thisisbancor', user1, 
-                                 `1,${multiConverter}:UGTTKNA UGTTKNA,0.0001,${user1}`
+                                 `1,${multiConverter}:TKNA TKNA,0.0001,${user1}`
                         ), 
                 ERRORS.CONVERSIONS_DISABLED
             )
             await expectError(
                 transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, 'thisisbancor', user1, 
-                                 `1,${multiConverter}:UGTTKNB UGTTKNB,0.0001,${user1}`
+                                 `1,${multiConverter}:TKNB TKNB,0.0001,${user1}`
                         ),
                 ERRORS.CONVERSIONS_DISABLED
             )
             let Bfee = 10000
             await expectNoError(
-                updateFee(user2, 'UGTTKNB', Bfee)
+                updateFee(user2, 'TKNB', Bfee)
             )
-            result = await getConverter('UGTTKNB')
+            result = await getConverter('TKNB')
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].fee, Bfee, "fee not properly set - UGTTKNA")
+            assert.equal(result.rows[0].fee, Bfee, "fee not properly set - TKNA")
         })
         it("enable converters and staking", async () => { 
             await expectNoError(
-               enableConvert(user1, 'UGTTKNA')
+               enableConvert(user1, 'TKNA')
             )
-            result = await getConverter('UGTTKNA')
+            result = await getConverter('TKNA')
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].enabled, true, "converter not enabled - UGTTKNA")
+            assert.equal(result.rows[0].enabled, true, "converter not enabled - TKNA")
             
             await expectNoError(
                 enableStake(user2, 'BNTEOS')
             )
             result = await getConverter('BNTEOS')
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].stake_enabled, true, "converter not stake_enabled - UGTTKNA")
+            assert.equal(result.rows[0].stake_enabled, true, "converter not stake_enabled - TKNA")
             await expectError(
                 updateFee(user1, 'BNTEOS', 10),
                 ERRORS.PERMISSIONS
             )
             await expectNoError(
-                enableConvert(user2, 'UGTTKNB')
+                enableConvert(user2, 'TKNB')
             )
             await expectNoError(
                 enableConvert(user2, 'BNTEOS')
@@ -263,36 +263,36 @@ describe('Test: multiConverter', () => {
         it('ensures that converters balances sum is equal to the multiConverter\'s total BNT balance [Load Test]', async function () {
             this.timeout(10000)
             const bntTxs = []
-            const ugtTxs = []
+            const multiTxs = []
             for (let i = 0; i < 5; i++) {
                 bntTxs.push(
                     transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, 'thisisbancor', user1, 
-                                     `1,${multiConverter}:UGTTKNA UGTTKNA,0.0001,${user1}`
+                                     `1,${multiConverter}:TKNA TKNA,0.0001,${user1}`
                             ),
                     transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, 'thisisbancor', user2, 
-                                     `1,${multiConverter}:UGTTKNB UGTTKNB,0.0001,${user2}`
+                                     `1,${multiConverter}:TKNB TKNB,0.0001,${user2}`
                             ),
                 )
-                ugtTxs.push(
-                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} UGTTKNA`, 'thisisbancor', user1, 
-                                       `1,${multiConverter}:UGTTKNA BNT,0.0000000001,${user1}`
+                multiTxs.push(
+                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNA`, 'thisisbancor', user1, 
+                                       `1,${multiConverter}:TKNA BNT,0.0000000001,${user1}`
                             ),
-                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} UGTTKNB`, 'thisisbancor', user2, 
-                                       `1,${multiConverter}:UGTTKNB BNT,0.0000000001,${user2}`
+                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNB`, 'thisisbancor', user2, 
+                                       `1,${multiConverter}:TKNB BNT,0.0000000001,${user2}`
                             ),
-                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} UGTTKNA`, 'thisisbancor', user1, 
-                                       `1,${multiConverter}:UGTTKNA BNT ${multiConverter}:UGTTKNB UGTTKNB,0.0001,${user1}`
+                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNA`, 'thisisbancor', user1, 
+                                       `1,${multiConverter}:TKNA BNT ${multiConverter}:TKNB TKNB,0.0001,${user1}`
                             ),
-                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} UGTTKNB`, 'thisisbancor', user2, 
-                                       `1,${multiConverter}:UGTTKNB BNT ${multiConverter}:UGTTKNA UGTTKNA,0.0001,${user2}`
+                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNB`, 'thisisbancor', user2, 
+                                       `1,${multiConverter}:TKNB BNT ${multiConverter}:TKNA TKNA,0.0001,${user2}`
                             )
                 )
             }
             await Promise.all(bntTxs)
-            await Promise.all(ugtTxs)
+            await Promise.all(multiTxs)
 
-            const TokenAReserveBalance = Number((await getReserve('BNT', multiConverter, 'UGTTKNA')).rows[0].balance.split(' ')[0])
-            const TokenBReserveBalance = Number((await getReserve('BNT', multiConverter, 'UGTTKNB')).rows[0].balance.split(' ')[0])
+            const TokenAReserveBalance = Number((await getReserve('BNT', multiConverter, 'TKNA')).rows[0].balance.split(' ')[0])
+            const TokenBReserveBalance = Number((await getReserve('BNT', multiConverter, 'TKNB')).rows[0].balance.split(' ')[0])
 
             const totalBntBalance = (await getBalance(multiConverter, bntToken, 'BNT')).rows[0].balance.split(' ')[0]
             assert.equal((TokenAReserveBalance + TokenBReserveBalance + 990).toFixed(8), totalBntBalance)
@@ -316,53 +316,53 @@ describe('Test: multiConverter', () => {
         it("should throw error when trying to call 'setreserve' without proper permissions", async () => {
             const actor = user2
             await expectError(
-                setreserve(true, bntToken, 'BNT', multiConverter, 'UGTTKNA', actor, 200000),
+                setreserve(true, bntToken, 'BNT', multiConverter, 'TKNA', actor, 200000),
                 ERRORS.PERMISSIONS
             )
         })
         it("should throw error when changing converter owner without permission", async () => {
             const actor = user2
             await expectError(
-                updateOwner(actor, 'UGTTKNA', user2),
+                updateOwner(actor, 'TKNA', user2),
                 ERRORS.PERMISSIONS
             )
         })
         it("shouldn't throw error when changing converter owner with permission", async () => {
             const actor = user2
             await expectNoError(
-                updateOwner(actor, 'UGTTKNB', user1)
+                updateOwner(actor, 'TKNB', user1)
             )
-            result = await getConverter('UGTTKNB')
+            result = await getConverter('TKNB')
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].owner, user1, "converter owner not set correctly - UGTTKNA")
+            assert.equal(result.rows[0].owner, user1, "converter owner not set correctly - TKNA")
         })
         it("shouldn't throw error when trying to call 'setreserve' with proper permissions", async () => {
             const actor = user1
             await expectNoError(
-                setreserve(true, bntToken, 'BNT', multiConverter, 'UGTTKNA', actor, 200000)
+                setreserve(true, bntToken, 'BNT', multiConverter, 'TKNA', actor, 200000)
             )
-            result = await getReserve('BNT', multiConverter, 'UGTTKNA')
+            result = await getReserve('BNT', multiConverter, 'TKNA')
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].ratio, 200000, "reserve ratio not set correctly - BNT<->UGTTKNA")
+            assert.equal(result.rows[0].ratio, 200000, "reserve ratio not set correctly - BNT<->TKNA")
         })
     })
     describe('Formula', async () => {
         it('ensures a proper return amount calculation (no fee) [RESERVE --> SMART]', async () => {
             const inputAmount = '2.20130604'
             
-            const initialBalance = Number((await getBalance(user1, multiToken, 'UGTTKNA')).rows[0].balance.split(' ')[0])
-            const tokenStats = (await get(multiToken, 'UGTTKNA')).rows[0]
-            const reserveData = (await getReserve('BNT', multiConverter, 'UGTTKNA')).rows[0]
+            const initialBalance = Number((await getBalance(user1, multiToken, 'TKNA')).rows[0].balance.split(' ')[0])
+            const tokenStats = (await get(multiToken, 'TKNA')).rows[0]
+            const reserveData = (await getReserve('BNT', multiConverter, 'TKNA')).rows[0]
 
             const supply = tokenStats.supply.split(' ')[0]
             const reserveBalance = Number(reserveData.balance.split(' ')[0])
             const { ratio } = reserveData
 
             const events = await extractEvents(
-                convertBNT(inputAmount, 'UGTTKNA', `${multiConverter}:UGTTKNA`)
+                convertBNT(inputAmount, 'TKNA', `${multiConverter}:TKNA`)
             )
 
-            const finalBalance = Number((await getBalance(user1, multiToken, 'UGTTKNA')).rows[0].balance.split(' ')[0])
+            const finalBalance = Number((await getBalance(user1, multiToken, 'TKNA')).rows[0].balance.split(' ')[0])
  
             const expectedReturn = Number(calculatePurchaseReturn(supply, reserveBalance, ratio, inputAmount).toFixed(4))
             const actualReturn = Number(new Decimal(finalBalance).sub(initialBalance).toFixed())
@@ -375,14 +375,14 @@ describe('Test: multiConverter', () => {
             const inputAmount = '4.2213'
             
             const initialBalance = Number((await getBalance(user1, bntToken, 'BNT')).rows[0].balance.split(' ')[0])
-            const tokenStats = (await get(multiToken, 'UGTTKNA')).rows[0]
-            const reserveData = (await getReserve('BNT', multiConverter, 'UGTTKNA')).rows[0]
+            const tokenStats = (await get(multiToken, 'TKNA')).rows[0]
+            const reserveData = (await getReserve('BNT', multiConverter, 'TKNA')).rows[0]
             const supply = tokenStats.supply.split(' ')[0]
             const reserveBalance = Number(reserveData.balance.split(' ')[0])
             const { ratio } = reserveData
 
             const events = await extractEvents(
-                convertUGT(inputAmount, 'UGTTKNA', 'BNT')
+                convertMulti(inputAmount, 'TKNA', 'BNT')
             )
 
             const finalBalance = Number((await getBalance(user1, bntToken, 'BNT')).rows[0].balance.split(' ')[0])
@@ -398,19 +398,19 @@ describe('Test: multiConverter', () => {
 
             const fee = 10000
             
-            const initialBalance = Number((await getBalance(user1, multiToken, 'UGTTKNB')).rows[0].balance.split(' ')[0])
-            const tokenStats = (await get(multiToken, 'UGTTKNB')).rows[0]
-            const reserveData = (await getReserve('BNT', multiConverter, 'UGTTKNB')).rows[0]
+            const initialBalance = Number((await getBalance(user1, multiToken, 'TKNB')).rows[0].balance.split(' ')[0])
+            const tokenStats = (await get(multiToken, 'TKNB')).rows[0]
+            const reserveData = (await getReserve('BNT', multiConverter, 'TKNB')).rows[0]
 
             const supply = tokenStats.supply.split(' ')[0]
             const reserveBalance = Number(reserveData.balance.split(' ')[0])
             const { ratio } = reserveData
 
             const events = await extractEvents(
-                convertBNT(inputAmount, 'UGTTKNB', `${multiConverter}:UGTTKNB`, user1, user1)
+                convertBNT(inputAmount, 'TKNB', `${multiConverter}:TKNB`, user1, user1)
             )
 
-            const finalBalance = Number((await getBalance(user1, multiToken, 'UGTTKNB')).rows[0].balance.split(' ')[0])
+            const finalBalance = Number((await getBalance(user1, multiToken, 'TKNB')).rows[0].balance.split(' ')[0])
  
             const expectedReturn = Number(calculatePurchaseReturn(supply, reserveBalance, ratio, inputAmount, fee).toFixed(4))
             const actualReturn = Number(new Decimal(finalBalance).sub(initialBalance).toFixed())
@@ -425,14 +425,14 @@ describe('Test: multiConverter', () => {
             const fee = 10000
             
             const initialBalance = Number((await getBalance(user1, bntToken, 'BNT')).rows[0].balance.split(' ')[0])
-            const tokenStats = (await get(multiToken, 'UGTTKNB')).rows[0]
-            const reserveData = (await getReserve('BNT', multiConverter, 'UGTTKNB')).rows[0]
+            const tokenStats = (await get(multiToken, 'TKNB')).rows[0]
+            const reserveData = (await getReserve('BNT', multiConverter, 'TKNB')).rows[0]
             const supply = tokenStats.supply.split(' ')[0]
             const reserveBalance = Number(reserveData.balance.split(' ')[0])
             const { ratio } = reserveData
 
             const events = await extractEvents(
-                convertUGT(inputAmount, 'UGTTKNB', 'BNT')
+                convertMulti(inputAmount, 'TKNB', 'BNT')
             )
             const finalBalance = Number((await getBalance(user1, bntToken, 'BNT')).rows[0].balance.split(' ')[0])
  

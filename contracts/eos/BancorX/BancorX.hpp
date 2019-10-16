@@ -11,7 +11,6 @@
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
 #include <eosio/singleton.hpp>
-#include "../Common/common.hpp"
 
 using namespace eosio;
 using namespace std;

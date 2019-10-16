@@ -9,7 +9,6 @@
 #include <eosio/transaction.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
-#include "../Common/common.hpp"
 
 using namespace eosio;
 using namespace std;
@@ -173,12 +172,12 @@ CONTRACT MultiConverter : public eosio::contract {
          * @brief initializes a new reserve in the converter
          * @details can also be used to update an existing reserve, can only be called by the contract account
          * @param converter_currency_code - the currency code of the currency governed by the converter
-         * @param currency - reserve token currency
+         * @param currency - reserve token currency symbol
          * @param contract - reserve token contract name
          * @param sale_enabled - true if selling is enabled with the reserve, false if not
          * @param ratio - reserve ratio, percentage, 0-1000000
          */
-        ACTION setreserve(symbol_code converter_currency_code, asset currency, name contract, bool sale_enabled, uint64_t ratio);
+        ACTION setreserve(symbol_code converter_currency_code, symbol currency, name contract, bool sale_enabled, uint64_t ratio);
 
         /**
          * @brief called by withdrawing liquidity providers before converter is enabled for the first time
@@ -220,7 +219,6 @@ CONTRACT MultiConverter : public eosio::contract {
 
     private:
         void convert(name from, asset quantity, string memo, name code);
-        void _setreserve(symbol_code converter_currency_code, name owner, symbol currency, name contract, bool sale_enabled, uint64_t ratio, uint64_t smart_token_supply);
 
         const reserve_t& get_reserve(uint64_t name, const converter_t& converter);
 
