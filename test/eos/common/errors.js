@@ -5,6 +5,7 @@ module.exports = Object.freeze({
         POSITIVE_TRANSFER: 'must transfer positive quantity',
         CONVERT_SELF: 'cannot convert to self',
         CONVERTER_DISABLED: 'converter is disabled',
+        CONVERSIONS_DISABLED: 'conversions are disabled',
         FEE_TOO_HIGH: 'fee must be lower or equal to 1000',
         MAX_FEE_TOO_HIGH: 'maximum fee must be lower or equal to 1000',
         FEE_OVER_MAX: 'fee must be lower or equal to the maximum fee',
@@ -20,12 +21,18 @@ module.exports = Object.freeze({
         REROUTING_DISABLED: 'transaction rerouting is disabled',
         TOKEN_PURCHASES_DISABLED: "'to' token purchases disabled",
         INVALID_TARGET_ACCOUNT: 'the destination account must by either the sender, or the BancorX contract account',
-        CONVERTER_DOESNT_EXIST: 'converter doesn\'t exist',
+        CONVERTER_DOESNT_EXIST: 'settings do not exist',
         NO_ZERO: 'must transfer positive quantity',
         NO_RESERVE: 'reserve not found',
-        SETTINGS_EXIST: 'settings already defined',
+        SETTINGS_EXIST: 'settings already exist',
         BELOW_MIN:'below min return',
-        BAD_ORIGIN: 'unknown \'from\' contract'
-
+        BAD_ORIGIN: 'unknown \'from\' contract',
+        STAKE_DISABLED: 'staking is not enabled for this contract',
+        SETUP: 'converter was launched, or must be enabled',
+        UNLINKED: 'multi-converter not linked',
+        NO_CONFIG: 'setconfig first',
+        ONLY_DEPOSIT: "only 'stake' may transfer to self",
+        DEPOSIT_FIRST: "must deposit first",
+        BAD_RELAY: 'multi-token mismatch'
     }
 });
