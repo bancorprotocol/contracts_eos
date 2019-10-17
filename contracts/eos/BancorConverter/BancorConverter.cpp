@@ -82,8 +82,6 @@ ACTION BancorConverter::setreserve(name contract, symbol currency, uint64_t rati
         reserves_table.modify(existing, get_self(), [&](auto& s) {
             s.ratio = ratio;
             s.p_enabled = p_enabled;
-            if (!s.currency.amount)
-                s.contract = contract;
         });
     }
     else reserves_table.emplace(get_self(), [&](auto& s) {
@@ -105,6 +103,17 @@ ACTION BancorConverter::setreserve(name contract, symbol currency, uint64_t rati
     auto current_smart_supply = ((get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount) / pow(10, converter_settings.smart_currency.symbol.precision());
     auto reserve_balance = (get_balance_amount(contract, get_self(), currency.code())) / pow(10, currency.precision()); 
     EMIT_PRICE_DATA_EVENT(current_smart_supply, contract, currency.code(), reserve_balance, ratio / RATIO_DENOMINATOR);
+}
+
+ACTION BancorConverter::delreserve(symbol_code currency) {
+    require_auth(get_self());
+    check(currency.is_valid(), "invalid symbol");
+
+    reserves reserves_table(get_self(), get_self().value);
+    const auto& rsrv = reserves_table.get(currency.raw(), "reserve not found");
+    check(!rsrv.currency.amount && !rsrv.p_enabled, "may delete only empty reserves");
+    
+    reserves_table.erase(rsrv);
 }
 
 void BancorConverter::convert(name from, eosio::asset quantity, std::string memo, name code) {

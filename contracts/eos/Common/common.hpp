@@ -19,8 +19,8 @@ using namespace std;
 typedef vector<string> path;
 
 struct converter {
-    name        account;
-    string      sym;
+    name   account;
+    string sym;
 };
 
 struct memo_structure {
@@ -36,8 +36,7 @@ struct memo_structure {
 #define BANCOR_NETWORK "thisisbancor"_n
 #define BNT_TOKEN "bntbntbntbnt"_n
 
-vector<string> split(const string& str, const string& delim)
-{
+vector<string> split(const string& str, const string& delim) {
     vector<string> tokens;
     size_t prev = 0, pos = 0;
 

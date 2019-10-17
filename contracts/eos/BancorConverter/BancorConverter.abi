@@ -4,6 +4,16 @@
     "types": [],
     "structs": [
         {
+            "name": "delreserve",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
             "name": "init",
             "base": "",
             "fields": [
@@ -147,6 +157,11 @@
         }
     ],
     "actions": [
+        {
+            "name": "delreserve",
+            "type": "delreserve",
+            "ricardian_contract": ""
+        },
         {
             "name": "init",
             "type": "init",

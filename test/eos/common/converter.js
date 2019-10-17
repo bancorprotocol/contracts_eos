@@ -87,6 +87,32 @@ const init = async function (converter = bntConverter, actor = converter, relay 
         throw(err)
     }
 }
+const delreserve = async function(symbol = 'BNT', actor = bntConverter, converter = bntConverter) {
+    try {
+        const result = await api.transact({ 
+            actions: [{
+                account: converter,
+                name: "delreserve",
+                authorization: [{
+                    actor,
+                    permission: 'active',
+                }],
+                data: {
+                    symbol
+                }
+            }]
+        }, 
+        {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        })
+        return result
+    } catch(err) {
+        throw(err)
+    }
+}
+
+
 const update = async function(fee = 0, converter = bntConverter, actor = converter, 
                               smart_enabled = true, enabled = true, 
                               require_balance = false) {
@@ -397,7 +423,7 @@ const fund = async function(owner, quantity) {
 }
 module.exports = { init, update, enableStake,
                    activateStaking, setStaking, 
-                   setreserve, getReserve, 
+                   setreserve, getReserve, delreserve, 
                    getSettings, setMultitoken, 
                    setMaxfee, updateFee, updateOwner, 
                    setEnabled, enableConvert,   

@@ -23,6 +23,7 @@ const {
     init,
     update,
     setreserve,
+    delreserve,
     getReserve,
     getSettings
 } = require('./common/converter')
@@ -396,12 +397,16 @@ describe('Test: BancorConverter', () => {
     })
     describe('some last invalid ops', function () { 
         it("trying to buy BNTEOS with fakeos - should throw", async () => { 
-            await expectError(convertEOS('5.0000', true), 
-            ERRORS.BAD_ORIGIN)
+            await expectError(convertEOS('5.0000', true), ERRORS.BAD_ORIGIN)
         })
         it("trying to buy BNTEOS with SYS - should throw", async () => { 
-            await expectError(convertSYS('5.0000'), 
-            ERRORS.NO_RESERVE)
+            await expectError(convertSYS('5.0000'), ERRORS.NO_RESERVE)
+        })
+        it("trying to delete BNT reserve when it's not empty - should throw", async () => { 
+            await expectError(delreserve('BNT'))
+        })
+        it("trying to delete BNT reserve without permission - should throw", async () => { 
+            await expectError(delreserve('BNT', user1))
         })
     })
 })
