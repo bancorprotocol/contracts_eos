@@ -111,7 +111,9 @@ ACTION BancorConverter::delreserve(symbol_code currency) {
 
     reserves reserves_table(get_self(), get_self().value);
     const auto& rsrv = reserves_table.get(currency.raw(), "reserve not found");
-    check(!rsrv.currency.amount, "may delete only empty reserves");
+    
+    asset balance = get_balance(rsrv.contract, get_self(), currency);
+    check(!balance.amount, "may delete only empty reserves");
     
     reserves_table.erase(rsrv);
 }
