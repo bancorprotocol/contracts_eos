@@ -194,11 +194,10 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
     asset smart_supply = get_supply(st.multi_token, converter.currency.code());
 
     if (reserve != reserves_table.end()) {
+        check(reserve->contract == contract, "cannot update the reserve contract name");
         reserves_table.modify(reserve, get_self(), [&](auto& r) {
             r.ratio = ratio;
             r.sale_enabled = sale_enabled;
-            if (!r.balance.amount)
-                r.contract = contract;
         });
         auto reserve_balance = reserve->balance.amount / pow(10, currency.precision()); 
         EMIT_PRICE_DATA_EVENT(converter_currency_code, 
@@ -217,6 +216,30 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
         total_ratio += reserve.ratio;
     
     check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
+}
+
+ACTION MultiConverter::delreserve(symbol_code converter, symbol_code currency) {
+    converters converters_table(get_self(), converter.raw());
+    const auto& cnvrt = converters_table.get(converter.raw(), "converter does not exist");
+    require_auth(cnvrt.owner);
+
+    reserves reserves_table(get_self(), converter.raw());
+    const auto& rsrv = reserves_table.get(currency.raw(), "reserve not found");
+    check(!rsrv.balance.amount, "may delete only empty reserves");
+
+    reserves_table.erase(rsrv);
+}
+
+ACTION MultiConverter::close(symbol_code converter_currency_code) {
+    converters converters_table(get_self(), converter_currency_code.raw());
+    reserves reserves_table(get_self(), converter_currency_code.raw());
+
+    const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
+    require_auth(converter.owner);
+
+    check(reserves_table.begin() == reserves_table.end(), "delete reserves first");
+    
+    converters_table.erase(converter);
 }
 
 ACTION MultiConverter::fund(name owner, asset quantity) {
@@ -622,9 +645,9 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
 
     if (code == receiver)
         switch (action) {
-            EOSIO_DISPATCH_HELPER(MultiConverter, (create)
+            EOSIO_DISPATCH_HELPER(MultiConverter, (create)(close)
             (setmultitokn)(setstaking)(setmaxfee)(setenabled)
             (updateowner)(updatefee)(enablecnvrt)(enablestake)
-            (setreserve)(withdraw)(fund)) 
+            (setreserve)(delreserve)(withdraw)(fund)) 
         }    
 }

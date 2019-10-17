@@ -22,6 +22,16 @@
             ]
         },
         {
+            "name": "close",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_currency_code",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
             "name": "converter_t",
             "base": "",
             "fields": [
@@ -66,6 +76,20 @@
                 {
                     "name": "maximum_supply",
                     "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "delreserve",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "currency",
+                    "type": "symbol_code"
                 }
             ]
         },
@@ -270,8 +294,18 @@
     ],
     "actions": [
         {
+            "name": "close",
+            "type": "close",
+            "ricardian_contract": ""
+        },
+        {
             "name": "create",
             "type": "create",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delreserve",
+            "type": "delreserve",
             "ricardian_contract": ""
         },
         {

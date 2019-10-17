@@ -121,6 +121,12 @@ CONTRACT BancorConverter : public eosio::contract {
         ACTION setreserve(name contract, symbol currency, uint64_t ratio, bool p_enabled);
 
         /**
+         * @brief deletes an empty reserve
+         * @param currency - reserve token currency symbol
+         */
+        ACTION delreserve(symbol_code currency);
+
+        /**
          * @brief transfer intercepts
          * @details memo is in csv format, values -
          * version          version number, currently 1
