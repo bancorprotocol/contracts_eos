@@ -87,7 +87,7 @@ const init = async function (converter = bntConverter, actor = converter, relay 
         throw(err)
     }
 }
-const delreserve = async function(symbol = 'BNT', actor = bntConverter, converter = bntConverter) {
+const delreserve = async function(currency = 'BNT', actor = bntConverter, converter = bntConverter) {
     try {
         const result = await api.transact({ 
             actions: [{
@@ -98,7 +98,7 @@ const delreserve = async function(symbol = 'BNT', actor = bntConverter, converte
                     permission: 'active',
                 }],
                 data: {
-                    symbol
+                    currency
                 }
             }]
         }, 
