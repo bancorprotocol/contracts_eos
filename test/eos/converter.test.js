@@ -403,7 +403,7 @@ describe('Test: BancorConverter', () => {
             await expectError(convertSYS('5.0000'), ERRORS.NO_RESERVE)
         })
         it("trying to delete BNT reserve when it's not empty - should throw", async () => { 
-            await expectError(delreserve('EOS'), "may delete only empty reserves")
+            await expectError(delreserve('BNT'), "may delete only empty reserves")
         })
         it("trying to delete BNT reserve without permission - should throw", async () => { 
             await expectError(delreserve('BNT', user1), "missing authority of bnt2eoscnvrt")
