@@ -106,7 +106,6 @@ const delreserve = async function(currency = 'BNT', actor = bntConverter, conver
             blocksBehind: 3,
             expireSeconds: 30,
         })
-        console.log(JSON.stringify(result.processed.action_traces))
         return result
     } catch(err) {
         throw(err)

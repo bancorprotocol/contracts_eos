@@ -158,7 +158,7 @@ CONTRACT BancorX : public contract {
         ACTION addreporter(name reporter);
         
         /**
-         * @brief remnoves an existing reporter, can only be called by the contract account
+         * @brief removes an existing reporter, can only be called by the contract account
          * @param reporter - name of the reporter
          */
         ACTION rmreporter(name reporter);
