@@ -87,7 +87,7 @@ const init = async function (converter = bntConverter, actor = converter, relay 
         throw(err)
     }
 }
-const delreserve = async function(currency = 'BNT', actor = bntConverter, converter = bntConverter) {
+const delreserve = async function(currency = 'BNT', actor = bntConverter, converter = bntConverter, converterScope = null) {
     try {
         const result = await api.transact({ 
             actions: [{
@@ -98,7 +98,7 @@ const delreserve = async function(currency = 'BNT', actor = bntConverter, conver
                     permission: 'active',
                 }],
                 data: {
-                    currency
+                    ...(converterScope ? { converter: converterScope, currency } : { currency })
                 }
             }]
         }, 
@@ -111,8 +111,6 @@ const delreserve = async function(currency = 'BNT', actor = bntConverter, conver
         throw(err)
     }
 }
-
-
 const update = async function(fee = 0, converter = bntConverter, actor = converter, 
                               smart_enabled = true, enabled = true, 
                               require_balance = false) {
@@ -302,6 +300,27 @@ const createConverter = async function(owner, initial_supply, maximum_supply) {
     })
     return result;
 }
+const delConverter = async function(converter_currency_code, owner) {
+    const result = await api.transact({ 
+        actions: [{
+            account: multiConverter,
+            name: 'close',
+            authorization: [{
+                actor: owner,
+                permission: 'active',
+            }],
+            data: {
+                converter_currency_code
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    console.log(JSON.stringify(result.processed.action_traces))
+    return result;
+}
 const enableConvert = async function(actor, currency, enabled = true) {
     const result = await api.transact({ 
         actions: [{
@@ -428,4 +447,4 @@ module.exports = { init, update, enableStake,
                    setMaxfee, updateFee, updateOwner, 
                    setEnabled, enableConvert,   
                    getConverter, createConverter,
-                   withdraw, fund }
+                   delConverter, withdraw, fund }

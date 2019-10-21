@@ -282,7 +282,8 @@ describe('Test: BancorNetwork', () => {
     })
     it("verifies throw error with a destination wallet different than the origin account", async () => {
         await expectError(
-            convertBNT('2.00000000', 'EOS', undefined, user1, user2)
+            convertBNT('2.00000000', 'EOS', undefined, user1, user2),
+            
         )
     })
 })    

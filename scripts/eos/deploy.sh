@@ -168,6 +168,10 @@ cleos system newaccount eosio bnt2bbbcnvrt $USR_PUB --stake-cpu "50 EOS" --stake
 cleos system newaccount eosio bnt2bbbrelay $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 cleos system newaccount eosio bbb $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 
+cleos system newaccount eosio multiconvert $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio multi4tokens $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio multistaking $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+
 
 # 3) Deploy contracts
 
@@ -189,7 +193,10 @@ cleos set contract bnt2bbbcnvrt $MY_CONTRACTS_BUILD/BancorConverter
 cleos set contract bnt2eosrelay $EOSIO_CONTRACTS_ROOT/eosio.token/ 
 cleos set contract bnt2sysrelay $EOSIO_CONTRACTS_ROOT/eosio.token/ 
 cleos set contract bnt2aaarelay $EOSIO_CONTRACTS_ROOT/eosio.token/ 
-cleos set contract bnt2bbbrelay $EOSIO_CONTRACTS_ROOT/eosio.token/ 
+cleos set contract bnt2bbbrelay $EOSIO_CONTRACTS_ROOT/eosio.token/
+
+cleos set contract multiconvert $MY_CONTRACTS_BUILD/MultiConverter
+cleos set contract multi4tokens $EOSIO_CONTRACTS_ROOT/eosio.token/ 
 
 
 # 4) Set Permissions
@@ -210,6 +217,10 @@ cleos set account permission bnt2aaarelay active '{ "threshold": 1, "keys": [{ "
 
 cleos set account permission bnt2bbbcnvrt active '{ "threshold": 1, "keys": [{ "key": "EOS8UAsFY4RacdaeuadicrkP66JQxPsbNyucmbT8Z4GjwFoytsK9u", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2bbbcnvrt","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2bbbcnvrt
 cleos set account permission bnt2bbbrelay active '{ "threshold": 1, "keys": [{ "key": "EOS8UAsFY4RacdaeuadicrkP66JQxPsbNyucmbT8Z4GjwFoytsK9u", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2bbbrelay","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2bbbrelay
+
+cleos set account permission multiconvert active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multiconvert","permission":"eosio.code" }, "weight":1 }] }' owner -p multiconvert
+cleos set account permission multi4tokens active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multi4tokens","permission":"eosio.code" }, "weight":1 }] }' owner -p multi4tokens
+cleos set account permission multi4tokens active multiconvert --add-code
 
 
 on_exit
