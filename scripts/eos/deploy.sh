@@ -121,6 +121,8 @@ cleos set contract eosio $EOSIO_CONTRACTS_ROOT/eosio.system/
 echo -e "      SYSTEM SET"
 cleos push action eosio init '[0, "4,EOS"]' -p eosio
 
+cleos set abi eosio.rex $EOSIO_CONTRACTS_ROOT/eosio.system/.rex/rex.results.abi
+
 # Deploy eosio.wrap
 echo -e "${CYAN}-----------------------EOSIO WRAP-----------------------${NC}"
 cleos wallet import --private-key 5J3JRDhf4JNhzzjEZAsQEgtVuqvsPPdZv4Tm6SjMRx1ZqToaray
