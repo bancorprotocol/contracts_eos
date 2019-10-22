@@ -127,8 +127,8 @@ ACTION MultiStaking::vote(const name& property, const asset& value, const name& 
 }
 
 void MultiStaking::on_transfer(name from, name to, asset quantity, string memo) {
-  if (to != get_self() || from == get_self() || 
-      from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) return;
+  if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
+    return;
 
   configs configs_table(get_self(), get_self().value);
   check(to == get_self(), "can only 'stake' to self");
