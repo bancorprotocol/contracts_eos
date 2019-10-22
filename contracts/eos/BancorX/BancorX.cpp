@@ -159,10 +159,8 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     }
     else {
         // checks that the reporter didn't already report the transfer
-        check(std::find(transaction->reporters.begin(), 
-                               transaction->reporters.end(),
-                               reporter) == transaction->reporters.end(),
-                               "the reporter already reported the transfer");
+        check(std::find(transaction->reporters.begin(), transaction->reporters.end(), reporter) 
+              == transaction->reporters.end(), "the reporter already reported the transfer");
 
         check(transaction->x_transfer_id == x_transfer_id &&
               transaction->target == target &&
@@ -231,11 +229,12 @@ ACTION BancorX::clearamount(uint64_t x_transfer_id) {
 }
 
 void BancorX::on_transfer(name from, name to, asset quantity, string memo) {
-    if (to != get_self() || from == get_self() || 
-        from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) return;
+    if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
+	    return;
 
     settings settings_table(get_self(), get_self().value);
     auto st = settings_table.get();
+
     if (get_first_receiver() != st.x_token_name)
         return;
 

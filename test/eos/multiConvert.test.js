@@ -22,10 +22,12 @@ const {
 
 const {
     createConverter,
+    delConverter,
     setMultitoken,
     enableConvert,
     getConverter,
     setreserve,
+    delreserve,
     getReserve,
     getSettings,
     setEnabled,
@@ -326,6 +328,18 @@ describe('Test: multiConverter', () => {
                 updateOwner(actor, 'TKNA', user2),
                 ERRORS.PERMISSIONS
             )
+        })
+        it("trying to delete BNT reserve without permission - should throw", async () => { 
+            await expectError(delreserve('BNT', user2, multiConverter, 'TKNA'), "missing authority of bnttestuser1")
+        })
+        it("trying to delete BNT reserve when it's not empty - should throw", async () => { 
+            await expectError(delreserve('BNT', user1, multiConverter, 'TKNA'), "may delete only empty reserves")
+        })
+        it("trying to delete TKNA converter when reserves not empty - should throw", async () => { 
+            await expectError(delConverter('TKNA', user1), "delete reserves first")
+        })
+        it("trying to delete TKNA converter without permission - should throw", async () => { 
+            await expectError(delConverter('TKNA', user2), "missing authority of bnttestuser1")
         })
         it("shouldn't throw error when changing converter owner with permission", async () => {
             const actor = user2

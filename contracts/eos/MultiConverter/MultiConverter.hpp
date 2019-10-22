@@ -113,6 +113,12 @@ CONTRACT MultiConverter : public eosio::contract {
         ACTION create(name owner, asset initial_supply, asset maximum_supply);
 
         /**
+         * @brief deletes a converter with empty reserves
+         * @param converter_currency_code - the currency code of the currency governed by the converter
+         */
+        ACTION close(symbol_code converter_currency_code);
+
+        /**
          * @brief creates the multi-converter settings, can only be called by multi-converter owner
          * @param multi_token - may only set multi-token contract once
          */
@@ -178,6 +184,13 @@ CONTRACT MultiConverter : public eosio::contract {
          * @param ratio - reserve ratio, percentage, 0-1000000
          */
         ACTION setreserve(symbol_code converter_currency_code, symbol currency, name contract, bool sale_enabled, uint64_t ratio);
+
+        /**
+         * @brief deletes an empty reserve in the converter
+         * @param converter - the currency code of the smart token governed by the converter
+         * @param currency - reserve token currency code
+         */
+        ACTION delreserve(symbol_code converter, symbol_code currency);
 
         /**
          * @brief called by withdrawing liquidity providers before converter is enabled for the first time

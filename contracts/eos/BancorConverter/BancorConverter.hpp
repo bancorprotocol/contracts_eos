@@ -79,7 +79,7 @@ CONTRACT BancorConverter : public eosio::contract {
             name     contract;
             asset    currency;
             uint64_t ratio;
-            bool     p_enabled;
+            bool     sale_enabled;
             uint64_t primary_key() const { return currency.symbol.code().raw(); }
         };
 
@@ -116,9 +116,15 @@ CONTRACT BancorConverter : public eosio::contract {
          * @param contract - reserve token contract name
          * @param currency - reserve token currency symbol
          * @param ratio - reserve ratio, percentage, 0-1000000, precision a la max_fee
-         * @param p_enabled - true if purchases are enabled with the reserve, false if not
+         * @param sale_enabled - true if purchases are enabled with the reserve, false if not
          */ 
-        ACTION setreserve(name contract, symbol currency, uint64_t ratio, bool p_enabled);
+        ACTION setreserve(name contract, symbol currency, uint64_t ratio, bool sale_enabled);
+
+        /**
+         * @brief deletes an empty reserve
+         * @param currency - reserve token currency symbol
+         */
+        ACTION delreserve(symbol_code currency);
 
         /**
          * @brief transfer intercepts
