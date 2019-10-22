@@ -81,7 +81,7 @@ describe('Test: BancorConverter', () => {
                 issue('bbb', 'bbb', '10200.00000000 BBB', 'setup') 
             )
         })
-        it('transfer AAA tokens', async function () {        
+        it('transfer AAA and BBB tokens to users', async function () {        
             await expectNoError(
                 transfer('aaa', '100.00000000 AAA', user1) 
             )
@@ -89,19 +89,11 @@ describe('Test: BancorConverter', () => {
                 transfer('aaa', '100.00000000 AAA', user2) 
             )
             await expectNoError(
-                transfer('aaa', '10000.00000000 AAA', 'bnt2aaacnvrt') 
-            )
-        })
-        it('transfer BBB tokens', async function () {        
-            await expectNoError(
                 transfer('bbb', '100.00000000 BBB', user1) 
             )
             await expectNoError(
                 transfer('bbb', '100.00000000 BBB', user2) 
-            )
-            await expectNoError(
-                transfer('bbb', '10000.00000000 BBB', 'bnt2bbbcnvrt') 
-            )
+            )  
         })
         it('create and issue BNT token', async function () {
             await expectNoError( 
@@ -337,6 +329,14 @@ describe('Test: BancorConverter', () => {
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '100.00000000 BNTSYS', "wrong initial balance - bntsys")
         })
+        it('transfer AAA and BBB to converters', async function () {
+            await expectNoError(
+                transfer('aaa', '10000.00000000 AAA', 'bnt2aaacnvrt') 
+            )
+            await expectNoError(
+                transfer('bbb', '10000.00000000 BBB', 'bnt2bbbcnvrt') 
+            )
+        })
     })
     describe('do stuff with converters', function () {
         it("cannot call init more than once", async() => {
@@ -403,7 +403,7 @@ describe('Test: BancorConverter', () => {
             await expectError(convertSYS('5.0000'), ERRORS.NO_RESERVE)
         })
         it("trying to delete BNT reserve when it's not empty - should throw", async () => { 
-            await expectError(delreserve('BNT'), "may delete only empty reserves")
+            await expectError(delreserve('EOS'), "may delete only empty reserves")
         })
         it("trying to delete BNT reserve without permission - should throw", async () => { 
             await expectError(delreserve('BNT', user1), "missing authority of bnt2eoscnvrt")

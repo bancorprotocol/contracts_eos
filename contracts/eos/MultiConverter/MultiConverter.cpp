@@ -543,7 +543,7 @@ const MultiConverter::reserve_t& MultiConverter::get_reserve(uint64_t symbl, con
 
     if (converter.currency.code().raw() == symbl) { // smart token
         asset supply = get_supply(st.multi_token, converter.currency.code());
-        static reserve_t temp_reserve = { // TODO: remove this hacky shit
+        static reserve_t temp_reserve = {
             st.multi_token, 0, 
             converter.enabled,
             supply

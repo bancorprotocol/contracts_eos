@@ -106,6 +106,7 @@ const delreserve = async function(currency = 'BNT', actor = bntConverter, conver
             blocksBehind: 3,
             expireSeconds: 30,
         })
+        console.log(JSON.stringify(result.processed.action_traces))
         return result
     } catch(err) {
         throw(err)
@@ -196,7 +197,8 @@ const setreserve = async function(precise = true, token = networkToken,
                     contract: token,
                     currency: `${precision},${symbol}`,
                     ratio,
-                    ...(converterScope ? { converter_currency_code: converterScope, sale_enabled: true } : { p_enabled: true })
+                    sale_enabled: true,
+                    ...(converterScope ? { converter_currency_code: converterScope } : {})
                 }
             }]
         }, 

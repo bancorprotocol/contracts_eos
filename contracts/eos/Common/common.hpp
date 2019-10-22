@@ -116,13 +116,3 @@ memo_structure parse_memo(std::string memo) {
     return res;
 }
 
-memo_structure next_hop(memo_structure data){
-    auto res = memo_structure();
-    res.path = std::vector<std::string>(data.path);
-    res.path.erase(res.path.begin(), res.path.begin() + 2);
-    res.version = data.version;
-    res.min_return = data.min_return;
-    res.dest_account = data.dest_account;
-    res.receiver_memo = data.receiver_memo;
-    return res;
-}

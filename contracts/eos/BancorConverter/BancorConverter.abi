@@ -68,7 +68,7 @@
                     "type": "uint64"
                 },
                 {
-                    "name": "p_enabled",
+                    "name": "sale_enabled",
                     "type": "bool"
                 }
             ]
@@ -90,7 +90,7 @@
                     "type": "uint64"
                 },
                 {
-                    "name": "p_enabled",
+                    "name": "sale_enabled",
                     "type": "bool"
                 }
             ]
