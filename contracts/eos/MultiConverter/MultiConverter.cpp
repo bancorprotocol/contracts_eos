@@ -119,7 +119,7 @@ ACTION MultiConverter::enablecnvrt(symbol_code currency, bool enabled) {
 
         for (auto& reserve : reserves_table) {
             auto reserve_balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision()); 
-            EMIT_PRICE_DATA_EVENT(reserve.balance.symbol.code(), current_smart_supply, 
+            EMIT_PRICE_DATA_EVENT(currency, current_smart_supply, 
                                   reserve.contract, reserve.balance.symbol.code(), 
                                   reserve_balance, reserve.ratio);
         }
