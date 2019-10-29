@@ -228,7 +228,21 @@ CONTRACT MultiConverter : public eosio::contract {
          */
         //[[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
-        //using transfer_action = action_wrapper<name("transfer"), &MultiConverter::on_transfer>;
+
+        using create_action = action_wrapper<name("create"), &MultiConverter::create>;
+        using close_action = action_wrapper<name("close"), &MultiConverter::close>;
+        using setmultitokn_action = action_wrapper<name("setmultitokn"), &MultiConverter::setmultitokn>;
+        using setstaking_action = action_wrapper<name("setstaking"), &MultiConverter::setstaking>;
+        using setmaxfee_action = action_wrapper<name("setmaxfee"), &MultiConverter::setmaxfee>;
+        using setenabled_action = action_wrapper<name("setenabled"), &MultiConverter::setenabled>;
+        using updateowner_action = action_wrapper<name("updateowner"), &MultiConverter::updateowner>;
+        using updatefee_action = action_wrapper<name("updatefee"), &MultiConverter::updatefee>;
+        using enablecnvrt_action = action_wrapper<name("enablecnvrt"), &MultiConverter::enablecnvrt>;
+        using enablestake_action = action_wrapper<name("enablestake"), &MultiConverter::enablestake>;
+        using setreserve_action = action_wrapper<name("setreserve"), &MultiConverter::setreserve>;
+        using delreserve_action = action_wrapper<name("delreserve"), &MultiConverter::delreserve>;
+        using withdraw_action = action_wrapper<name("withdraw"), &MultiConverter::withdraw>;
+        using fund_action = action_wrapper<name("fund"), &MultiConverter::fund>;
 
     private:
         void convert(name from, asset quantity, string memo, name code);
