@@ -70,7 +70,7 @@ ACTION MultiConverter::setmaxfee(uint64_t maxfee) {
 }
 
 ACTION MultiConverter::setstaking(name staking) {
-    is_account(staking);
+    check(is_account(staking), "invalid staking account");
     require_auth(get_self());    
     
     settings settings_table(get_self(), get_self().value);
@@ -84,7 +84,7 @@ ACTION MultiConverter::setstaking(name staking) {
 }
 
 ACTION MultiConverter::setmultitokn(name multi_token) {   
-    is_account(multi_token);
+    check(is_account(multi_token), "invalid multi-token account");
     require_auth(get_self());
 
     settings settings_table(get_self(), get_self().value);
@@ -564,7 +564,7 @@ asset MultiConverter::get_supply(name contract, symbol_code sym) {
 
 // asserts if a conversion resulted in an amount lower than the minimum amount defined by the caller
 void MultiConverter::verify_min_return(asset quantity, string min_return) {
-	float ret = stof(min_return.c_str());
+    float ret = stof(min_return.c_str());
     int64_t ret_amount = ret * pow(10, quantity.symbol.precision());
     check(quantity.amount >= ret_amount, "below min return");
 }
@@ -605,20 +605,17 @@ float MultiConverter::stof(const char* s) {
         s++;
         fact = -1;
     }
-
     for (int point_seen = 0; *s; s++) {
         if (*s == '.') {
             point_seen = 1; 
             continue;
         }
-
         int d = *s - '0';
         if (d >= 0 && d <= 9) {
             if (point_seen) fact /= 10.0f;
             rez = rez * 10.0f + (float)d;
         }
     }
-
     return rez * fact;
 };
 
