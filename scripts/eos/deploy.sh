@@ -29,14 +29,14 @@ function cleos() { command cleos --verbose --url=${NODEOS_LOCATION} --wallet-url
 on_exit(){
   echo -e "${CYAN}cleaning up temporary keosd process & artifacts${NC}";
   kill -9 $TEMP_KEOSD_PID &> /dev/null
-  rm -r $WALLET_DIR
+  rm -rf $WALLET_DIR
 }
 trap my_trap INT
 trap my_trap SIGINT
 
 
 # start temp keosd
-rm -r $WALLET_DIR
+rm -rf $WALLET_DIR
 mkdir $WALLET_DIR
 keosd --wallet-dir=$WALLET_DIR --unix-socket-path=$UNIX_SOCKET_ADDRESS &> /dev/null &
 TEMP_KEOSD_PID=$!
