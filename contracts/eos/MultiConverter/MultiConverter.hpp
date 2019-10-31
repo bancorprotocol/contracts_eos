@@ -63,7 +63,7 @@ CONTRACT MultiConverter : public eosio::contract {
 
         TABLE settings_t {
             bool     enabled = false;
-            uint64_t max_fee = MAX_FEE;
+            uint64_t max_fee;
             name     multi_token; /// account name of contract for relay tokens
             name     staking;     /// account name of contract for voting and staking
             uint64_t primary_key() const { return "settings"_n.value; }
@@ -248,23 +248,14 @@ CONTRACT MultiConverter : public eosio::contract {
         */
         void liquidate(name owner, asset quantity); /// amount to decrease the supply by (in the smart token)
 
-        double calculate_fee(double amount, uint64_t fee, uint8_t magnitude);
-
         asset get_supply(name contract, symbol_code sym);
-
-        void verify_min_return(asset quantity, string min_return);
-        void verify_entry(name account, name currency_contact, symbol currency);
 
         double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);
         double calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio);
         double quick_convert(double balance, double in, double toBalance);
 
-        float stof(const char* s);
-
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
             return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
         }
-        constexpr static double MAX_RATIO = 1000000.0;
-        constexpr static double MAX_FEE = 1000000.0;
 };
 /** @}*/ // end of @defgroup bancormulticonverter MultiConverter

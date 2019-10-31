@@ -121,6 +121,25 @@ cleos set contract eosio $EOSIO_CONTRACTS_ROOT/eosio.system/
 echo -e "      SYSTEM SET"
 cleos push action eosio init '[0, "4,EOS"]' -p eosio
 
+cleos push action eosio setparams '{ "params": { 
+                                     "max_block_net_usage": 1048576, 
+                                     "target_block_net_usage_pct": 1000, 
+                                     "max_transaction_net_usage": 524288, 
+                                     "base_per_transaction_net_usage": 12, 
+                                     "net_usage_leeway": 500, 
+                                     "context_free_discount_net_usage_num": 20, 
+                                     "context_free_discount_net_usage_den": 100, 
+                                     "max_block_cpu_usage": 200000, 
+                                     "target_block_cpu_usage_pct": 2500, 
+                                     "max_transaction_cpu_usage": 150000, 
+                                     "min_transaction_cpu_usage": 100, 
+                                     "max_transaction_lifetime": 3600, 
+                                     "deferred_trx_expiration_window": 600, 
+                                     "max_transaction_delay": 3888000, 
+                                     "max_inline_action_size": 4096, 
+                                     "max_inline_action_depth": 6, 
+                                     "max_authority_depth": 6 }}' -p eosio
+
 cleos set abi eosio.rex $EOSIO_CONTRACTS_ROOT/eosio.system/.rex/rex.results.abi
 
 # Deploy eosio.wrap
@@ -142,10 +161,10 @@ cleos wallet import --private-key "$USR_PRV"
 
 # 2) Create accounts
 
-cleos system newaccount eosio reporter1 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio reporter2 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio reporter3 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio reporter4 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bntreporter1 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bntreporter2 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bntreporter3 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bntreporter4 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 
 cleos system newaccount eosio bancorxoneos $BNT_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 cleos system newaccount eosio thisisbancor $BNT_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
@@ -198,7 +217,7 @@ cleos set contract bnt2aaarelay $EOSIO_CONTRACTS_ROOT/eosio.token/
 cleos set contract bnt2bbbrelay $EOSIO_CONTRACTS_ROOT/eosio.token/
 
 cleos set contract multiconvert $MY_CONTRACTS_BUILD/MultiConverter
-cleos set contract multi4tokens $EOSIO_CONTRACTS_ROOT/eosio.token/ 
+cleos set contract multi4tokens $EOSIO_CONTRACTS_ROOT/eosio.token/
 
 
 # 4) Set Permissions

@@ -122,9 +122,9 @@ const getBalance = async function (user, token, symbol) {
         throw(err)
     }
 }
-const convertMulti = async function (amount, symbol, targetSymbol, 
-                                   converter = multiConverter, 
-                                   from = user, min = '0.00000001') {
+const convertMulti = async function(amount, symbol, targetSymbol, 
+                                    converter = multiConverter, 
+                                    from = user, min = '0.00000001') {
     try {
         const result = await api.transact({ 
             actions: [{
@@ -153,8 +153,7 @@ const convertMulti = async function (amount, symbol, targetSymbol,
 }
 const convertRelay = async function (amount, from = user, converter = bntConverter, 
                                      relay = bntRelay, relaySymbol = bntRelaySymbol, 
-                                     toSymbol = networkTokenSymbol) 
-{ // buy BNT with BNTEOS
+                                     toSymbol = networkTokenSymbol) { // buy BNT with BNTEOS
     try {
         const minReturn = '0.00000010';
         const result = await api.transact({ 
@@ -183,8 +182,14 @@ const convertRelay = async function (amount, from = user, converter = bntConvert
     }
 }
 const convertBNT = async function (amount, toSymbol = bntRelaySymbol, relay = bntConverter,
-                                   from = user, to = from, min = '0.00000001') { // buy BNTEOS with BNT
+                                   from = user, to = from, affiliate = null, 
+                                   affiliateFee = null, min = '0.00000001') {
     try {
+        memo = `1,${relay} ${toSymbol},${min},${to}`
+
+        if (affiliate)
+            memo = `1,${relay} ${toSymbol},${min},${to},${affiliate},${affiliateFee}`
+
         const result = await api.transact({ 
             actions: [{
                 account: networkToken,
@@ -197,7 +202,7 @@ const convertBNT = async function (amount, toSymbol = bntRelaySymbol, relay = bn
                     from: from,
                     to: networkContract,
                     quantity: `${amount} ${networkTokenSymbol}`,
-                    memo: `1,${relay} ${toSymbol},${min},${to}`
+                    memo
                 }
             }]
         }, 
@@ -239,13 +244,21 @@ const convertTwice = async function (amount, token, relaySymbol = bntRelaySymbol
         throw(err)
     }
 }
-const convertEOS = async function (amount,  fake=false, relay = bntConverter, relaySymbol = bntRelaySymbol,
-                                   from = user, to = user) { // buy BNTEOS with EOS
+const convertEOS = async function (amount, fake=false, relay = bntConverter, relaySymbol = bntRelaySymbol,
+                                   from = user, to = user, affiliate = null, affiliateFee = null, min = null) { // buy BNTEOS with EOS
     try {
-        const minReturn = '0.00000001';
-        account = 'eosio.token'
+        
+        var minReturn = '0.00000001'; 
+        if (min) minReturn = min
+        var account = 'eosio.token'
+        var memo = `1,${relay} ${relaySymbol},${minReturn},${to}`
+
         if (fake)
             account = 'fakeos'
+
+        if (affiliate)
+            memo = `1,${relay} ${relaySymbol},${minReturn},${to},${affiliate},${affiliateFee}`
+    
         const result = await api.transact({ 
             actions: [{
                 account: account,
@@ -255,10 +268,10 @@ const convertEOS = async function (amount,  fake=false, relay = bntConverter, re
                     permission: 'active',
                 }],
                 data: {
-                    from: from,
+                    from,
                     to: networkContract,
                     quantity: `${amount} EOS`,
-                    memo: `1,${relay} ${relaySymbol},${minReturn},${to}`
+                    memo
                 }
             }]
         }, 

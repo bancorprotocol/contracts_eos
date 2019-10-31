@@ -248,7 +248,7 @@ const deductFee = (amount, fee, magnitude) => {
 }
 const extractEvents = async (conversionTx) => {
     if (conversionTx instanceof Promise)
-        conversionTx = await conversionTx;
+        conversionTx = await expectNoError(conversionTx);
     
     const rawEvents = conversionTx
         .processed.action_traces[0].inline_traces[2].inline_traces[1].console

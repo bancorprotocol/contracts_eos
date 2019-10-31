@@ -4,7 +4,7 @@ var assert = chai.assert
 
 const {  
     expectError, 
-    expectNoError,
+    expectNoError
 } = require('./common/utils')
 
 const { 
@@ -12,7 +12,7 @@ const {
     getBalance,
     convertBNT,
     convertRelay,
-    convertTwice,
+    convertTwice
 } = require('./common/token')
 
 const { ERRORS } = require('./common/errors')
@@ -20,9 +20,9 @@ const user1 = 'bnttestuser1'
 const user2 = 'bnttestuser2'
 
 describe('Test: BancorNetwork', () => {
-    it('test 1 hop conversion - sell bnt to buy eos', async function () {
+    it('1 hop conversion - sell bnt to buy eos', async function () {
         const amount = 2.00000000
-        const tolerance =  0.000001
+        const tolerance = 0.000001
         const convertReturn = 1.9996 //expectation 
         const amountStr = '2.00000000'
 
@@ -45,7 +45,9 @@ describe('Test: BancorNetwork', () => {
         const initialUserBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
         
         //perform the conversion
-        const res = await expectNoError(convertBNT(amountStr, 'EOS'))
+        const res = await expectNoError(
+            convertBNT(amountStr, 'EOS')
+        )
         const events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n")
 
         const convertEvent = JSON.parse(events[0])
@@ -122,8 +124,9 @@ describe('Test: BancorNetwork', () => {
         const initialReserveBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
 
         // perform conversion
-        const res = await expectNoError(convertTwice(amountStr, 'eosio.token', 'EOS', 'SYS'))
-        
+        const res = await expectNoError(
+            convertTwice(amountStr, 'eosio.token', 'EOS', 'SYS')
+        )
         var events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n")
         var convertEvent = JSON.parse(events[0])
         var priceDataEvent = JSON.parse(events[2])
@@ -194,7 +197,9 @@ describe('Test: BancorNetwork', () => {
         var res = await getBalance('bnt2eoscnvrt','bntbntbntbnt','BNT');
         const initialFromTokenReserveBalance = parseFloat(res.rows[0].balance.split(' ')[0])
 
-        res = await expectNoError(convertBNT(amount)) //to BNTEOS
+        res = await expectNoError(
+            convertBNT(amount)
+        ) //to BNTEOS
     
         const events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
 
@@ -215,7 +220,9 @@ describe('Test: BancorNetwork', () => {
         var res = await getBalance('bnt2eoscnvrt','bntbntbntbnt','BNT');
         const initialFromTokenReserveBalance = parseFloat(res.rows[0].balance.split(' ')[0])
 
-        res = await expectNoError(convertRelay(amount)) //to BNTEOS
+        res = await expectNoError(
+            convertRelay(amount)
+        ) //to BNT
     
         const events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
 
@@ -252,7 +259,7 @@ describe('Test: BancorNetwork', () => {
         res = await expectNoError(
             convertRelay(delta.toFixed(8), user2, 'bnt2bbbcnvrt', 'bnt2bbbrelay', 'BNTBBB', 'BBB')
         )
-        
+
         res = await getBalance(user1,'aaa','AAA');
         const user1AAABalance = parseFloat(res.rows[0].balance.split(' ')[0])
         
@@ -280,10 +287,4 @@ describe('Test: BancorNetwork', () => {
             ERRORS.POSITIVE_TRANSFER
         )
     })
-    it("verifies throw error with a destination wallet different than the origin account", async () => {
-        await expectError(
-            convertBNT('2.00000000', 'EOS', undefined, user1, user2),
-            
-        )
-    })
-})    
+})

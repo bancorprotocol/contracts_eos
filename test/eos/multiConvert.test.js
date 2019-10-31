@@ -2,12 +2,14 @@
 const Decimal = require('decimal.js')
 const chai = require('chai')
 const assert = chai.assert
+const fs = require('fs')
 
 const {
     expectError,
     expectNoError,
     randomAmount,
     extractEvents,
+    expectNoErrorPrint,
     calculatePurchaseReturn,
     calculateSaleReturn
 } = require('./common/utils')
@@ -17,6 +19,7 @@ const {
     transfer,
     getBalance,
     convertBNT,
+    convertEOS,
     convertMulti
 } = require('./common/token')
 
@@ -65,6 +68,9 @@ describe('Test: multiConverter', () => {
             )
             await expectNoError(
                 setMaxfee(multiConverter, 30000)
+            )
+            await expectNoError(
+                setMaxfee('thisisbancor', 30000)
             )
         })
         it('setup converters', async function() {
@@ -300,6 +306,94 @@ describe('Test: multiConverter', () => {
             assert.equal((TokenAReserveBalance + TokenBReserveBalance + 990).toFixed(8), totalBntBalance)
         })
     })
+    describe('Affiliate Fee', async () => {
+        it("should throw when passing affiliate account and inappropriate fee", async () => {
+            await expectError(
+                convertEOS('1.0000', false, undefined, 'BNT', user1, user1, user2, 0),
+                "inappropriate affiliate fee"
+            )
+            await expectError(
+               convertEOS('1.0000', false, undefined, 'BNT', user1, user1, user2, -10),
+               "inappropriate affiliate fee"
+            )
+            await expectError(
+                convertEOS('1.0000', false, undefined, 'BNT', user1, user1, user2, 9000000),
+                "inappropriate affiliate fee"
+            )
+        })
+        it("should throw when passing affiliate account that is not actually an account", async () => {
+            await expectError(
+                convertEOS('1.0000', false, undefined, 'BNT', user1, user1, "notauser", 3000),
+                "affiliate is not an account"
+            )
+        })
+        it("should throw when affiliate fee would bring conversion below min return", async () => {
+            await expectError(
+                convertEOS('1.0000', false, undefined, 'BNT', user1, user1, user2, 29000, 0.99),
+                "below min return"
+            )
+        })
+        it("1 Hop with Affiliate Fee, SingleConverter", async () => {
+            var result = await getBalance(user1, bntToken, 'BNT')
+            const user1beforeBNT = result.rows[0].balance.split(' ')[0]
+
+            result = await getBalance(user2, bntToken, 'BNT')
+            const user2beforeBNT = result.rows[0].balance.split(' ')[0]
+
+            const expectedReturnBeforeFee = 1.00019894
+            const expectedReturnAfterFee = 0.97119318
+
+            const feeAmountPaid = expectedReturnBeforeFee - expectedReturnAfterFee
+
+            const res = await expectNoError(
+                convertEOS('1.0000', false, undefined, 'BNT', user1, user1, user2, 29000, 0.9),
+            )
+            const events = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[1].console.split("\n")
+
+            result = await getBalance(user1, bntToken, 'BNT')
+            const user1afterBNT = result.rows[0].balance.split(' ')[0]
+
+            result = await getBalance(user2, bntToken, 'BNT')
+            const user2afterBNT = result.rows[0].balance.split(' ')[0]
+
+            const deltaUser1BNT = parseFloat(user1afterBNT) - parseFloat(user1beforeBNT)
+            const deltaUser2BNT = parseFloat(user2afterBNT) - parseFloat(user2beforeBNT)
+
+            assert.equal(deltaUser1BNT.toFixed(8), expectedReturnAfterFee.toFixed(8), 'unexpected return on conversion')
+            assert.equal(deltaUser2BNT.toFixed(8), feeAmountPaid.toFixed(8), 'unexpected affiliate fee paid')
+            
+            const returnEvent = JSON.parse(events[0]).return.split(' ')[0]
+            const feeAmountEvent = JSON.parse(events[0]).affiliate_fee.split(' ')[0]
+            
+            assert.equal(returnEvent, expectedReturnBeforeFee.toFixed(8), 'unexpected return event')
+            assert.equal(feeAmountEvent, feeAmountPaid.toFixed(8), 'unexpected affiliate fee event')
+        })
+        it("Selling BNT is a false positive, should not trigger affiliate fee", async function() {
+            var result = await getBalance(user1, 'eosio.token', 'EOS')
+            const user1beforeEOS = result.rows[0].balance.split(' ')[0]
+
+            result = await getBalance(user2, bntToken, 'BNT')
+            const user2beforeBNT = result.rows[ 0].balance.split(' ')[0]
+
+            const res = await expectNoError(
+                convertBNT('1.00000000', 'EOS', undefined, user1, user1, user2, 29000),
+            )
+            const events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
+            const expectedReturn = parseFloat(JSON.parse(events[0]).return);
+
+            result = await getBalance(user1, 'eosio.token', 'EOS')
+            const user1afterEOS = result.rows[0].balance.split(' ')[0]
+
+            result = await getBalance(user2, bntToken, 'BNT')
+            const user2afterBNT = result.rows[0].balance.split(' ')[0]
+
+            const deltaUser1EOS = parseFloat(user1afterEOS) - parseFloat(user1beforeEOS)
+            const deltaUser2BNT = parseFloat(user2afterBNT) - parseFloat(user2beforeBNT)
+
+            assert.equal(deltaUser1EOS.toFixed(4), expectedReturn.toFixed(4), 'unexpected return on conversion')
+            assert.equal(deltaUser2BNT, 0, 'unexpected affiliate fee paid')
+        })
+    })
     describe('Permissions', async () => {
         it("should throw error when trying to call 'setMultitoken' without proper permissions", async () => {
             await expectError(
@@ -330,7 +424,10 @@ describe('Test: multiConverter', () => {
             )
         })
         it("trying to delete BNT reserve without permission - should throw", async () => { 
-            await expectError(delreserve('BNT', user2, multiConverter, 'TKNA'), "missing authority of bnttestuser1")
+            await expectError(
+                delreserve('BNT', user2, multiConverter, 'TKNA'), 
+                "missing authority of bnttestuser1"
+            )
         })
         it("trying to delete BNT reserve when it's not empty - should throw", async () => { 
             await expectError(delreserve('BNT', user1, multiConverter, 'TKNA'), "may delete only empty reserves")
