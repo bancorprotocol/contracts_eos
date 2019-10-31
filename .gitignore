@@ -1,12 +1,7 @@
+stderr
 .vscode
+package-lock.json
 node_modules/
 **/node_modules/
 **/dist/
-
-**/Makefile
-**/CMakeCache.txt
-**/CMakeFiles/**
-**/CMakeFiles
-**/cmake_install.cmake
-.vscode
-
+**/nodeos/
