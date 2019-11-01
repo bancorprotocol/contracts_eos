@@ -320,7 +320,7 @@ void MultiConverter::liquidate(name owner, asset quantity) {
 ACTION MultiConverter::withdraw(name owner, asset quantity, symbol_code converter_currency_code) {
     require_auth(owner);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
-    modreserve(owner, -quantity, converter_currency_code, get_self(), true);
+    modreserve(owner, -quantity, converter_currency_code, get_self());
 }
 
 void MultiConverter::mod_account_balance(name owner, symbol_code converter_currency_code, asset quantity) {
@@ -348,26 +348,28 @@ void MultiConverter::mod_account_balance(name owner, symbol_code converter_curre
         });
 }
 
-void MultiConverter::modreserve(name owner, asset quantity, symbol_code converter_currency_code, name code, bool setup) {
+void MultiConverter::modreserve(name owner, asset quantity, symbol_code converter_currency_code, name code) {
+    require_auth(owner);
     reserves reserves_table(get_self(), converter_currency_code.raw());
     const auto& reserve = reserves_table.get(quantity.symbol.code().raw(), "reserve doesn't exist");
 
     converters converters_table(get_self(), converter_currency_code.raw());
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
-    check((!setup && converter.enabled) || !converter.launched, "converter was launched, or must be enabled");
 
     if (quantity.amount > 0)
         check(code == reserve.contract, "wrong origin contract for quantity");
-    else if (setup) // if quantity < 0 && setup == true
+    else
         action(
             permission_level{ get_self(), "active"_n },
             reserve.contract, "transfer"_n,
             make_tuple(get_self(), owner, -quantity, string("withdrawal"))
         ).send();
-    if (setup)
+    
+    if (!converter.launched) {
+        check(owner == converter.owner, "only converter owner may fund/withdraw prior to activation");
         mod_reserve_balance(converter.currency, quantity);
-
-    mod_account_balance(owner, converter_currency_code, quantity);
+    } 
+    else mod_account_balance(owner, converter_currency_code, quantity);
 }
 
 void MultiConverter::mod_reserve_balance(symbol converter_currency, asset value) {
@@ -626,14 +628,12 @@ void MultiConverter::on_transfer(name from, name to, asset quantity, string memo
     
     const auto& splitted_memo = split(memo, ";"); 
     
-    if (splitted_memo[0] == "setup")
-        modreserve(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver(), true);
-    else if (splitted_memo[0] == "fund")
-        modreserve(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver(), false);
+    if (splitted_memo[0] == "fund")
+        modreserve(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver());
     else if (splitted_memo[0] == "liquidate")
         liquidate(from, quantity);
-    
-    else convert(from, quantity, memo, get_first_receiver()); 
+    else 
+        convert(from, quantity, memo, get_first_receiver()); 
 }
 
 extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {

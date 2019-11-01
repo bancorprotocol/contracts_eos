@@ -1,5 +1,5 @@
 
-const { api, rpc } = require('./utils')
+const { api, rpc, getTableBoundsForSymbol } = require('./utils')
 
 const networkContract = 'thisisbancor'
 const networkToken = 'bntbntbntbnt'
@@ -18,10 +18,28 @@ const getSettings = async function (converter = bntConverter) {
         const result = await rpc.get_table_rows({
             "code": converter,
             "scope": converter,
-            "table": 'settings',
-            //"limit": 1,
-            //"lower_bound": pk,
-            //"upper_bound": pk+1
+            "table": 'settings'
+        })
+        return result
+    } catch (err) {
+        throw(err)
+    }
+}
+const getAccount = async function (owner, converterSymbol, reserveSymbol) {
+    const reserveHexLE = getTableBoundsForSymbol(reserveSymbol).lower_bound;
+    const converterBounds = getTableBoundsForSymbol(converterSymbol);
+    const bounds = {
+        lower_bound: `0x${converterBounds.lower_bound}${reserveHexLE}`,
+        upper_bound: `0x${converterBounds.upper_bound}${reserveHexLE}`,
+    }
+    try {
+        const result = await rpc.get_table_rows({
+            "code": multiConverter,
+            "scope": owner,
+            "key_type" : "i128",
+            "table": "accounts",
+            "index_position": 2,
+            ...bounds
         })
         return result
     } catch (err) {
@@ -447,6 +465,6 @@ module.exports = { init, update, enableStake,
                    setreserve, getReserve, delreserve, 
                    getSettings, setMultitoken, 
                    setMaxfee, updateFee, updateOwner, 
-                   setEnabled, enableConvert,   
+                   setEnabled, enableConvert, getAccount,   
                    getConverter, createConverter,
                    delConverter, withdraw, fund }
