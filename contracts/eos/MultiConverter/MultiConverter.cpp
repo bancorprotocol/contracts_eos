@@ -318,7 +318,6 @@ void MultiConverter::liquidate(name owner, asset quantity) {
 }
 
 ACTION MultiConverter::withdraw(name owner, asset quantity, symbol_code converter_currency_code) {
-    require_auth(owner);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
     modreserve(owner, -quantity, converter_currency_code, get_self());
 }
