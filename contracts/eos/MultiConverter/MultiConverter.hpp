@@ -237,7 +237,7 @@ CONTRACT MultiConverter : public eosio::contract {
 
         void mod_reserve_balance(symbol converter_currency, asset value);
         void mod_account_balance(name owner, symbol_code converter_currency_code, asset quantity);
-        void modreserve(name owner, asset quantity, symbol_code converter_currency_code, name code);
+        void mod_balances(name owner, asset quantity, symbol_code converter_currency_code, name code);
         
         /**
          * @brief sells the token for all connector tokens using the same percentage
