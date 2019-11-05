@@ -149,9 +149,9 @@ CONTRACT MultiConverter : public eosio::contract {
         /**
          * @brief change converter's owner
          * @param currency - the currency symbol governed by the converter
-         * @param owner - converter's new owner
+         * @param new_owner - converter's new owner
          */
-        ACTION updateowner(symbol_code currency, name owner);                 
+        ACTION updateowner(symbol_code currency, name new_owner);                 
         
         /**
          * @brief updates the converter fee
@@ -194,21 +194,21 @@ CONTRACT MultiConverter : public eosio::contract {
 
         /**
          * @brief called by withdrawing liquidity providers before converter is enabled for the first time
-         * @param owner - owner of the quantity
+         * @param sender - sender of the quantity
          * @param quantity - amount to decrease the supply by (in the smart token)
          * @param converter_currency_code - the currency code of the currency governed by the converter
         */
-        ACTION withdraw(name owner, asset quantity, symbol_code converter_currency_code);
+        ACTION withdraw(name sender, asset quantity, symbol_code converter_currency_code);
         
         /**
          * @brief buys smart token with all connector tokens using the same percentage
          * @details i.e. if the caller increases the supply by 10%, it will cost an amount equal to
          * 10% of each connector token balance
          * can only be called if the total ratio is exactly 100% and while conversions are enabled
-         * @param  owner - owner of the quantity
+         * @param  sender - sender of the quantity
          * @param quantity - amount to increase the supply by (in the smart token)
         */
-        ACTION fund(name owner, asset quantity); 
+        ACTION fund(name sender, asset quantity); 
         
         /**
          * @brief transfer intercepts with standard transfer args
@@ -236,8 +236,8 @@ CONTRACT MultiConverter : public eosio::contract {
         const reserve_t& get_reserve(uint64_t name, const converter_t& converter);
 
         void mod_reserve_balance(symbol converter_currency, asset value);
-        void mod_account_balance(name owner, symbol_code converter_currency_code, asset quantity);
-        void modreserve(name owner, asset quantity, symbol_code converter_currency_code, name code, bool setup);
+        void mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity);
+        void mod_balances(name sender, asset quantity, symbol_code converter_currency_code, name code);
         
         /**
          * @brief sells the token for all connector tokens using the same percentage
@@ -246,7 +246,7 @@ CONTRACT MultiConverter : public eosio::contract {
          * can only be called if the max total weight is exactly 100%
          * note that the function can also be called if conversions are disabled
         */
-        void liquidate(name owner, asset quantity); /// amount to decrease the supply by (in the smart token)
+        void liquidate(name sender, asset quantity); /// amount to decrease the supply by (in the smart token)
 
         double calculate_fee(double amount, uint64_t fee, uint8_t magnitude);
 
