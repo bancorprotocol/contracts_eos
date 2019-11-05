@@ -375,7 +375,7 @@ const enableStake = async function(actor, currency, enabled = true) {
     })
     return result;
 }
-const updateOwner = async function(actor, currency, owner) {
+const updateOwner = async function(actor, currency, new_owner) {
     const result = await api.transact({ 
         actions: [{
             account: multiConverter,
@@ -386,7 +386,7 @@ const updateOwner = async function(actor, currency, owner) {
             }],
             data: {
                 currency,
-                owner
+                new_owner
             }
         }]
     }, 
@@ -417,17 +417,17 @@ const updateFee = async function(actor, currency, fee) {
     })
     return result;
 }
-const withdraw = async function(owner, quantity, converter_currency_code) {
+const withdraw = async function(sender, quantity, converter_currency_code) {
     const result = await api.transact({ 
         actions: [{
             account: multiConverter,
             name: "withdraw",
             authorization: [{
-                actor: owner,
+                actor: sender,
                 permission: 'active',
             }],
             data: {
-                owner,
+                sender,
                 quantity,
                 converter_currency_code
             }
@@ -439,17 +439,17 @@ const withdraw = async function(owner, quantity, converter_currency_code) {
     })
     return result;
 }
-const fund = async function(owner, quantity) {
+const fund = async function(sender, quantity) {
     const result = await api.transact({ 
         actions: [{
             account: multiConverter,
             name: "fund",
             authorization: [{
-                actor: owner,
+                actor: sender,
                 permission: 'active',
             }],
             data: {
-                owner,
+                sender,
                 quantity
             }
         }]

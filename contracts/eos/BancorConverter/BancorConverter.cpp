@@ -358,12 +358,12 @@ float BancorConverter::stof(const char* s) {
 };
 
 void BancorConverter::on_transfer(name from, name to, asset quantity, string memo) {
-    check(quantity.is_valid(), "invalid quantity");
-    check(quantity.amount > 0, "zero quantity is disallowed");
+    require_auth(from);
+    check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
 
     // avoid unstaking and system contract ops mishaps
     if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
-	return;
+	    return;
 
     if (memo == "setup") {
         settings settings_table(get_self(), get_self().value);
@@ -377,6 +377,6 @@ void BancorConverter::on_transfer(name from, name to, asset quantity, string mem
         EMIT_PRICE_DATA_EVENT(current_smart_supply, reserve.contract, quantity.symbol.code(), reserve_balance, reserve.ratio / RATIO_DENOMINATOR);
     }
     else 
-	convert(from, quantity, memo, get_first_receiver()); 
+	    convert(from, quantity, memo, get_first_receiver()); 
 }
 

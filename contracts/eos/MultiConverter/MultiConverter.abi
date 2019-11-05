@@ -126,7 +126,7 @@
             "base": "",
             "fields": [
                 {
-                    "name": "owner",
+                    "name": "sender",
                     "type": "name"
                 },
                 {
@@ -268,7 +268,7 @@
                     "type": "symbol_code"
                 },
                 {
-                    "name": "owner",
+                    "name": "new_owner",
                     "type": "name"
                 }
             ]
@@ -278,7 +278,7 @@
             "base": "",
             "fields": [
                 {
-                    "name": "owner",
+                    "name": "sender",
                     "type": "name"
                 },
                 {
