@@ -82,8 +82,7 @@ tuple<asset, memo_structure> BancorNetwork::pay_affiliate(name from, asset quant
         check(fee > 0 && st->max_fee > fee, "inappropriate affiliate fee");
         check(is_account(affiliate), "affiliate is not an account");    
 
-        // double amount = quantity.amount / pow(10, quantity.symbol.precision());
-        uint64_t fee_amount = calculate_fee(quantity.amount, fee, 1); // * pow(10, quantity.symbol.precision());
+        uint64_t fee_amount = calculate_fee(quantity.amount, fee, 1);
         
         if (fee_amount > 0) {
             asset affiliate_fee = asset(fee_amount, quantity.symbol);
@@ -98,7 +97,6 @@ tuple<asset, memo_structure> BancorNetwork::pay_affiliate(name from, asset quant
             string quantity_before = quantity.to_string();
             quantity -= affiliate_fee;
             string quantity_after = quantity.to_string();
-            //check(0, (string("..before..") + quantity_before + string("..after..") + quantity_after).c_str());
         }
         memo.affiliate_account = "";
         memo.affiliate_fee = "";
