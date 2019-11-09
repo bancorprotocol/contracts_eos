@@ -1,7 +1,7 @@
 stderr
 .vscode
 package-lock.json
-node_modules/
+**/tmp/
 **/node_modules/
 **/dist/
 **/nodeos/

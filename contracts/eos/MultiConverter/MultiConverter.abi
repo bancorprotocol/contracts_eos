@@ -8,11 +8,11 @@
             "base": "",
             "fields": [
                 {
-                    "name": "currency",
+                    "name": "symbl",
                     "type": "symbol_code"
                 },
                 {
-                    "name": "balance",
+                    "name": "quantity",
                     "type": "asset"
                 },
                 {
@@ -228,7 +228,7 @@
             "base": "",
             "fields": [
                 {
-                    "name": "enabled",
+                    "name": "operational",
                     "type": "bool"
                 },
                 {

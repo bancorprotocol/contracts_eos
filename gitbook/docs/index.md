@@ -1,11 +1,18 @@
-﻿### 0.0.6 (2019-08-14)
+### v0.0.7 (2019-11-07)
+
+General:
+* MultiConverter created
+* Auto-generated code documentation
+
+
+### v0.0.6 (2019-08-14)
 
 General:
 * Replaced funguy tests with simpler tests (minimum dependencies)
 * Minor cleanups
 
 
-### 0.0.5 (2019-08-05)
+### v0.0.5 (2019-08-05)
 
 General:
 * Fixed events data/format

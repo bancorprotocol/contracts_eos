@@ -11,6 +11,13 @@
 using namespace eosio;
 using namespace std;
 
+/**
+ * @defgroup BancorXtransfer XTransferRerouter
+ * @brief XTransferRerouter contract
+ * @details Allows rerouting transactions sent to BancorX with invalid parameters.
+ * @{
+*/
+
 /// events triggered when an account reroutes an xtransfer transaction
 #define EMIT_TX_REROUTE_EVENT(tx_id, blockchain, target) \
     START_EVENT("txreroute", "1.1") \
@@ -19,24 +26,21 @@ using namespace std;
     EVENTKVL("target",target) \
     END_EVENT()
 
-/**
- * @defgroup bancorxtransfer XTransferRerouter
- * @ingroup bancorcontracts
- * @brief XTransferRerouter contract
- * @details allows rerouting transactions sent to BancorX with invalid parameters 
- * @{
-*/
-CONTRACT XTransferRerouter : public contract {
+/*! \cond DOCS_EXCLUDE */
+CONTRACT XTransferRerouter : public contract { /*! \endcond */
     public:
         using contract::contract;
 
-        TABLE settings_t {
-            bool rrt_enabled;
-        };
+        /**
+         * @defgroup Xtransfer_Settings_Table Settings Table 
+         * @brief Basic minimal settings
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE settings_t { /*! \endcond */
+                /// toggle boolean to enable / disable rerouting
+                bool rrt_enabled;
+            }; /** @}*/
 
-        typedef eosio::singleton<"settings"_n, settings_t> settings;
-        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
-        
         /**
          * @brief can only be called by the contract account 
          * @param enable - true to enable rerouting xtransfers, false to disable it
@@ -52,5 +56,9 @@ CONTRACT XTransferRerouter : public contract {
          * @param target - target account/address
          */
         ACTION reroutetx(uint64_t tx_id, string blockchain, string target);
-};
-/** @}*/ // end of @defgroup bancorxtransfer XTransferRerouter
+    
+    private:
+        typedef eosio::singleton<"settings"_n, settings_t> settings;
+        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
+
+}; /** @}*/

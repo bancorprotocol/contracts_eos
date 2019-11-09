@@ -13,26 +13,23 @@ using namespace eosio;
 using namespace std;
 
 /**
- * @defgroup bancornetwork BancorNetwork
- * @ingroup bancorcontracts
- * @brief The BancorNetwork contract is the main entry point for bancor token conversions.
- * @details It also allows converting between any token in the bancor network to any other token
- * in a single transaction by providing a conversion path.
- * A note on conversion path -
- * Conversion path is a data structure that's used when converting a token to another token in the bancor network
- * when the conversion cannot necessarily be done by single converter and might require multiple 'hops'.
- * The path defines which converters should be used and what kind of conversion should be done in each step.
- * The path format doesn't include complex structure and instead, it is represented by a space delimited
- * list of values in which each 'hop' is represented by a 2-tuple - converter & 'to' token symbol.
- * The 'from' token is the token that was sent the the contract with the transfer action.
- * Format:
- * [converter account, to token symbol, converter account, to token symbol...]
- * For example, in order to convert 10 EOS into BNT, the caller needs to transfer 10 EOS to the contract
+ * @defgroup BancorNetwork BancorNetwork
+ * @brief The BancorNetwork contract is the main entry point for Bancor token conversions.
+ * @details This contract allows converting between the 'from' token being transfered into the contract and any other token in the Bancor network,
+ * initiated by submitting a single transaction and providing into `on_transfer` a "conversion path" in the `memo`:
+ * - The path is most useful when the conversion must be routed through multiple "hops".
+ * - The path defines which converters should be used and what kind of conversion should be done in each "hop".
+ * - The path format doesn't include complex structure; it is represented by a space-delimited
+ * list of values in which each 'hop' is represented by a pair -- converter s& 'to' token symbol. Here is the format:
+ * > [converter account, to token symbol, converter account, to token symbol...]
+ * - For example, in order to convert 10 EOS into BNT, the caller needs to transfer 10 EOS to the contract
  * and provide the following memo:
- * 1,bnt2eoscnvrt BNT,1.0000000000,receiver_account_name
+ * > `1,bnt2eoscnvrt BNT,1.0000000000,receiver_account_name`
  * @{
 */
-CONTRACT BancorNetwork : public eosio::contract {
+
+/*! \cond DOCS_EXCLUDE */
+CONTRACT BancorNetwork : public eosio::contract { /*! \endcond */
     public:
         using contract::contract;
 
@@ -40,17 +37,15 @@ CONTRACT BancorNetwork : public eosio::contract {
 
         /**
          * @brief transfer intercepts
-         * @details memo is in csv format, values -
-         * version          version number, currently 1
-         * path             conversion path, see description above
-         * minimum return   conversion minimum return amount, the conversion will fail if the amount returned is lower than the given amount
-         * target account   account to receive the conversion return
+         * @details conversion will fail if the amount returned is lower "minreturn" element in the `memo`
          */
         [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
-        using transfer_action = action_wrapper<name("transfer"), &BancorNetwork::on_transfer>;
+        
     
     private:
+        using transfer_action = action_wrapper<name("transfer"), &BancorNetwork::on_transfer>;
+        
         TABLE settings_t {
             bool enabled;
             uint64_t max_fee;

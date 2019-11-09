@@ -1,4 +1,5 @@
-﻿# Bancor Protocol Contracts v1.2 (beta)
+﻿
+## Bancor Protocol Contracts v1.2 (beta)
 
 Bancor is a decentralized liquidity network that provides users with a simple, low-cost way to buy and sell tokens. Bancor’s open-source protocol empowers tokens with built-in convertibility directly through their smart contracts, allowing integrated tokens to be instantly converted for one another, without needing to match buyers and sellers in an exchange. The Bancor Wallet enables automated token conversions directly from within the wallet, at prices that are more predictable than exchanges and resistant to manipulation. To convert tokens instantly, including ETH, EOS, DAI and more, visit the [Bancor Web App](https://www.bancor.network/communities/5a780b3a287443a5cdea2477?utm_source=social&utm_medium=github&utm_content=readme), join the [Bancor Telegram group](https://t.me/bancor) or read the Bancor Protocol™ [Whitepaper](https://www.bancor.network/whitepaper) for more information.
 
@@ -11,7 +12,7 @@ Through the use of smart-contracts, Smart Tokens can be created that hold one or
 
 Bancor is a work in progress. Make sure you understand the risks before using it.
 
-# Contracts
+## Contracts
 
 Bancor protocol is implemented using multiple contracts. The main ones are a version of eosio.token contract, BancorNetwork and BancorConverter. 
 
@@ -42,10 +43,13 @@ A local folder called "nodeos" will be created storing the "config" and "data" r
 All nodeos console output will be written to a local file called "stderr".
 
 ### Prerequisite Software
-* Node.js v8.11.4+
-* npm v6.4.1+
 * eosio v1.8.4
 * eosio.cdt v1.6.2
+* Node.js v8.11.4+
+* npm v6.4.1+
+* doxygen 1.8.13+
+* Python 3.6+
+* pip3 9.0.1+
 
 ## Collaborators
 
@@ -54,7 +58,6 @@ All nodeos console output will be written to a local file called "stderr".
 * **[Or Dadosh](https://github.com/ordd)**
 * **[Yuval Weiss](https://github.com/yuval-weiss)**
 * **[Rick Tobacco](https://github.com/ricktobacco)**
-
 
 ## License
 

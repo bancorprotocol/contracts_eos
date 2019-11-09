@@ -60,7 +60,7 @@ describe('Test: multiConverter', () => {
             )
             result = await getSettings(multiConverter)
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].enabled, true, "multiconverter not enabled")
+            assert.equal(result.rows[0].operational, true, "multiconverter not enabled")
             await expectNoError(
                 setStaking(multiConverter)
             )
@@ -215,14 +215,14 @@ describe('Test: multiConverter', () => {
                 withdraw(user1, '9.00000000 BNT', 'BNTEOS'),
             ) 
             result = await getAccount(user1, 'BNTEOS', 'BNT')
-            var balance = result.rows[0].balance.split(' ')[0]
+            var balance = result.rows[0].quantity.split(' ')[0]
             assert.equal(balance, '1.00000000', 'BNT wasnt supposed to change yet - BNTEOS')
 
             await expectNoError(
                 transfer(bntToken, '9.00000000 BNT', multiConverter, user1, 'fund;BNTEOS'),
             )
             result = await getAccount(user1, 'BNTEOS', 'BNT')
-            balance = result.rows[0].balance.split(' ')[0]
+            balance = result.rows[0].quantity.split(' ')[0]
             assert.equal(balance, '10.00000000', 'BNT wasnt supposed to change yet - BNTEOS')
 
             result = await getBalance(user1, bntToken, 'BNT')
