@@ -48,7 +48,7 @@ All nodeos console output will be written to a local file called "stderr".
 * Node.js v8.11.4+
 * npm v6.4.1+
 
-- For building documentation:
+For building documentation:
 * Python 3.6+
 * pip3 9.0.1+
 * doxybook 3.1.3+
