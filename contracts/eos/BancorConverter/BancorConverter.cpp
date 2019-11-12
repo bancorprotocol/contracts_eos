@@ -340,7 +340,10 @@ double BancorConverter::quick_convert(double balance, double in, double toBalanc
 float BancorConverter::stof(const char* s) {
     float rez = 0, fact = 1;
     
-    if (*s == '-') s++; //skip the sign
+    if (*s == '-') {
+        s++;
+        fact = -1;
+    }
     for (int point_seen = 0; *s; s++) {
         if (*s == '.') {
             if (point_seen) return 0;
