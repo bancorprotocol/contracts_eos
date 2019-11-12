@@ -90,6 +90,11 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
                  * @brief bancor network contract name
                  */
                 name network; 
+
+                /**
+                 * @brief require creating new balance for the calling account should fail
+                 */
+                bool require_balance;
                 
                 /**
                  * @brief maximum conversion fee percentage, 0-30000, 4-pt precision a la eosio.asset
@@ -148,20 +153,22 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param smart_currency - currency of the smart token governed by the converter
          * @param smart_enabled - true if the smart token can be converted to/from, false if not
          * @param enabled - true if conversions are enabled, false if not
+         * @param require_balance - true if conversions that require creating new balance for the calling account should fail, false if not
          * @param network - bancor network contract name
          * @param max_fee - maximum conversion fee percentage, 0-30000, 4-pt precision a la eosio.asset
          * @param fee - conversion fee percentage, must be lower than the maximum fee, same precision
          */ 
-        ACTION init(name smart_contract, asset smart_currency, bool smart_enabled, bool enabled, name network, uint64_t max_fee, uint64_t fee);
+        ACTION init(name smart_contract, asset smart_currency, bool smart_enabled, bool enabled, name network, bool require_balance, uint64_t max_fee, uint64_t fee);
 
         /**
          * @brief updates the converter settings
          * @details can only be called by the contract account
          * @param smart_enabled - true if the smart token can be converted to/from, false if not
          * @param enabled - true if conversions are enabled, false if not
+         * @param require_balance - true if conversions that require creating new balance for the calling account should fail, false if not
          * @param fee - conversion fee percentage, must be lower than the maximum fee, same precision
          */
-        ACTION update(bool smart_enabled, bool enabled, uint64_t fee);
+        ACTION update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee);
         
         /**
          * @brief initializes a new reserve in the converter
@@ -180,33 +187,40 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         ACTION delreserve(symbol_code currency);
 
         /**
-         * @brief transfer intercepts sd adfas asdfasd asdfasdf asdfasdf sdfasdf asdfasdf adfasdf asdfasdf asdfasdf asdfasdf
-         * @details memo is in csv format, values -
-         * version          version number, currently 1
-         * path             conversion path, see conversion path in the BancorNetwork contract
-         * minimum return   conversion minimum return amount, the conversion will fail if the amount returned is lower than the given amount
-         * target account   account to receive the conversion return
+         * @brief transfer intercepts
+         * @details `memo` in csv format, may contain an extra keyword (e.g. "setup") following a semicolon at the end of the conversion path; 
+         * indicates special transfer which otherwise would be interpreted as a standard conversion
+         * @param from - the sender of the transfer
+         * @param to - the receiver of the transfer
+         * @param quantity - the quantity for the transfer
+         * @param memo - the memo for the transfer
          */
         [[eosio::on_notify("*::transfer")]]
-        void on_transfer(name from, name to, asset quantity, string memo);
+        void on_transfer(name from, name to, asset quantity, std::string memo);
     
     private:
         using transfer_action = action_wrapper<name("transfer"), &BancorConverter::on_transfer>;
         typedef eosio::multi_index<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves; 
         
-        void convert(name from, eosio::asset quantity, string memo, name code);
+        constexpr static double RATIO_DENOMINATOR = 1000000.0;
+        constexpr static double FEE_DENOMINATOR = 1000000.0;
+
+        void convert(name from, eosio::asset quantity, std::string memo, name code);
         const reserve_t& get_reserve(uint64_t name, const settings_t& settings);
 
         asset get_balance(name contract, name owner, symbol_code sym);
         uint64_t get_balance_amount(name contract, name owner, symbol_code sym);
         asset get_supply(name contract, symbol_code sym);
 
-        void verify_min_return(asset quantity, string min_return);
-        void verify_entry(name account, name currency_contract, asset currency);
+        void verify_min_return(eosio::asset quantity, std::string min_return);
+        void verify_entry(name account, name currency_contract, eosio::asset currency);
 
+        double calculate_fee(double amount, uint64_t fee, uint8_t magnitude);
         double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);
         double calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio);
         double quick_convert(double balance, double in, double toBalance);
 
+        float stof(const char* s);
+        
 }; /** @}*/

@@ -36,9 +36,6 @@ struct memo_structure {
 #define BANCOR_NETWORK "thisisbancor"_n
 #define BNT_TOKEN "bntbntbntbnt"_n
 
-constexpr static double MAX_RATIO = 1000000.0;
-constexpr static double MAX_FEE = 1000000.0;
-
 vector<string> split(const string& str, const string& delim) {
     vector<string> tokens;
     size_t prev = 0, pos = 0;
@@ -82,29 +79,6 @@ std::string build_memo(memo_structure data) {
 */
 double to_fixed(double num, int precision) {
     return (int)(num * pow(10, precision)) / pow(10, precision);
-}
-
-float stof(const char* s) {
-    float rez = 0, fact = 1;
-    
-    if (*s == '-') s++; //skip the sign
-    for (int point_seen = 0; *s; s++) {
-        if (*s == '.') {
-            if (point_seen) return 0;
-            point_seen = 1; 
-            continue;
-        }
-        int d = *s - '0';
-        if (d >= 0 && d <= 9) {
-            if (point_seen) fact /= 10.0f;
-            rez = rez * 10.0f + (float)d;
-        } else return 0;
-    }
-    return rez * fact;
-}
-
-double calculate_fee(double amount, uint64_t fee, uint8_t magnitude) {
-    return amount * (1 - pow((1 - fee / MAX_FEE), magnitude));
 }
 
 memo_structure parse_memo(std::string memo) {

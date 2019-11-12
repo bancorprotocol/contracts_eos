@@ -566,6 +566,10 @@ void MultiConverter::verify_entry(name account, name currency_contract, symbol c
     check(ac != accountstable.end(), "must have entry for token (claim token first)");
 }
 
+double MultiConverter::calculate_fee(double amount, uint64_t fee, uint8_t magnitude) {
+    return amount * (1 - pow((1 - fee / MAX_FEE), magnitude));
+}
+
 // asserts if a conversion resulted in an amount lower than the minimum amount defined by the caller
 void MultiConverter::verify_min_return(asset quantity, string min_return) {
     float ret = stof(min_return.c_str());
@@ -601,6 +605,25 @@ double MultiConverter::calculate_sale_return(double balance, double sell_amount,
 
 double MultiConverter::quick_convert(double balance, double in, double toBalance) {
     return in / (balance + in) * toBalance;
+}
+
+float MultiConverter::stof(const char* s) {
+    float rez = 0, fact = 1;
+    
+    if (*s == '-') s++; //skip the sign
+    for (int point_seen = 0; *s; s++) {
+        if (*s == '.') {
+            if (point_seen) return 0;
+            point_seen = 1; 
+            continue;
+        }
+        int d = *s - '0';
+        if (d >= 0 && d <= 9) {
+            if (point_seen) fact /= 10.0f;
+            rez = rez * 10.0f + (float)d;
+        } else return 0;
+    }
+    return rez * fact;
 }
 
 void MultiConverter::on_transfer(name from, name to, asset quantity, string memo) {    

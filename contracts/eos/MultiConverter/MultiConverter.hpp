@@ -316,7 +316,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         
         /**
          * @brief transfer intercepts with standard transfer args
-         * @details `memo` containing a keyword following a semicolon at the end of the conversion path indicates special kind of transfer:
+         * @details `memo` containing a keyword following a semicolon at the end of the conversion path indicates special kind of transfer which otherwise would be interpreted as a standard conversion:
          * - e.g. transferring smart tokens with keyword "liquidate", or
          * - transferring reserve tokens with keyword "fund"
          * @param from - the sender of the transfer
@@ -356,6 +356,8 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         */
         void liquidate(name sender, asset quantity); // quantity to decrease the supply by (in the smart token)
 
+        double calculate_fee(double amount, uint64_t fee, uint8_t magnitude);
+        
         asset get_supply(name contract, symbol_code sym);
 
         void verify_min_return(asset quantity, string min_return);
@@ -365,8 +367,12 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         double calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio);
         double quick_convert(double balance, double in, double toBalance);
 
+        float stof(const char* s);
+
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
            return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
         } 
+        constexpr static double MAX_RATIO = 1000000.0;
+        constexpr static double MAX_FEE = 1000000.0;
 
 }; /** @}*/

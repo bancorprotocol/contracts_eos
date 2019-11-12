@@ -38,6 +38,10 @@
                     "type": "name"
                 },
                 {
+                    "name": "require_balance",
+                    "type": "bool"
+                },
+                {
                     "name": "max_fee",
                     "type": "uint64"
                 },
@@ -116,6 +120,10 @@
                     "type": "name"
                 },
                 {
+                    "name": "require_balance",
+                    "type": "bool"
+                },
+                {
                     "name": "max_fee",
                     "type": "uint64"
                 },
@@ -135,6 +143,10 @@
                 },
                 {
                     "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "require_balance",
                     "type": "bool"
                 },
                 {
