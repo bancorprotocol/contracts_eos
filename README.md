@@ -47,9 +47,12 @@ All nodeos console output will be written to a local file called "stderr".
 * eosio.cdt v1.6.2
 * Node.js v8.11.4+
 * npm v6.4.1+
-* doxygen 1.8.13+
+
+For building documentation:
 * Python 3.6+
 * pip3 9.0.1+
+* doxybook 3.1.3+
+* doxygen 1.8.13+
 
 ## Collaborators
 
