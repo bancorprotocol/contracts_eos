@@ -53,9 +53,9 @@ ACTION MultiConverter::setenabled(bool enabled) {
     require_auth(get_self());
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "set token contract first");
-    check(enabled != st.operational, "setting same value as before");
+    check(enabled != st.active, "setting same value as before");
     settings_table.modify(st, same_payer, [&](auto& s) {		
-        s.operational = enabled;
+        s.active = enabled;
     });
 }
 
@@ -97,7 +97,7 @@ ACTION MultiConverter::setmultitokn(name multi_token) {
     check(st == settings_table.end(), "can only call setmultitokn once");
     
     settings_table.emplace(get_self(), [&](auto& s) {		
-        s.operational = false;
+        s.active = false;
         s.multi_token = multi_token;
     });
 }
@@ -408,7 +408,7 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
     converters converters_table(get_self(), converter_currency_code.raw());
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     
-    check(settings.operational && converter.enabled, "conversions are disabled");
+    check(settings.active && converter.enabled, "conversions are disabled");
     check(from == BANCOR_NETWORK, "converter can only receive from network contract");
     check(memo_object.converters[0].account == get_self(), "wrong converter");
     
