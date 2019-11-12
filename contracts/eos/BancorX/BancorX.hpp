@@ -15,6 +15,18 @@
 using namespace eosio;
 using namespace std;
 
+/**
+ * @defgroup BancorX BancorX
+ * @ingroup bancorcontracts
+ * @brief The BancorX contract allows cross chain token transfers.
+ * @details There are two processes that take place in the contract:
+ * - Initiate a cross chain transfer to a target blockchain (destroys tokens from the caller account on EOS)
+ * - Report a cross chain transfer initiated on a source blockchain (issues tokens to an account on EOS)
+ * Reporting cross chain transfers works similar to standard multisig contracts, meaning that multiple
+ * callers are required to report a transfer before tokens are issued to the target account.
+ * @{
+*/
+
 /// triggered when an account initiates a cross chain transafer
 #define EMIT_X_TRANSFER_EVENT(blockchain, target, quantity, id) \
     START_EVENT("xtransfer", "1.2") \
@@ -57,65 +69,81 @@ using namespace std;
     EVENTKVL("quantity",quantity) \
     END_EVENT()
 
-/**
- * @defgroup bancorx BancorX
- * @ingroup bancorcontracts
- * @brief The BancorX contract allows cross chain token transfers.
- * @details There are two processes that take place in the contract:
- * - Initiate a cross chain transfer to a target blockchain (destroys tokens from the caller account on EOS)
- * - Report a cross chain transfer initiated on a source blockchain (issues tokens to an account on EOS)
- * Reporting cross chain transfers works similar to standard multisig contracts, meaning that multiple
- * callers are required to report a transfer before tokens are issued to the target account.
- * @{
-*/
-CONTRACT BancorX : public contract {
+/*! \cond DOCS_EXCLUDE */
+CONTRACT BancorX : public contract { /*! \endcond */
     public:
         using contract::contract;
 
-        TABLE settings_t {
-            name     x_token_name;
-            bool     rpt_enabled;
-            bool     xt_enabled;
-            uint64_t min_reporters;
-            uint64_t min_limit;
-            uint64_t limit_inc;
-            uint64_t max_issue_limit;
-            uint64_t prev_issue_limit;
-            uint64_t prev_issue_time;
-            uint64_t max_destroy_limit;
-            uint64_t prev_destroy_limit;
-            uint64_t prev_destroy_time;
-        };
+        /** 
+         * @defgroup XSettings_Table Settings Table
+         * @brief This table stores settings for cross-transfers
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE settings_t { /*! \endcond */
+                name     x_token_name;
+                bool     rpt_enabled;
+                bool     xt_enabled;
+                uint64_t min_reporters;
+                uint64_t min_limit;
+                uint64_t limit_inc;
+                uint64_t max_issue_limit;
+                uint64_t prev_issue_limit;
+                uint64_t prev_issue_time;       
+                uint64_t max_destroy_limit;
+                uint64_t prev_destroy_limit;
+                uint64_t prev_destroy_time;
+            }; /** @}*/
 
-        TABLE transfer_t {
-            uint64_t        tx_id;
-            uint64_t        x_transfer_id;
-            name            target;
-            asset           quantity;
-            string          blockchain;
-            string          memo;
-            string          data;
-            vector<name>    reporters;
-            uint64_t     primary_key() const { return tx_id; }
-        };
+        /**
+         * @defgroup Tranfsers_Table Transfers Table
+         * @brief This table stores transfer stats
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE transfer_t { /*! \endcond */
+                uint64_t     tx_id;
+                uint64_t     x_transfer_id;
+                name         target;
+                asset        quantity;
+                string       blockchain;
+                string       memo;
+                string       data;
+                vector<name> reporters;
 
-        TABLE amounts_t {
-            uint64_t x_transfer_id;
-            name target;
-            asset quantity;
-            uint64_t primary_key() const { return x_transfer_id; }
-        };
+                /*! \cond DOCS_EXCLUDE */  
+                uint64_t     primary_key() const { return tx_id; }                
+                /*! \endcond */
 
-        TABLE reporter_t {
-            name reporter;
-            uint64_t primary_key() const { return reporter.value; }
-        };
+            }; /** @}*/
 
-        typedef eosio::singleton<"settings"_n, settings_t> settings;
-        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
-        typedef eosio::multi_index<"transfers"_n, transfer_t> transfers;
-        typedef eosio::multi_index<"amounts"_n, amounts_t> amounts;
-        typedef eosio::multi_index<"reporters"_n, reporter_t> reporters;
+        /** 
+         * @defgroup Amounts_Table Amounts Table
+         * @brief This table quantities for cross-transfers
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE amounts_t { /*! \endcond */
+                uint64_t x_transfer_id;
+                name     target;
+                asset    quantity;
+
+                /*! \cond DOCS_EXCLUDE */        
+                uint64_t primary_key() const { return x_transfer_id; }
+                /*! \endcond */
+
+            }; /** @}*/
+
+        /** 
+         * @defgroup Reporters_Table Reporters Table
+         * @brief This table stores the account names of BancorX reporters
+         * @{
+         *! \cond DOCS_EXCLUDE */        
+            TABLE reporter_t { /*! \endcond */
+                name reporter; 
+
+                /*! \cond DOCS_EXCLUDE */        
+                uint64_t primary_key() const { return reporter.value; }
+                /*! \endcond */
+
+            }; /** @}*/
 
         /**
          * @brief initializes the contract settings
@@ -193,17 +221,23 @@ CONTRACT BancorX : public contract {
          */
         [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
-        using transfer_action = action_wrapper<name("transfer"), &BancorX::on_transfer>;
-
+    
     private:
+        using transfer_action = action_wrapper<name("transfer"), &BancorX::on_transfer>;
+        typedef eosio::singleton<"settings"_n, settings_t> settings;
+        typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name
+        typedef eosio::multi_index<"transfers"_n, transfer_t> transfers;
+        typedef eosio::multi_index<"amounts"_n, amounts_t> amounts;
+        typedef eosio::multi_index<"reporters"_n, reporter_t> reporters;
+        
         struct memo_x_transfer {
-            std::string version;
-            std::string blockchain;
-            std::string target;
-            std::string x_transfer_id;
+            string version;
+            string blockchain;
+            string target;
+            string x_transfer_id;
         };
 
-        void xtransfer(string blockchain, name from, string target, asset quantity, std::string x_transfer_id);
+        void xtransfer(string blockchain, name from, string target, asset quantity, string x_transfer_id);
 
         memo_x_transfer parse_memo(string memo) {
             auto res = memo_x_transfer();

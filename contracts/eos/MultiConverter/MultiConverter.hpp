@@ -13,6 +13,14 @@
 using namespace eosio;
 using namespace std;
 
+/**
+ * @defgroup MultiConverter MultiConverter
+ * @brief Bancor MultiConverter
+ * @details The Bancor converter allows conversions between a smart token and tokens
+ * that are defined as its reserves and between the different reserves directly.
+ * @{
+*/
+
 /// triggered when a conversion between two tokens occurs
 #define EMIT_CONVERSION_EVENT(converter_currency_symbol, memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount){ \
     START_EVENT("conversion", "1.4") \
@@ -49,60 +57,156 @@ using namespace std;
     END_EVENT() \
 }
 
-/**
- * @defgroup bancormulticonverter MultiConverter
- * @ingroup bancorcontracts
- * @brief Bancor MultiConverter
- * @details The Bancor converter allows conversions between a smart token and tokens
- * that are defined as its reserves and between the different reserves directly.
- * @{
-*/
-CONTRACT MultiConverter : public eosio::contract {
+/*! \cond DOCS_EXCLUDE */
+CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
     public:
         using contract::contract;
 
-        TABLE settings_t {
-            bool     enabled = false;
-            uint64_t max_fee = MAX_FEE;
-            name     multi_token; /// account name of contract for relay tokens
-            name     staking;     /// account name of contract for voting and staking
-            uint64_t primary_key() const { return "settings"_n.value; }
-        };
+        /** 
+         * @defgroup MultiConverter_Settings_Table Settings Table
+         * @brief This table stores the global settings affecting all the converters in this contract
+         * @details Both SCOPE and PRIMARY KEY are `_self`, so this table is effectively a singleton
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE settings_t { /*! \endcond */
+                /**
+                 * @brief toggle boolean to enable/disable all the converters in this contract
+                 */
+                bool active;
 
-        TABLE reserve_t {
-            name     contract;
-            uint64_t ratio;
-            bool     sale_enabled;
-            asset    balance;
-            uint64_t primary_key() const { return balance.symbol.code().raw(); }
-        };
+                /**
+                 * @brief maximum conversion fee for converters in this contract
+                 */
+                uint64_t max_fee;
+
+                /**
+                 * @brief account name of contract for relay tokens
+                 */
+                name multi_token;
+                
+                /**
+                 * @brief account name of contract for voting and staking
+                 */
+                name staking;
         
-        TABLE converter_t {
-            symbol   currency;
-            name     owner;
-            bool     enabled = false;
-            bool     launched = false;
-            bool     stake_enabled = false;
-            uint64_t fee = 0;
-            uint64_t primary_key() const { return currency.code().raw(); }
-        };
+                /*! \cond DOCS_EXCLUDE */
+                uint64_t primary_key() const { return "settings"_n.value; } 
+                /*! \endcond */
 
-        TABLE account_t {
-            symbol_code currency;
-            asset       balance;
-            uint64_t    id; // dummy just for primary_index
-            uint64_t    primary_key() const { return id; }
-            bool        is_empty()    const { return balance.amount == 0; }
-            uint128_t   by_cnvrt()   const { return _by_cnvrt(balance, currency); }
-        };
+            }; /** @}*/
 
-        typedef eosio::multi_index<"settings"_n, settings_t> settings;
-        typedef eosio::multi_index<"converters"_n, converter_t> converters;
-        typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
-        typedef eosio::multi_index<"accounts"_n, account_t,         
-                        indexed_by<"bycnvrt"_n, 
-                            const_mem_fun <account_t, uint128_t, 
-                            &account_t::by_cnvrt >>> accounts;
+        /** 
+         * @defgroup MultiConverter_Reserves_Table Reserves Table
+         * @brief This table stores the reserve balances and related information for the reserves of every converter in this contract
+         * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE reserve_t { /*! \endcond */
+                /**
+                 * @brief name of the account storing the token contract for this reserve's token
+                 */
+                name contract;
+
+                /**
+                 * @brief reserve ratio relative to the other reserves 
+                 */
+                uint64_t ratio;
+
+                /**
+                 * @brief toggle boolean to enable/disable conversions through this reserve
+                 */
+                bool sale_enabled;
+
+                /**
+                 * @brief amount in the reserve
+                 * @details PRIMARY KEY for this table is `balance.symbol.code().raw()`
+                 */
+                asset balance;
+
+                /*! \cond DOCS_EXCLUDE */
+                uint64_t primary_key() const { return balance.symbol.code().raw(); }
+                /*! \endcond */
+
+            }; /** @}*/
+        
+        /** 
+         * @defgroup Converters_Table Converters Table
+         * @brief This table stores the key information about all converters in this contract
+         * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE converter_t { /*! \endcond */
+                /**
+                 * @brief symbol of the smart token -- representing a share in the reserves of this converter
+                 * @details PRIMARY KEY for this table is `currency.code().raw()`
+                 */
+                symbol currency; 
+
+                /**
+                 * @brief creator of the converter
+                 */
+                name owner;
+
+                /**
+                 * @brief toggle boolean to enable/disable this converter
+                 */
+                bool enabled;
+ 
+                /**
+                 * @brief Has this converter launched (ever been enabled)
+                 */
+                bool launched;
+
+                /**                
+                 * @brief toggle boolean to enable/disable this staking and voting for this converter
+                 */
+                bool stake_enabled;
+
+                /**
+                 * @brief conversion fee for this converter, applied on every hop
+                 */
+                uint64_t fee;
+
+                /*! \cond DOCS_EXCLUDE */
+                uint64_t primary_key() const { return currency.code().raw(); }
+                /*! \endcond */                
+
+            }; /** @}*/
+
+        /**
+         * @defgroup Accounts_Table Accounts Table
+         * @brief This table stores "temporary balances" that are transfered in by liquidity providers before they can get added to their respective reserves
+         * @details SCOPE of this table is the `name.value` of the liquidity provider, owner of the `quantity`
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE account_t { /*! \endcond */ 
+                /**
+                 * @brief symbol of the smart token (a way to reference converters) this balance pertains to
+                 */
+                symbol_code symbl; 
+
+                /**
+                 * @brief balance in the reserve currency
+                 */
+                asset quantity; 
+
+                /**
+                 * @brief PRIMARY KEY for this table, unused dummy variable
+                 */
+                uint64_t id; 
+
+                /**
+                 * @brief SECONDARY KEY of this table based on the symbol of the temporary reserve balance for a particular converter 
+                 * @details uint128_t { balance.symbol.code().raw() } << 64 ) | currency.raw()
+                 */
+                uint128_t by_cnvrt()   const { return _by_cnvrt(quantity, symbl); }
+
+                /*! \cond DOCS_EXCLUDE */
+                uint64_t    primary_key() const { return id; }
+                bool        is_empty()    const { return quantity.amount == 0; }
+                /*! \endcond */
+
+            }; /** @}*/
 
         /**
          * @brief initializes a new converter
@@ -193,7 +297,7 @@ CONTRACT MultiConverter : public eosio::contract {
         ACTION delreserve(symbol_code converter, symbol_code currency);
 
         /**
-         * @brief called by withdrawing liquidity providers before converter is enabled for the first time
+         * @brief called by liquidity providers withdrawing "temporary balances" before `fund`ing them into the reserve
          * @param sender - sender of the quantity
          * @param quantity - amount to decrease the supply by (in the smart token)
          * @param converter_currency_code - the currency code of the currency governed by the converter
@@ -201,7 +305,7 @@ CONTRACT MultiConverter : public eosio::contract {
         ACTION withdraw(name sender, asset quantity, symbol_code converter_currency_code);
         
         /**
-         * @brief buys smart token with all connector tokens using the same percentage
+         * @brief buys smart tokens with all connector tokens using the same percentage
          * @details i.e. if the caller increases the supply by 10%, it will cost an amount equal to
          * 10% of each connector token balance
          * can only be called if the total ratio is exactly 100% and while conversions are enabled
@@ -212,15 +316,9 @@ CONTRACT MultiConverter : public eosio::contract {
         
         /**
          * @brief transfer intercepts with standard transfer args
-         * @details containing a keyword followed by semicolon indicates special kind of transfer:
-         * e.g. transferring smart token with keyword "liquidate",
-         * transferring reserve tokens with keyword "fund" after converter launched,
-         * or using "setup" keyword before converter launched
-         * regular conversion memo is in csv format, values:
-         * version          version number, currently 1
-         * path             conversion path, see conversion path in the BancorNetwork contract
-         * minimum return   conversion minimum return amount, the conversion will fail if the amount returned is lower than the given amount
-         * target account   account to receive the conversion return
+         * @details `memo` containing a keyword following a semicolon at the end of the conversion path indicates special kind of transfer which otherwise would be interpreted as a standard conversion:
+         * - e.g. transferring smart tokens with keyword "liquidate", or
+         * - transferring reserve tokens with keyword "fund"
          * @param from - the sender of the transfer
          * @param to - the receiver of the transfer
          * @param quantity - the quantity for the transfer
@@ -229,8 +327,18 @@ CONTRACT MultiConverter : public eosio::contract {
         //[[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
         //using transfer_action = action_wrapper<name("transfer"), &MultiConverter::on_transfer>;
+        
+        /*! \cond DOCS_EXCLUDE */
+        typedef eosio::multi_index<"settings"_n, settings_t> settings;
+        typedef eosio::multi_index<"converters"_n, converter_t> converters;
+        typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
+        typedef eosio::multi_index<"accounts"_n, account_t,         
+                        indexed_by<"bycnvrt"_n, 
+                            const_mem_fun <account_t, uint128_t, 
+                            &account_t::by_cnvrt >>> accounts;
+        /*! \endcond */ 
 
-    private:
+    private: 
         void convert(name from, asset quantity, string memo, name code);
 
         const reserve_t& get_reserve(uint64_t name, const converter_t& converter);
@@ -246,14 +354,14 @@ CONTRACT MultiConverter : public eosio::contract {
          * can only be called if the max total weight is exactly 100%
          * note that the function can also be called if conversions are disabled
         */
-        void liquidate(name sender, asset quantity); /// amount to decrease the supply by (in the smart token)
+        void liquidate(name sender, asset quantity); // quantity to decrease the supply by (in the smart token)
 
         double calculate_fee(double amount, uint64_t fee, uint8_t magnitude);
-
+        
         asset get_supply(name contract, symbol_code sym);
 
         void verify_min_return(asset quantity, string min_return);
-        void verify_entry(name account, name currency_contact, symbol currency);
+        void verify_entry(name account, name currency_contract, symbol currency);
 
         double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);
         double calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio);
@@ -262,9 +370,9 @@ CONTRACT MultiConverter : public eosio::contract {
         float stof(const char* s);
 
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
-            return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
-        }
+           return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
+        } 
         constexpr static double MAX_RATIO = 1000000.0;
         constexpr static double MAX_FEE = 1000000.0;
-};
-/** @}*/ // end of @defgroup bancormulticonverter MultiConverter
+
+}; /** @}*/

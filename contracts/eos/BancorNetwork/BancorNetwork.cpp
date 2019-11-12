@@ -14,7 +14,7 @@ ACTION BancorNetwork::init() {
 void BancorNetwork::on_transfer(name from, name to, asset quantity, string memo) {
     // avoid unstaking and system contract ops mishaps
     if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
-	return;
+	    return;
 
     check(quantity.symbol.is_valid(), "invalid quantity in transfer");
     check(quantity.amount != 0, "zero quantity is disallowed in transfer");
