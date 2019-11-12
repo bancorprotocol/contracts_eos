@@ -72,7 +72,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
                 /**
                  * @brief toggle boolean to enable/disable all the converters in this contract
                  */
-                bool operational;
+                bool active;
 
                 /**
                  * @brief maximum conversion fee for converters in this contract
