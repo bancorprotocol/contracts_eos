@@ -4,9 +4,24 @@
     "types": [],
     "structs": [
         {
-            "name": "init",
+            "name": "setenabled",
             "base": "",
-            "fields": []
+            "fields": [
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "setmaxfee",
+            "base": "",
+            "fields": [
+                {
+                    "name": "max_affiliate_fee",
+                    "type": "uint64"
+                }
+            ]
         },
         {
             "name": "settings_t",
@@ -25,8 +40,13 @@
     ],
     "actions": [
         {
-            "name": "init",
-            "type": "init",
+            "name": "setenabled",
+            "type": "setenabled",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setmaxfee",
+            "type": "setmaxfee",
             "ricardian_contract": ""
         }
     ],
