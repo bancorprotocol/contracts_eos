@@ -60,7 +60,7 @@ describe('Test: multiConverter', () => {
             )
             result = await getSettings(multiConverter)
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].operational, true, "multiconverter not enabled")
+            assert.equal(result.rows[0].active, true, "multiconverter not enabled")
             await expectNoError(
                 setStaking(multiConverter)
             )
