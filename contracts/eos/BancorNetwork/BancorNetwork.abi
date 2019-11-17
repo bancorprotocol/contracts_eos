@@ -4,16 +4,6 @@
     "types": [],
     "structs": [
         {
-            "name": "setenabled",
-            "base": "",
-            "fields": [
-                {
-                    "name": "enabled",
-                    "type": "bool"
-                }
-            ]
-        },
-        {
             "name": "setmaxfee",
             "base": "",
             "fields": [
@@ -39,11 +29,6 @@
         }
     ],
     "actions": [
-        {
-            "name": "setenabled",
-            "type": "setenabled",
-            "ricardian_contract": ""
-        },
         {
             "name": "setmaxfee",
             "type": "setmaxfee",

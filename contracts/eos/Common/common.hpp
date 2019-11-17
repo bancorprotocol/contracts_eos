@@ -19,20 +19,20 @@ using namespace std;
 typedef vector<string> path;
 
 struct converter {
-    name   account;
+    name account;
     string sym;
 };
 
 struct memo_structure {
-    path              path;
+    path path;
     vector<converter> converters;
-    string            version;
-    string            min_return;
-    string            dest_account;
-    string            sender_account;
-    string            affiliate_account;
-    string	          affiliate_fee;
-    string            receiver_memo;
+    string version;
+    string min_return;
+    string dest_account;
+    string trader_account;
+    string affiliate_account;
+    string affiliate_fee;
+    string receiver_memo;
 };
 
 #define BANCOR_X "bancorxoneos"_n
@@ -70,9 +70,9 @@ string build_memo(memo_structure data) {
     memo.append(data.min_return);
     memo.append(",");
     memo.append(data.dest_account);
-    if (!data.sender_account.empty()) {
+    if (!data.trader_account.empty()) {
         memo.append(",");
-        memo.append(data.sender_account);
+        memo.append(data.trader_account);
     }
     if (!data.affiliate_account.empty()) {
         memo.append(",");
@@ -96,8 +96,11 @@ double to_fixed(double num, int precision) {
 
 float stof(const char* s) {
     float rez = 0, fact = 1;
-    
-    if (*s == '-') s++; //skip the sign
+
+    if (*s == '-') {
+        s++;
+        fact = -1;
+    }
     for (int point_seen = 0; *s; s++) {
         if (*s == '.') {
             if (point_seen) return 0;
@@ -166,18 +169,18 @@ memo_structure parse_memo(string memo) {
     res.dest_account = parts[3];
     
     // supplying an affiliate account without affiliate fee 
-    // will interpret ^account as sender of the conversion
+    // will interpret ^account as sender of the conversion (trader_account)
     if (parts.size() == 5) { // or no affiliate parts at all
-        res.sender_account = parts[4];
+        res.trader_account = parts[4];
     }
-    // affiliate parts present, but sender not yet set
+    // affiliate parts present, but sender (trader) not yet set
     else if (parts.size() == 6) { 
         res.affiliate_account = parts[4];
         res.affiliate_fee = parts[5];
     }
-    // affiliate parts present, AND sender already set
+    // affiliate parts present, AND sender (trader) already set
     else if (parts.size() == 7) {
-        res.sender_account = parts[4];
+        res.trader_account = parts[4];
         res.affiliate_account = parts[5];
         res.affiliate_fee = parts[6];
     }

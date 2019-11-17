@@ -39,10 +39,9 @@ using namespace std;
  * - the account that was paid the affiliate fee
  * - the amount of that was paid as affiliate fee 
  */
-#define EMIT_AFFILIATE_EVENT(sender, destination, from_contract, fee_account, to_amount, fee_amount){ \
+#define EMIT_AFFILIATE_FEE_EVENT(trader, from_contract, fee_account, to_amount, fee_amount){ \
     START_EVENT("affiliate", "1.0") \
-    EVENTKV("sender", sender) \
-    EVENTKV("destination", destination) \
+    EVENTKV("trader", trader) \
     EVENTKV("from_contract", from_contract) \
     EVENTKV("affiliate_account", fee_account) \
     EVENTKV("return", to_amount) \
@@ -82,12 +81,6 @@ CONTRACT BancorNetwork : public eosio::contract { /*! \endcond */
          * @param max_affiliate_fee - what network owner determines to be the maximum 
          */
         ACTION setmaxfee(uint64_t max_affiliate_fee);
-
-        /**
-         * @brief enable or disable conversions accross the entire network
-         * @param enabled - whether conversions are enabled or disabled
-         */
-        ACTION setenabled(bool enabled);
 
         /**
          * @brief transfer intercepts
