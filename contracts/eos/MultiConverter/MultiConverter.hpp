@@ -10,6 +10,8 @@
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
 
+#include "../Common/common.hpp"
+
 using namespace eosio;
 using namespace std;
 
@@ -125,6 +127,29 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
 
                 /*! \cond DOCS_EXCLUDE */
                 uint64_t primary_key() const { return balance.symbol.code().raw(); }
+                /*! \endcond */
+
+            }; /** @}*/
+        
+        /** 
+         * @defgroup Paths_Table Paths Table
+         * @brief This table stores the aggregate set of (output) reserves which can be purchased in exchange for a given (input) reserve 
+         * @details SCOPE of this table is the MultiConverter contract (`_self`)
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE path_t { /*! \endcond */
+                /**
+                 * @brief reserves you can buy in exchange for `reserve` below
+                 */
+                set<symbol_code> reserves;
+                
+                /**
+                 * @brief the reserve you can sell to buy `reserves` above
+                 */
+                symbol_code reserve;
+
+                /*! \cond DOCS_EXCLUDE */
+                uint64_t primary_key() const { return reserve.raw(); }
                 /*! \endcond */
 
             }; /** @}*/
@@ -316,7 +341,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         
         /**
          * @brief transfer intercepts with standard transfer args
-         * @details `memo` containing a keyword following a semicolon at the end of the conversion path indicates special kind of transfer which otherwise would be interpreted as a standard conversion:
+         * @details `memo` containing a keyword following a semicolon at the end of the conversion path indicates special kind of transfer:
          * - e.g. transferring smart tokens with keyword "liquidate", or
          * - transferring reserve tokens with keyword "fund"
          * @param from - the sender of the transfer
@@ -332,6 +357,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         typedef eosio::multi_index<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
+        typedef eosio::multi_index<"paths"_n, path_t> paths;
         typedef eosio::multi_index<"accounts"_n, account_t,         
                         indexed_by<"bycnvrt"_n, 
                             const_mem_fun <account_t, uint128_t, 
@@ -340,6 +366,8 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
 
     private: 
         void convert(name from, asset quantity, string memo, name code);
+        double calculate_return(const reserve_t& from_token, const reserve_t& to_token, double from_amount, string memo, const converter_t& converter, name multi_token);
+        void complete_convert(memo_structure memo_object, name to_token_contract, double to_return, symbol to_symbol, symbol converter_currency);
 
         const reserve_t& get_reserve(uint64_t name, const converter_t& converter);
 
@@ -355,7 +383,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * note that the function can also be called if conversions are disabled
         */
         void liquidate(name sender, asset quantity); // quantity to decrease the supply by (in the smart token)
-        
+
         asset get_supply(name contract, symbol_code sym);
 
         double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);
@@ -364,6 +392,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
 
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
            return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
-        }
+        } 
 
 }; /** @}*/

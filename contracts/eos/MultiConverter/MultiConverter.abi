@@ -136,6 +136,20 @@
             ]
         },
         {
+            "name": "path_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "reserves",
+                    "type": "symbol_code[]"
+                },
+                {
+                    "name": "reserve",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
             "name": "reserve_t",
             "base": "",
             "fields": [
@@ -375,6 +389,13 @@
         {
             "name": "converters",
             "type": "converter_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "paths",
+            "type": "path_t",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
