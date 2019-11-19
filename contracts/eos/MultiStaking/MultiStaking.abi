@@ -1,0 +1,314 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
+    "structs": [
+        {
+            "name": "config_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "refund_delay_sec",
+                    "type": "int32"
+                },
+                {
+                    "name": "start_vote_after",
+                    "type": "int32"
+                },
+                {
+                    "name": "converter",
+                    "type": "name"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "delegate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "amount",
+                    "type": "asset"
+                },
+                {
+                    "name": "from",
+                    "type": "name"
+                },
+                {
+                    "name": "to",
+                    "type": "name"
+                },
+                {
+                    "name": "transfer",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "delegate_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "delegate",
+                    "type": "name"
+                },
+                {
+                    "name": "delegated_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "delegated",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "refund",
+            "base": "",
+            "fields": [
+                {
+                    "name": "symbl",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "refund_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "stake",
+                    "type": "asset"
+                },
+                {
+                    "name": "request_time",
+                    "type": "int32"
+                }
+            ]
+        },
+        {
+            "name": "setconfig",
+            "base": "",
+            "fields": [
+                {
+                    "name": "refund_delay_sec",
+                    "type": "uint32"
+                },
+                {
+                    "name": "start_vote_after",
+                    "type": "uint32"
+                },
+                {
+                    "name": "converter",
+                    "type": "name"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "stake_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "staked",
+                    "type": "asset"
+                },
+                {
+                    "name": "delegated_in",
+                    "type": "uint64"
+                },
+                {
+                    "name": "delegated_to",
+                    "type": "uint64"
+                },
+                {
+                    "name": "delegated_out",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "undelegate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "from",
+                    "type": "name"
+                },
+                {
+                    "name": "to",
+                    "type": "name"
+                },
+                {
+                    "name": "unstake",
+                    "type": "bool"
+                },
+                {
+                    "name": "amount",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "vote",
+            "base": "",
+            "fields": [
+                {
+                    "name": "property",
+                    "type": "name"
+                },
+                {
+                    "name": "value",
+                    "type": "asset"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "vote_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "symbl",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "property",
+                    "type": "name"
+                },
+                {
+                    "name": "last_vote_ts",
+                    "type": "int32"
+                },
+                {
+                    "name": "value",
+                    "type": "int64"
+                },
+                {
+                    "name": "vote_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "weight_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "symbl_code",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "total",
+                    "type": "uint64"
+                },
+                {
+                    "name": "k",
+                    "type": "uint64"
+                },
+                {
+                    "name": "sum_w_k",
+                    "type": "float64"
+                },
+                {
+                    "name": "Y",
+                    "type": "uint64[]"
+                },
+                {
+                    "name": "W",
+                    "type": "uint64[]"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "delegate",
+            "type": "delegate",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "refund",
+            "type": "refund",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setconfig",
+            "type": "setconfig",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "undelegate",
+            "type": "undelegate",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "vote",
+            "type": "vote",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "config",
+            "type": "config_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "delegates",
+            "type": "delegate_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "refunds",
+            "type": "refund_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "stakes",
+            "type": "stake_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "votes",
+            "type": "vote_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "weights",
+            "type": "weight_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}
