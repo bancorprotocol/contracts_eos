@@ -572,11 +572,11 @@ describe('Test: multiConverter', () => {
 
             result = await getAccount(user1, 'BNTEOS', 'EOS')
             var balance = result.rows[0].quantity
-            assert.equal(balance, "9.0000 EOS", 'EOS balance came back static')
+            assert.notEqual(balance, "9.0000 EOS", 'EOS balance came back static')
             
             result = await getAccount(user1, 'BNTEOS', 'BNT')
             var balance = result.rows[0].quantity
-            assert.equal(balance, "9.00000000 BNT", 'BNT balance came back static')
+            assert.notEqual(balance, "9.00000000 BNT", 'BNT balance came back static')
 
         })
 
@@ -588,11 +588,11 @@ describe('Test: multiConverter', () => {
 
             result = await getAccount(user1, 'BNTEOS', 'EOS')
             var balance = result.rows[0].quantity
-            assert.equal(balance, "9.0000 EOS", 'EOS balance came back static')
+            assert.notEqual(balance, "9.0000 EOS", 'EOS balance came back static')
             
             result = await getAccount(user1, 'BNTEOS', 'BNT')
             var balance = result.rows[0].quantity
-            assert.equal(balance, "9.00000000 BNT", 'BNT balance came back static')
+            assert.notEqual(balance, "9.00000000 BNT", 'BNT balance came back static')
 
         })
     })
