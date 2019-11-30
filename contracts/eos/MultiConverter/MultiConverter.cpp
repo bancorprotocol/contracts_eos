@@ -267,7 +267,8 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
         auto balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision());
-        uint64_t amount = (smart_amount * balance - 1) / current_smart_supply + 1;
+        uint64_t amount = (smart_amount * balance - 1) / current_smart_supply;
+        amount += 1;
         amount *= pow(10, reserve.balance.symbol.precision());
         asset liq = asset(amount, reserve.balance.symbol);
             

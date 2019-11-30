@@ -130,10 +130,12 @@ describe('Test: multiConverter', () => {
             await expectNoError( 
                 transfer('eosio.token', '990.0000 EOS', multiConverter, user1, 'fund;BNTEOS') 
             )
+        })
+        it("test withdraw", async () => {
             await expectNoError(
                 withdraw(user1, '9.00000000 BNT', 'BNTEOS')
             )
-    
+
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '990.00000000 BNT', "withdrawal invalid - BNTEOS")
@@ -237,8 +239,9 @@ describe('Test: multiConverter', () => {
             var eosReserveAfter = result.rows[0].balance
             assert.equal(eosReserveBefore, eosReserveAfter, 'EOS wasnt supposed to change yet - BNTEOS')
         })
-        it('ensures that fund and liquidate are working properly (post-launch)', async () => {
-            result = await getBalance(user1, multiToken, 'BNTEOS')
+        
+        it('ensures that fund is working properly (post-launch)', async () => {
+            var result = await getBalance(user1, multiToken, 'BNTEOS')
             assert.equal(result.rows.length, 1)
             let relayBalanceBefore = parseFloat(result.rows[0].balance)
                 
@@ -254,20 +257,31 @@ describe('Test: multiConverter', () => {
                 "cannot withdraw non-existant deposit"
             )
             
+            // Fetch user1's relay balance and confirm he was minted 1000 BNTEOS
             result = await getBalance(user1, multiToken, 'BNTEOS')
             assert.equal(result.rows.length, 1)
             let relayBalanceAfter = parseFloat(result.rows[0].balance)
             let delta = (relayBalanceAfter - relayBalanceBefore).toFixed(8)
             assert.equal(delta, '1000.00000000', 'incorrect BNTEOS issued')
 
+            // Get relay's reserve - BNT
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
             bntReserveAfter = result.rows[0].balance
             assert.equal(bntReserveAfter, '1000.00000000 BNT', 'BNT was supposed to change - BNTEOS')
 
+            // Get relay's reserve - EOS
             result = await getReserve('EOS', multiConverter, 'BNTEOS')
             eosReserveAfter = result.rows[0].balance
             assert.equal(eosReserveAfter, '1000.0000 EOS', 'EOS was supposed to change - BNTEOS')
             
+            // Make sure temporary balances were deducted
+            result = await getAccount(user1, 'BNTEOS', 'BNT')
+            assert.equal(result.rows.length, 0, "was meant to lose the bank balance")
+            
+            result = await getAccount(user1, 'BNTEOS', 'EOS')
+            assert.equal(result.rows.length, 0, "was meant to lose the bank balance")
+        })
+        it('ensures that liquidate is working properly (post-launch)', async () => {
             var result = await getBalance(user1, bntToken, 'BNT')
             bntUserBefore = result.rows[0].balance.split(' ')[0]
             result = await getBalance(user1, 'eosio.token', 'EOS')
@@ -299,6 +313,25 @@ describe('Test: multiConverter', () => {
             result = await getBalance(user1, multiToken, 'BNTEOS')
             let userRelayAfter = result.rows[0].balance.split(' ')[0]
             assert.equal((userRelayBefore - userRelayAfter).toFixed(8), '1000.00000000', 'smart token balance after is incorrect - BNTEOS')
+        })
+        it("funding again", async() => {
+            await expectNoError( 
+                transfer(bntToken, '10.00000000 BNT', multiConverter, user1, 'fund;BNTEOS') 
+            )
+            await expectNoError( 
+                transfer('eosio.token', '10.0000 EOS', multiConverter, user1, 'fund;BNTEOS') 
+            )
+            await expectNoError(
+                fund(user1, '0.00009000 BNTEOS')
+            )
+
+            result = await getAccount(user1, 'BNTEOS', 'EOS')
+            var balance = result.rows[0].quantity.split(' ')[0]
+            assert.notEqual(balance, '10.0000', 'EOS account balance was meant to decrease')
+
+            result = await getAccount(user1, 'BNTEOS', 'BNT')
+            var balance = result.rows[0].quantity.split(' ')[0]
+            assert.notEqual(balance, '10.00000000', 'BNT account balance was meant to decrease')
         })
         it('ensures that converters balances sum is equal to the multiConverter\'s total BNT balance [Load Test]', async function () {
             this.timeout(10000)
@@ -335,7 +368,7 @@ describe('Test: multiConverter', () => {
             const TokenBReserveBalance = Number((await getReserve('BNT', multiConverter, 'TKNB')).rows[0].balance.split(' ')[0])
 
             const totalBntBalance = (await getBalance(multiConverter, bntToken, 'BNT')).rows[0].balance.split(' ')[0]
-            assert.equal((TokenAReserveBalance + TokenBReserveBalance + 990).toFixed(8), totalBntBalance)
+            assert.equal((TokenAReserveBalance + TokenBReserveBalance + 1000).toFixed(8), totalBntBalance)
         })
     })
     describe('Permissions', async () => {
