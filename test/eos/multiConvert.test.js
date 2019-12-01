@@ -249,6 +249,12 @@ describe('Test: multiConverter', () => {
             await expectNoError(
                 fund(user1, '1000.00000000 BNTEOS')
             )
+
+            eosTemp = await getAccount(user1, "BNTEOS", "EOS");
+            bntTemp = await getAccount(user1, "BNTEOS", "BNT");
+            assert.equal(eosTemp.rows.length, 0, "was expecting to have no bank balance")
+            assert.equal(bntTemp.rows.length, 0, "was expecting to have no bank balance")
+
             await expectError( // last fund cleared the accounts row
                 fund(user1, '10000.00000000 BNTEOS'),
                 "cannot withdraw non-existant deposit"
@@ -548,23 +554,14 @@ describe('Test: multiConverter', () => {
             assert.equal(balance, '10.00000000', 'BNT account balance invalid')
         })
 
-        it("funding: should decrease a users account balance while funding small amounts", async() => {
-
-            await expectNoError(
-                fund(user1, '0.00009000 BNTEOS')
+        it("funding: should reject a fund amount too small to award", async() => {
+            await expectError(
+                fund(user1, '0.00009000 BNTEOS'),
+                "fund amount too small"
             )
-
-            result = await getAccount(user1, 'BNTEOS', 'EOS')
-            var balance = result.rows[0].quantity.split(' ')[0]
-            assert.notEqual(balance, '10.0000', 'EOS account balance was meant to decrease')
-
-            result = await getAccount(user1, 'BNTEOS', 'BNT')
-            var balance = result.rows[0].quantity.split(' ')[0]
-            assert.notEqual(balance, '10.00000000', 'BNT account balance was meant to decrease')
-
         })
 
-        it.skip("fund cost should be relative to fund amount", async() => {
+        it("fund cost should cost as expected", async() => {
 
             await expectNoError(
                 fund(user1, '1.50000000 BNTEOS')
@@ -580,20 +577,5 @@ describe('Test: multiConverter', () => {
 
         })
 
-        it.skip("fund cost should be relative to fund amount", async() => {
-
-            await expectNoError(
-                fund(user1, '2.50000000 BNTEOS')
-            )
-
-            result = await getAccount(user1, 'BNTEOS', 'EOS')
-            var balance = result.rows[0].quantity
-            assert.notEqual(balance, "9.0000 EOS", 'EOS balance came back static')
-            
-            result = await getAccount(user1, 'BNTEOS', 'BNT')
-            var balance = result.rows[0].quantity
-            assert.notEqual(balance, "9.00000000 BNT", 'BNT balance came back static')
-
-        })
     })
 })

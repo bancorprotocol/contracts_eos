@@ -261,18 +261,19 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
     double total_ratio = 0.0;
-    auto smart_amount = quantity.amount / pow(10, quantity.symbol.precision());
-    auto current_smart_supply = supply.amount / pow(10, quantity.symbol.precision());
+    double smart_amount = quantity.amount / pow(10, quantity.symbol.precision());
+    double current_smart_supply = supply.amount / pow(10, quantity.symbol.precision());
 
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
-        auto balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision());
-        uint64_t amount = (smart_amount * balance - 1) / current_smart_supply + 1;
-        amount *= pow(10, reserve.balance.symbol.precision());
-        asset liq = asset(amount, reserve.balance.symbol);
-            
+        double balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision());
+        double amount = (smart_amount / current_smart_supply) * balance;
+        uint64_t liq_amount = amount * pow(10, reserve.balance.symbol.precision());
+        asset liq = asset(liq_amount, reserve.balance.symbol);
+        
         mod_account_balance(sender, quantity.symbol.code(), -liq);
         mod_reserve_balance(quantity.symbol, liq);
+        check(liq_amount > 0, "fund amount too small");
     }
     check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
     action( // issue new smart tokens to the issuer
