@@ -561,19 +561,37 @@ describe('Test: multiConverter', () => {
             )
         })
 
-        it("fund cost should cost as expected", async() => {
+        it("funding: charges as expected", async() => {
+
+
+            let [userEosBefore, userBntBefore] = await Promise.all([getAccount(user1, 'BNTEOS', 'EOS'), getAccount(user1, 'BNTEOS', 'BNT')])
 
             await expectNoError(
-                fund(user1, '1.50000000 BNTEOS')
+                fund(user1, '148.50000000 BNTEOS')
             )
 
             result = await getAccount(user1, 'BNTEOS', 'EOS')
-            var balance = result.rows[0].quantity
-            assert.notEqual(balance, "9.0000 EOS", 'EOS balance came back static')
+            var balance = result.rows[0].quantity.split(' ')[0]
+            assert.equal(balance, Number(userEosBefore.rows[0].quantity.split(' ')[0]) - 1.485, 'EOS balance invalid')
             
-            result = await getAccount(user1, 'BNTEOS', 'BNT')
-            var balance = result.rows[0].quantity
-            assert.notEqual(balance, "9.00000000 BNT", 'BNT balance came back static')
+            result = await getAccount(user1, 'BNTEOS', 'EOS')
+            var balance = result.rows[0].quantity.split(' ')[0]
+            assert.equal(balance, Number(userBntBefore.rows[0].quantity.split(' ')[0]) - 1.485, 'EOS balance invalid')
+
+
+            const [userEosBefore2, userBntBefore2] = await Promise.all([getAccount(user1, 'BNTEOS', 'EOS'), getAccount(user1, 'BNTEOS', 'BNT')])
+
+            await expectNoError(
+                fund(user1, '657.94500123 BNTEOS')
+            )
+
+            result = await getAccount(user1, 'BNTEOS', 'EOS')
+            var balance = result.rows[0].quantity.split(' ')[0]
+            assert.equal(balance, new Decimal(Number(userEosBefore2.rows[0].quantity.split(' ')[0])).minus(6.5794).toString(), 'EOS balance invalid')
+            
+            result = await getAccount(user1, 'BNTEOS', 'EOS')
+            var balance = result.rows[0].quantity.split(' ')[0]
+            assert.equal(balance, new Decimal(Number(userBntBefore2.rows[0].quantity.split(' ')[0])).minus(6.5794), 'EOS balance invalid')
 
         })
 
