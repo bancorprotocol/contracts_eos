@@ -90,7 +90,7 @@ ACTION addreporter (
 **Parameters:**
 
 
-* reporter - name of the reporter 
+* `reporter` - name of the reporter 
 
 
 
@@ -111,7 +111,7 @@ ACTION clearamount (
 **Parameters:**
 
 
-* x\_transfer\_id - the transfer id 
+* `x_transfer_id` - the transfer id 
 
 
 
@@ -132,7 +132,7 @@ ACTION enablerpt (
 **Parameters:**
 
 
-* enable - true to enable reporting (and thus issuance), false to disable it 
+* `enable` - true to enable reporting (and thus issuance), false to disable it 
 
 
 
@@ -153,7 +153,7 @@ ACTION enablext (
 **Parameters:**
 
 
-* enable - true to enable cross chain transfers, false to disable them 
+* `enable` - true to enable cross chain transfers, false to disable them 
 
 
 
@@ -179,11 +179,11 @@ can only be called once, by the contract account
 **Parameters:**
 
 
-* x\_token\_name - cross chain token account 
-* min\_reporters - minimum required number of reporters to fulfill a cross chain transfer 
-* min\_limit - minimum amount that can be transferred out (destroyed) 
-* max\_issue\_limit - maximum amount that can be issued on EOS in a given timespan 
-* max\_destroy\_limit - maximum amount that can be transferred out (destroyed) in a given timespan 
+* `x_token_name` - cross chain token account 
+* `min_reporters` - minimum required number of reporters to fulfill a cross chain transfer 
+* `min_limit` - minimum amount that can be transferred out (destroyed) 
+* `max_issue_limit` - maximum amount that can be issued on EOS in a given timespan 
+* `max_destroy_limit` - maximum amount that can be transferred out (destroyed) in a given timespan 
 
 
 
@@ -207,10 +207,10 @@ if the token received is the cross transfers token, initiates a cross transfer
 **Parameters:**
 
 
-* from - the sender of the transfer 
-* to - the receiver of the transfer 
-* quantity - the quantity for the transfer 
-* memo - the memo for the transfer 
+* `from` - the sender of the transfer 
+* `to` - the receiver of the transfer 
+* `quantity` - the quantity for the transfer 
+* `memo` - the memo for the transfer 
 
 
 
@@ -238,14 +238,14 @@ can only be called by an existing reporter
 **Parameters:**
 
 
-* reporter - reporter account 
-* blockchain - name of the source blockchain 
-* tx\_id - unique transaction id on the source blockchain 
-* x\_transfer\_id - unique (if non zero) pre-determined id (unlike \_txId which is determined after the transactions been mined) 
-* target - target account on EOS 
-* quantity - amount to issue to the target account if the minimum required number of reports is met 
-* memo - memo to pass in in the transfer action 
-* data - custom source blockchain value, usually a string representing the tx hash on the source blockchain 
+* `reporter` - reporter account 
+* `blockchain` - name of the source blockchain 
+* `tx_id` - unique transaction id on the source blockchain 
+* `x_transfer_id` - unique (if non zero) pre-determined id (unlike \_txId which is determined after the transactions been mined) 
+* `target` - target account on EOS 
+* `quantity` - amount to issue to the target account if the minimum required number of reports is met 
+* `memo` - memo to pass in in the transfer action 
+* `data` - custom source blockchain value, usually a string representing the tx hash on the source blockchain 
 
 
 
@@ -266,7 +266,7 @@ ACTION rmreporter (
 **Parameters:**
 
 
-* reporter - name of the reporter 
+* `reporter` - name of the reporter 
 
 
 
@@ -291,11 +291,11 @@ can only be called by the contract account
 **Parameters:**
 
 
-* min\_reporters - new minimum required number of reporters 
-* min\_limit - new minimum limit 
-* limit\_inc - new limit increment 
-* max\_issue\_limit - new maximum incoming amount 
-* max\_destroy\_limit - new maximum outgoing amount 
+* `min_reporters` - new minimum required number of reporters 
+* `min_limit` - new minimum limit 
+* `limit_inc` - new limit increment 
+* `max_issue_limit` - new maximum incoming amount 
+* `max_destroy_limit` - new maximum outgoing amount 
 
 
 
