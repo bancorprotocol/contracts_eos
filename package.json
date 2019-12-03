@@ -18,7 +18,7 @@
     "kill": "./scripts/eos/kill_nodeos.sh",
     "deploy": "./scripts/eos/deploy.sh",
     "compile": "./scripts/eos/compile.sh",
-    "docify": "node ./scripts/eos/docify.js && ./scripts/eos/cleandocs.sh",
+    "docify": "node ./scripts/eos/docify.js",
     "test": "mocha --bail ./test/eos/converter.test.js ./test/eos/network.test.js ./test/eos/multiConvert.test.js",
     "start": "npm run start-nodeos && npm run deploy",
     "restart": "npm run kill && npm run start && npm run test",
