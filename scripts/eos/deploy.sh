@@ -218,6 +218,7 @@ cleos set contract bnt2bbbrelay $EOSIO_CONTRACTS_ROOT/eosio.token/
 
 cleos set contract multiconvert $MY_CONTRACTS_BUILD/MultiConverter
 cleos set contract multi4tokens $EOSIO_CONTRACTS_ROOT/eosio.token/
+cleos set contract multistaking $MY_CONTRACTS_BUILD/MultiStaking
 
 # 4) Set Permissions
 
@@ -241,6 +242,8 @@ cleos set account permission bnt2bbbrelay active '{ "threshold": 1, "keys": [{ "
 cleos set account permission multiconvert active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multiconvert","permission":"eosio.code" }, "weight":1 }] }' owner -p multiconvert
 cleos set account permission multi4tokens active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multi4tokens","permission":"eosio.code" }, "weight":1 }] }' owner -p multi4tokens
 cleos set account permission multi4tokens active multiconvert --add-code
+
+cleos set account permission multistaking active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multistaking","permission":"eosio.code" }, "weight":1 }] }' owner -p multistaking
 
 on_exit
 echo -e "${GREEN}--> Done${NC}"
