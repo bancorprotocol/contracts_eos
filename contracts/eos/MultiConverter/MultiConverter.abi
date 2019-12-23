@@ -70,12 +70,16 @@
                     "type": "name"
                 },
                 {
+                    "name": "token_code",
+                    "type": "symbol_code"
+                },
+                {
                     "name": "initial_supply",
-                    "type": "asset"
+                    "type": "float64"
                 },
                 {
                     "name": "maximum_supply",
-                    "type": "asset"
+                    "type": "float64"
                 }
             ]
         },
@@ -228,7 +232,7 @@
             "base": "",
             "fields": [
                 {
-                    "name": "operational",
+                    "name": "active",
                     "type": "bool"
                 },
                 {
