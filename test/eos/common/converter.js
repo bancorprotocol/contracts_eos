@@ -298,7 +298,7 @@ const setMultitoken = async function(actor, token = multiToken) {
     return result;
 }
 // Creates a converter (MultiConverter sub-converter)
-const createConverter = async function(owner, initial_supply, maximum_supply) {
+const createConverter = async function(owner, token_code, initial_supply, maximum_supply) {
     const result = await api.transact({ 
         actions: [{
             account: multiConverter,
@@ -309,6 +309,7 @@ const createConverter = async function(owner, initial_supply, maximum_supply) {
             }],
             data: {
                 owner,
+                token_code,
                 initial_supply,
                 maximum_supply
             }
