@@ -219,19 +219,19 @@ describe('Test: multiConverter', () => {
             assert.equal(balance, '1.00000000', 'BNT wasnt supposed to change yet - BNTEOS')
 
             await expectNoError(
-                transfer(bntToken, '9.00000000 BNT', multiConverter, user1, 'fund;BNTEOS'),
+                transfer(bntToken, '9.00000001 BNT', multiConverter, user1, 'fund;BNTEOS'),
             )
             result = await getAccount(user1, 'BNTEOS', 'BNT')
             balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, '10.00000000', 'BNT wasnt supposed to change yet - BNTEOS')
+            assert.equal(balance, '10.00000001', 'BNT wasnt supposed to change yet - BNTEOS')
 
             result = await getBalance(user1, bntToken, 'BNT')
             var bntUserAfter = result.rows[0].balance.split(' ')[0]
-            assert.equal(parseFloat(bntUserBefore) - parseFloat(bntUserAfter), 10.0000, 'BNT balance didnt go down appropriately - BNTEOS')
+            assert.equal((parseFloat(bntUserBefore) - parseFloat(bntUserAfter)).toFixed(8), '10.00000001', 'BNT balance didnt go down appropriately - BNTEOS')
            
             eosReserveBefore = '990.0000 EOS'
             await expectNoError( 
-                transfer('eosio.token', '10.0000 EOS', multiConverter, user1, 'fund;BNTEOS') 
+                transfer('eosio.token', '10.0001 EOS', multiConverter, user1, 'fund;BNTEOS') 
             )
             result = await getReserve('EOS', multiConverter, 'BNTEOS')
             var eosReserveAfter = result.rows[0].balance
@@ -241,7 +241,7 @@ describe('Test: multiConverter', () => {
             result = await getBalance(user1, multiToken, 'BNTEOS')
             assert.equal(result.rows.length, 1)
             let userSmartTokenBalanceBefore = parseFloat(result.rows[0].balance)
-                
+            
             await expectError( // insufficient balance in account row
                 fund(user1, '2000.00000000 BNTEOS'),
                 "insufficient balance"
@@ -270,12 +270,12 @@ describe('Test: multiConverter', () => {
             // Get relay reserve - BNT
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
             bntReserveAfter = result.rows[0].balance
-            assert.equal(bntReserveAfter, '1000.00000000 BNT', 'BNT was supposed to change - BNTEOS')
+            assert.equal(bntReserveAfter, '1000.00000001 BNT', 'BNT was supposed to change - BNTEOS')
 
             // Get Relay reserve - EOS
             result = await getReserve('EOS', multiConverter, 'BNTEOS')
             eosReserveAfter = result.rows[0].balance
-            assert.equal(eosReserveAfter, '1000.0000 EOS', 'EOS was supposed to change - BNTEOS')
+            assert.equal(eosReserveAfter, '1000.0001 EOS', 'EOS was supposed to change - BNTEOS')
             
             result = await getAccount(user1, 'BNTEOS', 'BNT')
             assert.equal(result.rows.length, 0, "was meant to lose the bank balance")
@@ -310,11 +310,11 @@ describe('Test: multiConverter', () => {
 
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
             bntReserveAfter = result.rows[0].balance.split(' ')[0]
-            assert.equal(bntReserveAfter, '990.00000000', 'BNT reserve after is incorrect - BNTEOS')
+            assert.equal(bntReserveAfter, '990.00000001', 'BNT reserve after is incorrect - BNTEOS')
 
             result = await getReserve('EOS', multiConverter, 'BNTEOS')
             eosReserveAfter = result.rows[0].balance.split(' ')[0]
-            assert.equal(eosReserveAfter, '990.0000', 'EOS reserve after is incorrect - BNTEOS')
+            assert.equal(eosReserveAfter, '990.0001', 'EOS reserve after is incorrect - BNTEOS')
 
             result = await getBalance(user1, multiToken, 'BNTEOS')
             let userRelayAfter = result.rows[0].balance.split(' ')[0]
@@ -353,9 +353,9 @@ describe('Test: multiConverter', () => {
 
             const TokenAReserveBalance = Number((await getReserve('BNT', multiConverter, 'TKNA')).rows[0].balance.split(' ')[0])
             const TokenBReserveBalance = Number((await getReserve('BNT', multiConverter, 'TKNB')).rows[0].balance.split(' ')[0])
-
+            const BNTEOSReserveBalance = Number((await getReserve('BNT', multiConverter, 'BNTEOS')).rows[0].balance.split(' ')[0])
             const totalBntBalance = (await getBalance(multiConverter, bntToken, 'BNT')).rows[0].balance.split(' ')[0]
-            assert.equal((TokenAReserveBalance + TokenBReserveBalance + 990).toFixed(8), totalBntBalance)
+            assert.equal((TokenAReserveBalance + TokenBReserveBalance + BNTEOSReserveBalance).toFixed(8), totalBntBalance)
         })
     })
     describe('Permissions', async () => {
@@ -533,10 +533,10 @@ describe('Test: multiConverter', () => {
             // Reserves are as expected
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
             var balance = result.rows[0].balance
-            assert.equal(balance, '990.00000000 BNT', 'EOS reserve balance not as expected')
+            assert.equal(balance, '990.00000001 BNT', 'BNT reserve balance not as expected')
             result = await getReserve('EOS', multiConverter, 'BNTEOS')
             balance = result.rows[0].balance
-            assert.equal(balance, '990.0000 EOS', "BNT reserve balance not as expected")
+            assert.equal(balance, '990.0001 EOS', "EOS reserve balance not as expected")
 
             await expectNoError( 
                 transfer(bntToken, '10.00000000 BNT', multiConverter, user1, 'fund;BNTEOS') 
@@ -554,17 +554,10 @@ describe('Test: multiConverter', () => {
             assert.equal(balance, '10.00000000', 'BNT account balance invalid')
         })
 
-        it("funding: should reject a fund amount too small to award", async() => {
-            await expectError(
-                fund(user1, '0.00009000 BNTEOS'),
-                "fund amount too small"
-            )
-        })
-
         it("funding: charges as expected", async() => {
 
 
-            let [userEosBefore, userBntBefore] = await Promise.all([getAccount(user1, 'BNTEOS', 'EOS'), getAccount(user1, 'BNTEOS', 'BNT')])
+            const [userEosBefore, userBntBefore] = await Promise.all([getAccount(user1, 'BNTEOS', 'EOS'), getAccount(user1, 'BNTEOS', 'BNT')])
 
             await expectNoError(
                 fund(user1, '148.50000000 BNTEOS')
@@ -572,11 +565,11 @@ describe('Test: multiConverter', () => {
 
             result = await getAccount(user1, 'BNTEOS', 'EOS')
             var balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, Number(userEosBefore.rows[0].quantity.split(' ')[0]) - 1.485, 'EOS balance invalid')
+            assert.equal(balance, Number(userEosBefore.rows[0].quantity.split(' ')[0]) - 1.4851, 'EOS balance invalid')
             
-            result = await getAccount(user1, 'BNTEOS', 'EOS')
+            result = await getAccount(user1, 'BNTEOS', 'BNT')
             var balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, Number(userBntBefore.rows[0].quantity.split(' ')[0]) - 1.485, 'EOS balance invalid')
+            assert.equal(balance, Number(userBntBefore.rows[0].quantity.split(' ')[0]) - 1.48500001, 'BNT balance invalid')
 
 
             const [userEosBefore2, userBntBefore2] = await Promise.all([getAccount(user1, 'BNTEOS', 'EOS'), getAccount(user1, 'BNTEOS', 'BNT')])
@@ -587,11 +580,11 @@ describe('Test: multiConverter', () => {
 
             result = await getAccount(user1, 'BNTEOS', 'EOS')
             var balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, new Decimal(Number(userEosBefore2.rows[0].quantity.split(' ')[0])).minus(6.5794).toString(), 'EOS balance invalid')
+            assert.equal(balance, new Decimal(Number(userEosBefore2.rows[0].quantity.split(' ')[0])).minus(6.5795).toString(), 'EOS balance invalid')
             
-            result = await getAccount(user1, 'BNTEOS', 'EOS')
+            result = await getAccount(user1, 'BNTEOS', 'BNT')
             var balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, new Decimal(Number(userBntBefore2.rows[0].quantity.split(' ')[0])).minus(6.5794), 'EOS balance invalid')
+            assert.equal(balance, new Decimal(Number(userBntBefore2.rows[0].quantity.split(' ')[0])).minus(6.57945002).toString(), 'BNT balance invalid')
 
         })
 

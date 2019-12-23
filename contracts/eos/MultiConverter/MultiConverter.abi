@@ -228,7 +228,7 @@
             "base": "",
             "fields": [
                 {
-                    "name": "operational",
+                    "name": "active",
                     "type": "bool"
                 },
                 {

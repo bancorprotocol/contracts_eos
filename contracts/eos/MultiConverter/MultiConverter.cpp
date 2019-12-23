@@ -267,11 +267,10 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
 
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
-        asset liq = asset(reserve.balance.amount * percent, reserve.balance.symbol);
+        asset reserve_amount = asset(reserve.balance.amount * percent + 1, reserve.balance.symbol);
         
-        check(liq.amount > 0, "fund amount too small");
-        mod_account_balance(sender, quantity.symbol.code(), -liq);
-        mod_reserve_balance(quantity.symbol, liq);
+        mod_account_balance(sender, quantity.symbol.code(), -reserve_amount);
+        mod_reserve_balance(quantity.symbol, reserve_amount);
     }
     check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
     action( // issue new smart tokens to the issuer
@@ -295,22 +294,20 @@ void MultiConverter::liquidate(name sender, asset quantity) {
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
     double total_ratio = 0.0;
-    auto smart_amount = quantity.amount / pow(10, quantity.symbol.precision());
-    auto current_smart_supply = supply.amount / pow(10, quantity.symbol.precision());
+    double smart_amount = quantity.amount;
+    double current_smart_supply = supply.amount;
+    double percent = smart_amount / current_smart_supply;
 
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
-        auto balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision());
-        uint64_t amount = (smart_amount * balance) / current_smart_supply;
-        amount *= pow(10, reserve.balance.symbol.precision());
-        asset liq = asset(amount, reserve.balance.symbol);
+        asset reserve_amount = asset(reserve.balance.amount * percent, reserve.balance.symbol);
         
-        check(liq.amount > 0, "cannot liquidate amounts less than or equal to 0");
-        mod_reserve_balance(quantity.symbol, -liq);
+        check(reserve_amount.amount > 0, "cannot liquidate amounts less than or equal to 0");
+        mod_reserve_balance(quantity.symbol, -reserve_amount);
         action(
             permission_level{ get_self(), "active"_n },
             reserve.contract, "transfer"_n,
-            make_tuple(get_self(), sender, liq, string("liquidation"))
+            make_tuple(get_self(), sender, reserve_amount, string("liquidation"))
         ).send();   
     }
     check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
