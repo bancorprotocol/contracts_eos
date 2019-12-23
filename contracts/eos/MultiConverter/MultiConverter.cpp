@@ -10,7 +10,7 @@
 
 ACTION MultiConverter::create(name owner, symbol_code token_code, double initial_supply, double maximum_supply) {
     require_auth(owner);
-    symbol token_symbol = { token_code, DEFAULT_TOKEN_PRECISION };
+    symbol token_symbol = symbol(token_code, DEFAULT_TOKEN_PRECISION);
 
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
@@ -260,6 +260,7 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
     
+    check(converter.currency == quantity.symbol, "symbol mismatch");
     check(converter.enabled, "cannot fund when converter is disabled");
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
@@ -294,6 +295,10 @@ void MultiConverter::liquidate(name sender, asset quantity) {
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     check(get_first_receiver() == st.multi_token, "bad origin for this transfer");
 
+    converters converters_table(get_self(), quantity.symbol.code().raw());
+    const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
+    check(converter.currency == quantity.symbol, "symbol mismatch");
+    
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
@@ -636,11 +641,13 @@ void MultiConverter::on_transfer(name from, name to, asset quantity, string memo
         from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) return;
 
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
-    
-    const auto& splitted_memo = split(memo, ";"); 
+    settings settings_table(get_self(), get_self().value);
+    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
+
+    const auto& splitted_memo = split(memo, ";");
     if (splitted_memo[0] == "fund")
         mod_balances(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver());
-    else if (splitted_memo[0] == "liquidate")
+    else if (splitted_memo[0] == "liquidate" && get_first_receiver() == st.multi_token)
         liquidate(from, quantity);
     
     else convert(from, quantity, memo, get_first_receiver()); 
