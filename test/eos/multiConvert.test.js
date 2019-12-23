@@ -69,27 +69,27 @@ describe('Test: multiConverter', () => {
             )
         })
         it('setup converters', async function() {
-            let AinitSupply = '1000.0000 TKNA'
-            let AmaxSupply = '100000030.0096 TKNA'
+            const AinitSupply = '1000.0000'
+            const Asymbol = 'TKNA'
             
-            let BinitSupply = '1000.0000 TKNB'
-            let BmaxSupply = '10002012.1090 TKNB'
+            const BinitSupply = '1000.0000'
+            const Bsymbol = 'TKNB'
 
-            let CinitSupply = '99000.00000000 BNTEOS'
-            let CmaxSupply = '100000000.00000000 BNTEOS'
+            const CinitSupply = '99000.00000000'
+            const Csymbol = 'BNTEOS'
 
             await expectNoError(
-                createConverter(user1, AinitSupply, AmaxSupply) 
+                createConverter(user1, Asymbol, AinitSupply) 
             )
-            result = await getConverter('TKNA')
+            result = await getConverter(Asymbol)
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].fee, 0, "converter fee not set correctly - TKNA")
 
             await expectNoError(
-                createConverter(user2, BinitSupply, BmaxSupply) 
+                createConverter(user2, Bsymbol, BinitSupply) 
             )
             await expectNoError(
-                createConverter(user1, CinitSupply, CmaxSupply) 
+                createConverter(user1, Csymbol, CinitSupply) 
             )
         })
         it('setup reserves', async function() {
@@ -243,11 +243,11 @@ describe('Test: multiConverter', () => {
             let userSmartTokenBalanceBefore = parseFloat(result.rows[0].balance)
             
             await expectError( // insufficient balance in account row
-                fund(user1, '2000.00000000 BNTEOS'),
+                fund(user1, '2000.0000 BNTEOS'),
                 "insufficient balance"
             )
             await expectNoError(
-                fund(user1, '1000.00000000 BNTEOS')
+                fund(user1, '1000.0000 BNTEOS')
             )
 
             eosTemp = await getAccount(user1, "BNTEOS", "EOS");
@@ -256,7 +256,7 @@ describe('Test: multiConverter', () => {
             assert.equal(bntTemp.rows.length, 0, "was expecting to have no bank balance")
 
             await expectError( // last fund cleared the accounts row
-                fund(user1, '10000.00000000 BNTEOS'),
+                fund(user1, '10000.0000 BNTEOS'),
                 "cannot withdraw non-existant deposit"
             )
             
@@ -264,8 +264,8 @@ describe('Test: multiConverter', () => {
             result = await getBalance(user1, multiToken, 'BNTEOS')
             assert.equal(result.rows.length, 1)
             let userSmartTokenBalanceAfter = parseFloat(result.rows[0].balance)
-            let delta = (userSmartTokenBalanceAfter - userSmartTokenBalanceBefore).toFixed(8)
-            assert.equal(delta, '1000.00000000', 'incorrect BNTEOS issued')
+            let delta = (userSmartTokenBalanceAfter - userSmartTokenBalanceBefore).toFixed(4)
+            assert.equal(delta, '1000.0000', 'incorrect BNTEOS issued')
             
             // Get relay reserve - BNT
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
@@ -297,7 +297,7 @@ describe('Test: multiConverter', () => {
             let userRelayBefore = result.rows[0].balance.split(' ')[0]
 
             await expectNoError( 
-                transfer(multiToken, '1000.00000000 BNTEOS', multiConverter, user1, 'liquidate')
+                transfer(multiToken, '1000.0000 BNTEOS', multiConverter, user1, 'liquidate')
             )
         
             result = await getBalance(user1, bntToken, 'BNT')
@@ -318,7 +318,7 @@ describe('Test: multiConverter', () => {
 
             result = await getBalance(user1, multiToken, 'BNTEOS')
             let userRelayAfter = result.rows[0].balance.split(' ')[0]
-            assert.equal((userRelayBefore - userRelayAfter).toFixed(8), '1000.00000000', 'smart token balance after is incorrect - BNTEOS')
+            assert.equal((userRelayBefore - userRelayAfter).toFixed(4), '1000.0000', 'smart token balance after is incorrect - BNTEOS')
         })
         it('ensures that converters balances sum is equal to the multiConverter\'s total BNT balance [Load Test]', async function () {
             this.timeout(10000)
@@ -560,7 +560,7 @@ describe('Test: multiConverter', () => {
             const [userEosBefore, userBntBefore] = await Promise.all([getAccount(user1, 'BNTEOS', 'EOS'), getAccount(user1, 'BNTEOS', 'BNT')])
 
             await expectNoError(
-                fund(user1, '148.50000000 BNTEOS')
+                fund(user1, '148.5000 BNTEOS')
             )
 
             result = await getAccount(user1, 'BNTEOS', 'EOS')
@@ -575,7 +575,7 @@ describe('Test: multiConverter', () => {
             const [userEosBefore2, userBntBefore2] = await Promise.all([getAccount(user1, 'BNTEOS', 'EOS'), getAccount(user1, 'BNTEOS', 'BNT')])
 
             await expectNoError(
-                fund(user1, '657.94500123 BNTEOS')
+                fund(user1, '657.9450 BNTEOS')
             )
 
             result = await getAccount(user1, 'BNTEOS', 'EOS')
@@ -584,9 +584,28 @@ describe('Test: multiConverter', () => {
             
             result = await getAccount(user1, 'BNTEOS', 'BNT')
             var balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, new Decimal(Number(userBntBefore2.rows[0].quantity.split(' ')[0])).minus(6.57945002).toString(), 'BNT balance invalid')
+            assert.equal(balance, new Decimal(Number(userBntBefore2.rows[0].quantity.split(' ')[0])).minus(6.57945001).toString(), 'BNT balance invalid')
 
         })
 
     })
+
+    describe('Input validations', async () => {
+        it('[fund] ensures assets with invalid precision are rejected', async () => {
+            await expectError( // last fund cleared the accounts row
+                fund(user1, '10000.0 BNTEOS'),
+                "symbol mismatch"
+            )
+            await expectError( // last fund cleared the accounts row
+                fund(user1, '10000.00000001 TKNA'),
+                "symbol mismatch"
+            )
+        });
+        it('[liquidate] ensures assets with invalid precision are rejected', async () => {
+            await expectError( 
+                transfer('bnt2eosrelay',  '1.00000000 BNTEOS', multiConverter ,user1, 'liquidate'),
+                'bad origin for this transfer'
+            )
+        });
+    });
 })
