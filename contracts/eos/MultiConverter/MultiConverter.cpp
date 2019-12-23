@@ -267,10 +267,10 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
 
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
-        asset liq = asset(reserve.balance.amount * percent + 1, reserve.balance.symbol);
+        asset reserve_amount = asset(reserve.balance.amount * percent + 1, reserve.balance.symbol);
         
-        mod_account_balance(sender, quantity.symbol.code(), -liq);
-        mod_reserve_balance(quantity.symbol, liq);
+        mod_account_balance(sender, quantity.symbol.code(), -reserve_amount);
+        mod_reserve_balance(quantity.symbol, reserve_amount);
     }
     check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
     action( // issue new smart tokens to the issuer
