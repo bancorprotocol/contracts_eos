@@ -70,29 +70,26 @@ describe('Test: multiConverter', () => {
         })
         it('setup converters', async function() {
             const AinitSupply = '1000.0000'
-            const AmaxSupply = '100000030.0096'
             const Asymbol = 'TKNA'
             
             const BinitSupply = '1000.0000'
-            const BmaxSupply = '10002012.1090'
             const Bsymbol = 'TKNB'
 
             const CinitSupply = '99000.00000000'
-            const CmaxSupply = '100000000.00000000'
             const Csymbol = 'BNTEOS'
 
             await expectNoError(
-                createConverter(user1, Asymbol, AinitSupply, AmaxSupply) 
+                createConverter(user1, Asymbol, AinitSupply) 
             )
             result = await getConverter(Asymbol)
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].fee, 0, "converter fee not set correctly - TKNA")
 
             await expectNoError(
-                createConverter(user2, Bsymbol, BinitSupply, BmaxSupply) 
+                createConverter(user2, Bsymbol, BinitSupply) 
             )
             await expectNoError(
-                createConverter(user1, Csymbol, CinitSupply, CmaxSupply) 
+                createConverter(user1, Csymbol, CinitSupply) 
             )
         })
         it('setup reserves', async function() {

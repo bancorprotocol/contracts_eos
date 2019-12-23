@@ -8,9 +8,11 @@
 #include "../Token/Token.hpp"
 #include "MultiConverter.hpp"
 
-ACTION MultiConverter::create(name owner, symbol_code token_code, double initial_supply, double maximum_supply) {
+ACTION MultiConverter::create(name owner, symbol_code token_code, double initial_supply) {
     require_auth(owner);
+    
     symbol token_symbol = symbol(token_code, DEFAULT_TOKEN_PRECISION);
+    double maximum_supply = DEFAULT_MAX_SUPPLY;
 
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");

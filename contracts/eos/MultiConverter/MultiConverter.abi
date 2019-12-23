@@ -76,10 +76,6 @@
                 {
                     "name": "initial_supply",
                     "type": "float64"
-                },
-                {
-                    "name": "maximum_supply",
-                    "type": "float64"
                 }
             ]
         },
