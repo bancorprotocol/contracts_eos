@@ -592,4 +592,23 @@ describe('Test: multiConverter', () => {
         })
 
     })
+
+    describe('Input validations', async () => {
+        it('[fund] ensures assets with invalid precision are rejected', async () => {
+            await expectError( // last fund cleared the accounts row
+                fund(user1, '10000.0 BNTEOS'),
+                "symbol mismatch"
+            )
+            await expectError( // last fund cleared the accounts row
+                fund(user1, '10000.00000001 TKNA'),
+                "symbol mismatch"
+            )
+        });
+        it('[liquidate] ensures assets with invalid precision are rejected', async () => {
+            await expectError( 
+                transfer('bnt2eosrelay',  '1.00000000 BNTEOS', multiConverter ,user1, 'liquidate'),
+                'bad origin for this transfer'
+            )
+        });
+    });
 })

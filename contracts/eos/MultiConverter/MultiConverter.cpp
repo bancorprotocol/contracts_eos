@@ -294,10 +294,6 @@ void MultiConverter::liquidate(name sender, asset quantity) {
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     check(get_first_receiver() == st.multi_token, "bad origin for this transfer");
-
-    converters converters_table(get_self(), quantity.symbol.code().raw());
-    const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
-    check(converter.currency == quantity.symbol, "symbol mismatch");
     
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
@@ -647,7 +643,7 @@ void MultiConverter::on_transfer(name from, name to, asset quantity, string memo
     const auto& splitted_memo = split(memo, ";");
     if (splitted_memo[0] == "fund")
         mod_balances(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver());
-    else if (splitted_memo[0] == "liquidate" && get_first_receiver() == st.multi_token)
+    else if (splitted_memo[0] == "liquidate")
         liquidate(from, quantity);
     
     else convert(from, quantity, memo, get_first_receiver()); 
