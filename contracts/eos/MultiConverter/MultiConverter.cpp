@@ -10,7 +10,7 @@
 
 ACTION MultiConverter::create(name owner, symbol_code token_code, double initial_supply) {
     require_auth(owner);
-    
+
     symbol token_symbol = symbol(token_code, DEFAULT_TOKEN_PRECISION);
     double maximum_supply = DEFAULT_MAX_SUPPLY;
 
@@ -639,9 +639,7 @@ void MultiConverter::on_transfer(name from, name to, asset quantity, string memo
         from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) return;
 
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
-    settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-
+    
     const auto& splitted_memo = split(memo, ";");
     if (splitted_memo[0] == "fund")
         mod_balances(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver());
