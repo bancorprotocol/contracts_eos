@@ -16,8 +16,7 @@ ACTION BancorNetwork::setmaxfee(uint64_t max_affiliate_fee) {
     check(max_affiliate_fee > 0 && max_affiliate_fee <= MAX_FEE, "fee outside resolution");
 
     if (st == settings_table.end())
-        settings_table.emplace(get_self(), [&](auto& s) {		
-            s.enabled = true;
+        settings_table.emplace(get_self(), [&](auto& s) {
             s.max_fee = max_affiliate_fee;
         });
     else
@@ -55,7 +54,6 @@ void BancorNetwork::on_transfer(name from, name to, asset quantity, string memo)
         to = memo_object.converters[0].account;
         
         check(path_size >= 2 && !(path_size % 2), "bad path format");
-        check(isConverter(to), "converter doesn't exist");
 
         if (memo_object.trader_account.empty()) { // about to enter the first conversion in the path
             memo_object.trader_account = from.to_string();
@@ -102,12 +100,6 @@ tuple<asset, memo_structure> BancorNetwork::pay_affiliate(name from, asset quant
         memo.affiliate_fee = "";
     }
     return make_tuple(quantity, memo);
-}
-
-bool BancorNetwork::isConverter(name converter) {
-    settings settings_table(converter, converter.value);
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-    return st.enabled;
 }
 
 // asserts if a conversion resulted in an amount lower than the minimum amount defined by the caller

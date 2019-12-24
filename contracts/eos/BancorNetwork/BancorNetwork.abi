@@ -18,10 +18,6 @@
             "base": "",
             "fields": [
                 {
-                    "name": "enabled",
-                    "type": "bool"
-                },
-                {
                     "name": "max_fee",
                     "type": "uint64"
                 }

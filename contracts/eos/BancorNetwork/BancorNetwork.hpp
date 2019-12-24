@@ -60,10 +60,6 @@ CONTRACT BancorNetwork : public eosio::contract { /*! \endcond */
          * @{
          *//*! \cond DOCS_EXCLUDE */
             TABLE settings_t { /*! \endcond */
-                /**
-                 * @brief conversions through all the converters in the Bancor network may be disabled with this toggle
-                 */
-                bool enabled;
                 
                 /**
                  * @brief maximum affiliate fee possible for multiConverters to collect
@@ -95,7 +91,6 @@ CONTRACT BancorNetwork : public eosio::contract { /*! \endcond */
     
         tuple<asset, memo_structure> pay_affiliate(name from, asset quantity, uint64_t max_fee, memo_structure memo);
         
-        bool isConverter(name converter);
         void verify_min_return(asset quantity, string min_return);
         void verify_entry(name account, name currency_contract, symbol currency);
 
