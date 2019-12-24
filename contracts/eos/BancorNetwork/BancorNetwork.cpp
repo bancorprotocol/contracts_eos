@@ -47,7 +47,6 @@ void BancorNetwork::on_transfer(name from, name to, asset quantity, string memo)
         memo = memo_object.receiver_memo;
 
         check(!trader.empty() && is_account(name(trader.c_str())), "invalid memo");
-        verify_entry(to, get_first_receiver(), quantity.symbol);
         verify_min_return(new_quantity, memo_object.min_return);
     } else {
         auto path_size = memo_object.path.size();
@@ -64,6 +63,7 @@ void BancorNetwork::on_transfer(name from, name to, asset quantity, string memo)
     if (new_quantity.amount != quantity.amount) // if affiliate fee was deducted from was from quantity
         memo = build_memo(memo_object);
         
+    verify_entry(to, get_first_receiver(), quantity.symbol);
     action(
         permission_level{ get_self(), "active"_n },
         get_first_receiver(), "transfer"_n,

@@ -122,19 +122,8 @@ function getTableBoundsForName(name, asHex = true) {
     }
 }
 
-async function generateRandomAccount() {
-    const randomAccount = {};
-    randomAccount.name = randomAccountName();
-    randomAccount.keys = {};
-
-    randomAccount.keys.private = await ecc.PrivateKey.randomKey();
-    randomAccount.keys.public = ecc.privateToPublic(randomAccount.keys.private);
-
-    return randomAccount;
-}
-
-async function createAccountOnChain(account) {
-    await api.transact({
+async function createAccountOnChain(accountName = randomAccountName(), pubKey = 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV') {
+    const res = await api.transact({
         actions: [{
           account: 'eosio',
           name: 'newaccount',
@@ -144,11 +133,11 @@ async function createAccountOnChain(account) {
           }],
           data: {
             creator: 'eosio',
-            name: account.name,
+            name: accountName,
             owner: {
               threshold: 1,
               keys: [{
-                key: account.keys.public,
+                key: pubKey,
                 weight: 1
               }],
               accounts: [],
@@ -157,7 +146,7 @@ async function createAccountOnChain(account) {
             active: {
               threshold: 1,
               keys: [{
-                key: account.keys.public,
+                key: pubKey,
                 weight: 1
               }],
               accounts: [],
@@ -174,7 +163,7 @@ async function createAccountOnChain(account) {
           }],
           data: {
             payer: 'eosio',
-            receiver: account.name,
+            receiver: accountName,
             bytes: 524288,
           },
         },
@@ -187,9 +176,9 @@ async function createAccountOnChain(account) {
           }],
           data: {
             from: 'eosio',
-            receiver: account.name,
-            stake_net_quantity: '100000.0000 SYS',
-            stake_cpu_quantity: '100000.0000 SYS',
+            receiver: accountName,
+            stake_net_quantity: '100000.0000 EOS',
+            stake_cpu_quantity: '100000.0000 EOS',
             transfer: true,
           }
         }]
@@ -197,50 +186,10 @@ async function createAccountOnChain(account) {
         blocksBehind: 3,
         expireSeconds: 30,
       });
+
+      return { ...res, accountName };
 }
-async function randomAccount(accnt = randomAccountName()) {
-    try {
-        const result = await api.transact({
-            actions: [{
-                account: "eosio",
-                name: "newaccount",
-                authorization: [{
-                    actor: "eosio",
-                    permission: "active"
-                }],
-                data: {
-                  creator: "eosio",
-                  name: accnt,
-                  owner: {
-                    threshold: 1,
-                    keys: [{
-                        key: usr,
-                        weight: 1
-                    }],
-                    accounts: [],
-                    waits: []
-                  },
-                  active: {
-                    threshold: 1,
-                    keys: [{
-                        key:usr,
-                        weight: 1
-                    }],
-                    accounts: [],
-                    waits: []
-                  }
-                }
-              }]
-          },
-          {
-            blocksBehind: 3,
-            expireSeconds: 30
-          })
-        return result
-    } catch(err) {
-        throw(err)
-    }
-}
+
 async function expectError(prom, expected_error='') {
     try {
         await prom;
@@ -342,7 +291,7 @@ module.exports = {
     api, rpc,
     snooze,
     randomAmount,
-    randomAccount,
+    createAccountOnChain,
     expectError,
     expectNoError,
     expectNoErrorPrint,

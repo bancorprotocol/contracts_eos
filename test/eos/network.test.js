@@ -5,7 +5,7 @@ var assert = chai.assert
 const {  
     expectError, 
     expectNoError,
-    randomAccount
+    createAccountOnChain
 } = require('./common/utils')
 
 const { 
@@ -282,14 +282,11 @@ describe('Test: BancorNetwork', () => {
             ERRORS.POSITIVE_TRANSFER
         )
     })
-    it.only("ensures", async () => {
-        const account = await randomAccount();
-        console.error('heyyy');
-        console.error(account)
-        // await expectError(
-        //     (amount, token, relaySymbol = bntRelaySymbol, relay2symbol = sysRelaySymbol, relay = bntConverter, relay2 = sysConverter, from = user, to = user, min = '0.00000001')
-        //     convertTwice('1.0000 SYS', 'eosio.token', 'BNT', 'FAKETKN', 'bnt2eoscnvrt', ''), 
-        //     ERRORS.CONVERTER_DOESNT_EXIST
-        // )
+    it("ensures it's not possible to abuse RAM by planting a non-converter account as part of the conversion path", async () => {
+        const fakeConverter = (await createAccountOnChain()).accountName;
+        await expectError(
+            convertTwice('1.0000', 'eosio.token', 'EOS', 'FAKETKN', 'bnt2eoscnvrt', fakeConverter), 
+            ERRORS.MUST_HAVE_TOKEN_ENTRY
+        )
     })
 })
