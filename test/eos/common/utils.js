@@ -121,6 +121,83 @@ function getTableBoundsForName(name, asHex = true) {
         upper_bound: upperBound,
     }
 }
+
+async function generateRandomAccount() {
+    const randomAccount = {};
+    randomAccount.name = randomAccountName();
+    randomAccount.keys = {};
+
+    randomAccount.keys.private = await ecc.PrivateKey.randomKey();
+    randomAccount.keys.public = ecc.privateToPublic(randomAccount.keys.private);
+
+    return randomAccount;
+}
+
+async function createAccountOnChain(account) {
+    await api.transact({
+        actions: [{
+          account: 'eosio',
+          name: 'newaccount',
+          authorization: [{
+            actor: 'eosio',
+            permission: 'active',
+          }],
+          data: {
+            creator: 'eosio',
+            name: account.name,
+            owner: {
+              threshold: 1,
+              keys: [{
+                key: account.keys.public,
+                weight: 1
+              }],
+              accounts: [],
+              waits: []
+            },
+            active: {
+              threshold: 1,
+              keys: [{
+                key: account.keys.public,
+                weight: 1
+              }],
+              accounts: [],
+              waits: []
+            },
+          },
+        },
+        {
+          account: 'eosio',
+          name: 'buyrambytes',
+          authorization: [{
+            actor: 'eosio',
+            permission: 'active',
+          }],
+          data: {
+            payer: 'eosio',
+            receiver: account.name,
+            bytes: 524288,
+          },
+        },
+        {
+          account: 'eosio',
+          name: 'delegatebw',
+          authorization: [{
+            actor: 'eosio',
+            permission: 'active',
+          }],
+          data: {
+            from: 'eosio',
+            receiver: account.name,
+            stake_net_quantity: '100000.0000 SYS',
+            stake_cpu_quantity: '100000.0000 SYS',
+            transfer: true,
+          }
+        }]
+      }, {
+        blocksBehind: 3,
+        expireSeconds: 30,
+      });
+}
 async function randomAccount(accnt = randomAccountName()) {
     try {
         const result = await api.transact({

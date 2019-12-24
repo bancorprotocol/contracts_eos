@@ -4,7 +4,8 @@ var assert = chai.assert
 
 const {  
     expectError, 
-    expectNoError
+    expectNoError,
+    randomAccount
 } = require('./common/utils')
 
 const { 
@@ -269,12 +270,6 @@ describe('Test: BancorNetwork', () => {
         const deltaUser = Math.abs(user1AAABalance - user2BBBBalance)
         assert.isAtMost(deltaUser, tolerance, 'balanced should be equal');
     });
-    it("verifies thrown error when using a non-converter account name as part of the path", async () => {
-        await expectError(
-            convertBNT('2.00000000', 'EOS', user1), 
-            ERRORS.CONVERTER_DOESNT_EXIST
-        )
-    })
     it("verifies thrown error when exceeding user1's available balance", async () => {
         await expectError(
             convertBNT('2000000.00000000'), 
@@ -286,5 +281,15 @@ describe('Test: BancorNetwork', () => {
             convertBNT('-2.00000000'), 
             ERRORS.POSITIVE_TRANSFER
         )
+    })
+    it.only("ensures", async () => {
+        const account = await randomAccount();
+        console.error('heyyy');
+        console.error(account)
+        // await expectError(
+        //     (amount, token, relaySymbol = bntRelaySymbol, relay2symbol = sysRelaySymbol, relay = bntConverter, relay2 = sysConverter, from = user, to = user, min = '0.00000001')
+        //     convertTwice('1.0000 SYS', 'eosio.token', 'BNT', 'FAKETKN', 'bnt2eoscnvrt', ''), 
+        //     ERRORS.CONVERTER_DOESNT_EXIST
+        // )
     })
 })
