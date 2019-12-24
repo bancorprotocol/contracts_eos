@@ -70,12 +70,12 @@
                     "type": "name"
                 },
                 {
-                    "name": "initial_supply",
-                    "type": "asset"
+                    "name": "token_code",
+                    "type": "symbol_code"
                 },
                 {
-                    "name": "maximum_supply",
-                    "type": "asset"
+                    "name": "initial_supply",
+                    "type": "float64"
                 }
             ]
         },

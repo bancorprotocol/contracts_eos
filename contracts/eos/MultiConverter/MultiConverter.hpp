@@ -214,7 +214,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @param initial_supply - initial supply of the smart token governed by the converter
          * @param maximum_supply - maximum supply of the smart token governed by the converter
          */
-        ACTION create(name owner, asset initial_supply, asset maximum_supply);
+        ACTION create(name owner, symbol_code token_code, double initial_supply);
 
         /**
          * @brief deletes a converter with empty reserves
@@ -364,6 +364,12 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
 
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
            return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
-        }
+        } 
+        constexpr static double MAX_RATIO = 1000000.0;
+        constexpr static double MAX_FEE = 1000000.0;
+        constexpr static double MAX_INITIAL_MAXIMUM_SUPPLY_RATIO = 0.7;
+
+        constexpr static double DEFAULT_MAX_SUPPLY = 10000000000.0000;
+        constexpr static uint8_t DEFAULT_TOKEN_PRECISION = 4;
 
 }; /** @}*/
