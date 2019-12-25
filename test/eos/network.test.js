@@ -13,7 +13,8 @@ const {
     getBalance,
     convertBNT,
     convertRelay,
-    convertTwice
+    convertTwice,
+    transfer
 } = require('./common/token')
 
 const { ERRORS } = require('./common/errors')
@@ -286,6 +287,13 @@ describe('Test: BancorNetwork', () => {
         const fakeConverter = (await createAccountOnChain()).accountName;
         await expectError(
             convertTwice('1.0000', 'eosio.token', 'EOS', 'FAKETKN', 'bnt2eoscnvrt', fakeConverter), 
+            ERRORS.MUST_HAVE_TOKEN_ENTRY
+        )
+    })
+    it("ensures an error is thrown when a conversion destination account has no token balance entry", async () => {
+        const accountWithNoBalanceEntry = (await createAccountOnChain()).accountName;
+        await expectError(
+            convertBNT('1.00000000', 'EOS', 'bnt2eoscnvrt', user1, accountWithNoBalanceEntry), 
             ERRORS.MUST_HAVE_TOKEN_ENTRY
         )
     })

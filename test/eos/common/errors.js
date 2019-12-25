@@ -1,6 +1,7 @@
 
 module.exports = Object.freeze({
     ERRORS: {
+        MUST_HAVE_TOKEN_ENTRY: 'must have entry for token (claim token first)',
         PERMISSIONS: 'missing authority',
         POSITIVE_TRANSFER: 'must transfer positive quantity',
         CONVERT_SELF: 'cannot convert to self',
