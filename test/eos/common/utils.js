@@ -121,49 +121,75 @@ function getTableBoundsForName(name, asHex = true) {
         upper_bound: upperBound,
     }
 }
-async function randomAccount(accnt = randomAccountName()) {
-    try {
-        const result = await api.transact({
-            actions: [{
-                account: "eosio",
-                name: "newaccount",
-                authorization: [{
-                    actor: "eosio",
-                    permission: "active"
-                }],
-                data: {
-                  creator: "eosio",
-                  name: accnt,
-                  owner: {
-                    threshold: 1,
-                    keys: [{
-                        key: usr,
-                        weight: 1
-                    }],
-                    accounts: [],
-                    waits: []
-                  },
-                  active: {
-                    threshold: 1,
-                    keys: [{
-                        key:usr,
-                        weight: 1
-                    }],
-                    accounts: [],
-                    waits: []
-                  }
-                }
-              }]
+
+async function createAccountOnChain(accountName = randomAccountName(), pubKey = 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV') {
+    const res = await api.transact({
+        actions: [{
+          account: 'eosio',
+          name: 'newaccount',
+          authorization: [{
+            actor: 'eosio',
+            permission: 'active',
+          }],
+          data: {
+            creator: 'eosio',
+            name: accountName,
+            owner: {
+              threshold: 1,
+              keys: [{
+                key: pubKey,
+                weight: 1
+              }],
+              accounts: [],
+              waits: []
+            },
+            active: {
+              threshold: 1,
+              keys: [{
+                key: pubKey,
+                weight: 1
+              }],
+              accounts: [],
+              waits: []
+            },
           },
-          {
-            blocksBehind: 3,
-            expireSeconds: 30
-          })
-        return result
-    } catch(err) {
-        throw(err)
-    }
+        },
+        {
+          account: 'eosio',
+          name: 'buyrambytes',
+          authorization: [{
+            actor: 'eosio',
+            permission: 'active',
+          }],
+          data: {
+            payer: 'eosio',
+            receiver: accountName,
+            bytes: 524288,
+          },
+        },
+        {
+          account: 'eosio',
+          name: 'delegatebw',
+          authorization: [{
+            actor: 'eosio',
+            permission: 'active',
+          }],
+          data: {
+            from: 'eosio',
+            receiver: accountName,
+            stake_net_quantity: '100000.0000 EOS',
+            stake_cpu_quantity: '100000.0000 EOS',
+            transfer: true,
+          }
+        }]
+      }, {
+        blocksBehind: 3,
+        expireSeconds: 30,
+      });
+
+      return { ...res, accountName };
 }
+
 async function expectError(prom, expected_error='') {
     try {
         await prom;
@@ -248,7 +274,7 @@ const deductFee = (amount, fee, magnitude) => {
 }
 const extractEvents = async (conversionTx) => {
     if (conversionTx instanceof Promise)
-        conversionTx = await conversionTx;
+        conversionTx = await expectNoError(conversionTx);
     
     const rawEvents = conversionTx
         .processed.action_traces[0].inline_traces[2].inline_traces[1].console
@@ -265,7 +291,7 @@ module.exports = {
     api, rpc,
     snooze,
     randomAmount,
-    randomAccount,
+    createAccountOnChain,
     expectError,
     expectNoError,
     expectNoErrorPrint,

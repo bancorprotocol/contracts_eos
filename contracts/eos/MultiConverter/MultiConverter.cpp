@@ -512,13 +512,7 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
     
     uint64_t to_amount = to_tokens * pow(10, to_symbol.precision());
     auto new_asset = asset(to_amount, to_symbol);
-    name inner_to = BANCOR_NETWORK;
-    if (memo_object.path.size() == 0) {
-        inner_to = final_to;
-        verify_min_return(new_asset, memo_object.min_return);
-        verify_entry(inner_to, to_contract, to_symbol);
-        new_memo = memo_object.receiver_memo;
-    }
+
     if (issue)
         action(
             permission_level{ get_self(), "active"_n },
@@ -528,10 +522,11 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
     else
         mod_reserve_balance(converter.currency, -new_asset); //subtract from reserve
         
+    check(new_asset.amount > 0, "below min return");
     action(
         permission_level{ get_self(), "active"_n },
         to_contract, "transfer"_n,
-        make_tuple(get_self(), inner_to, new_asset, new_memo)
+        make_tuple(get_self(), BANCOR_NETWORK, new_asset, new_memo)
     ).send();
 }
 
@@ -562,24 +557,6 @@ asset MultiConverter::get_supply(name contract, symbol_code sym) {
     return st.supply;
 }
 
-// asserts if the supplied account doesn't have an entry for a given token
-void MultiConverter::verify_entry(name account, name currency_contract, symbol currency) {
-    Token::accounts accountstable(currency_contract, account.value);
-    auto ac = accountstable.find(currency.code().raw());
-    check(ac != accountstable.end(), "must have entry for token (claim token first)");
-}
-
-double MultiConverter::calculate_fee(double amount, uint64_t fee, uint8_t magnitude) {
-    return amount * (1 - pow((1 - fee / MAX_FEE), magnitude));
-}
-
-// asserts if a conversion resulted in an amount lower than the minimum amount defined by the caller
-void MultiConverter::verify_min_return(asset quantity, string min_return) {
-    float ret = stof(min_return.c_str());
-    int64_t ret_amount = (ret * pow(10, quantity.symbol.precision()));
-    check(quantity.amount >= ret_amount, "below min return");
-}
-
 // given a token supply, reserve balance, ratio and a input amount (in the reserve token),
 // calculates the return for a given conversion (in the main token)
 double MultiConverter::calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio) {
@@ -608,28 +585,6 @@ double MultiConverter::calculate_sale_return(double balance, double sell_amount,
 
 double MultiConverter::quick_convert(double balance, double in, double toBalance) {
     return in / (balance + in) * toBalance;
-}
-
-float MultiConverter::stof(const char* s) {
-    float rez = 0, fact = 1;
-    
-    if (*s == '-') {
-        s++;
-        fact = -1;
-    }
-    for (int point_seen = 0; *s; s++) {
-        if (*s == '.') {
-            if (point_seen) return 0;
-            point_seen = 1; 
-            continue;
-        }
-        int d = *s - '0';
-        if (d >= 0 && d <= 9) {
-            if (point_seen) fact /= 10.0f;
-            rez = rez * 10.0f + (float)d;
-        } else return 0;
-    }
-    return rez * fact;
 }
 
 void MultiConverter::on_transfer(name from, name to, asset quantity, string memo) {    

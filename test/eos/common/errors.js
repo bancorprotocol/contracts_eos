@@ -1,6 +1,7 @@
 
 module.exports = Object.freeze({
     ERRORS: {
+        MUST_HAVE_TOKEN_ENTRY: 'must have entry for token (claim token first)',
         PERMISSIONS: 'missing authority',
         POSITIVE_TRANSFER: 'must transfer positive quantity',
         CONVERT_SELF: 'cannot convert to self',
@@ -21,7 +22,6 @@ module.exports = Object.freeze({
         REROUTING_DISABLED: 'transaction rerouting is disabled',
         TOKEN_PURCHASES_DISABLED: "'to' token purchases disabled",
         INVALID_TARGET_ACCOUNT: 'the destination account must by either the sender, or the BancorX contract account',
-        CONVERTER_DOESNT_EXIST: 'settings do not exist',
         NO_ZERO: 'must transfer positive quantity',
         NO_RESERVE: 'reserve not found',
         SETTINGS_EXIST: 'settings already exist',
