@@ -225,5 +225,9 @@ cleos set account permission multi4tokens active '{ "threshold": 1, "keys": [{ "
 cleos set account permission multi4tokens active multiconvert --add-code
 
 
+# Contracts Initialization
+cleos push action bancorxoneos init '["bntbntbntbnt", "2", "1", "100000000000000", "10000000000000000", "10000000000000000"]' -p bancorxoneos
+
+
 on_exit
 echo -e "${GREEN}--> Done${NC}"
