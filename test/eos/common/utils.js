@@ -212,7 +212,7 @@ async function expectNoErrorPrint(prom) {
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 const randomAmount = ({ min=0, max=100, decimals=8 }) => {
-    return (Math.random() * max + min).toFixed(decimals)
+    return (Math.random() * (max - min) + min).toFixed(decimals)
 }
 const calculatePurchaseReturn = (supply, balance, ratio, amount, fee = 0) => {
     supply = Decimal(supply);
@@ -261,6 +261,22 @@ const extractEvents = async (conversionTx) => {
         conversion: rawEvents.find(({ etype }) => etype === 'conversion')
     }
 }
+
+
+async function getTableRows(code, scope, table, key=null, limit=50, reverse=false) {
+    return rpc.get_table_rows({
+        code,
+        scope,
+        table,
+        limit,
+        reverse,
+        show_payer: false,
+        json: true,
+        ...(key ? { key } : {})
+    });
+};
+
+
 module.exports = {
     api, rpc,
     snooze,
@@ -273,5 +289,6 @@ module.exports = {
     getTableBoundsForSymbol,
     calculatePurchaseReturn,
     calculateSaleReturn,
-    extractEvents
+    extractEvents,
+    getTableRows
 }

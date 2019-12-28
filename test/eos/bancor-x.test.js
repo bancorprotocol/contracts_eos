@@ -1,278 +1,207 @@
 const assert = require('chai').should();
 const {
     expectError,
-    getEos,
-    snooze
+    expectNoError,
+    snooze,
+    getTableRows,
+    randomAmount
 } = require('./common/utils');
-const { 
-    get,
+const {
     getBalance,
     transfer
 } = require('./common/token')
+
+const {
+    enablext,
+    reporttx,
+    update,
+    enablerpt,
+    addreporter,
+    rmreporter
+} = require('./common/bancor-x');
 const { ERRORS } = require('./common/errors');
 
 
-describe('BancorX Contract', () => {
-    const bancorXContract = 'bancorx';
+describe('BancorX', () => {
+    const bancorXContract = 'bancorxoneos';
     const networkTokenSymbol = "BNT";
-    const networkToken = 'bnt';
+    const networkToken = 'bntbntbntbnt';
     const testUser = 'bnttestuser1';
     const reporter1User = 'reporter1';
     const reporter2User = 'reporter2';
-    const transferId = Math.floor(100000 + Math.random() * 900000)   
 
     it('should throw when attempting to call xTransfer when disabled', async () => {
-        let pass = false
-        const reporter = await getEos(bancorXContract).contract(bancorXContract);
-        await reporter.enablext({
-            enable: 0
-        }, {
-            authorization: [`${bancorXContract}@active`]
-        })
-        try {
-            const token = await getEos(testUser).contract(networkToken);
-            let res = await token.transfer({
-                from: testUser,
-                to: bancorXContract,
-                quantity: `2.0000000000 ${networkTokenSymbol}`,
-                memo: `1.1,eth,ETH_ADDRESS`
-            }, {
-                authorization: [`${testUser}@active`]
-            });
-        } catch (err) {
-            pass = true
-        }
-        pass.should.be.equal(true)
-        await reporter.enablext({
-            enable: 1
-        }, {
-            authorization: [`${bancorXContract}@active`]
-        })
+        await expectNoError(
+            enablext(false)
+        );
+        await expectError(
+            transfer(networkToken, `2.00000000 ${networkTokenSymbol}`, bancorXContract, testUser),
+            ERRORS.X_TRANSFERS_DISABLED
+        );
+
+        await expectNoError(
+            enablext(true)
+        );
     })
+
+    it('should throw when attempting to call reporttx when reporting is disabled', async () => {
+        const transferId = Math.floor(100000 + Math.random() * 900000)
+
+        await expectNoError(
+            enablerpt(false)
+        );
+        await expectError(
+            reporttx({ tx_id: transferId, reporter: reporter1User }),
+            ERRORS.REPORTING_DISABLED
+        );
+
+        await expectNoError(
+            enablerpt(true)
+        );
+    })
+    
+
     it('should destroy BNT and emit the right events when calling xTransfer successfully', async function() {
-        const token = await getEos(testUser).contract(networkToken);
-        let res = await token.transfer({
-            from: testUser,
-            to: bancorXContract,
-            quantity: `2.0000000000 ${networkTokenSymbol}`,
-            memo: `1.1,eth,ETH_ADDRESS`
-        }, {
-            authorization: [`${testUser}@active`]
-        });
-        var events = res.processed.action_traces[0].inline_traces[1].console;
-        events = events.split('\n');
-        var destroyEvent = JSON.parse(events[0]);
-        var xtransferEvent = JSON.parse(events[1]);
+        const res = await transfer(networkToken, `2.00000000 ${networkTokenSymbol}`, bancorXContract, testUser, '1.1,eth,ETH_ADDRESS');
+        
+        const events = res.processed.action_traces[0].inline_traces[1].console.split('\n');
+        
+        const destroyEvent = JSON.parse(events[0]);
+        const xtransferEvent = JSON.parse(events[1]);
+
         assert.equal(destroyEvent.etype, "destroy", "unexpected destroy etype result");
-        assert.equal(destroyEvent.from, "test1", "unexpected destroy from result");
-        assert.equal(destroyEvent.quantity, `2.0000000000 ${networkTokenSymbol}`, "unexpected destroy quantity result");
+        assert.equal(destroyEvent.from, testUser, "unexpected destroy from result");
+        assert.equal(destroyEvent.quantity, `2.00000000 ${networkTokenSymbol}`, "unexpected destroy quantity result");
         assert.equal(xtransferEvent.etype, "xtransfer", "unexpected xtransfer etype result");
         assert.equal(xtransferEvent.blockchain, "eth", "unexpected xtransfer blockchain result");
         assert.equal(xtransferEvent.target, 'ETH_ADDRESS', "unexpected xtransfer target result");
-        assert.equal(xtransferEvent.quantity, `2.0000000000 ${networkTokenSymbol}`, "unexpected xtransfer quantity result");
+        assert.equal(xtransferEvent.quantity, `2.00000000 ${networkTokenSymbol}`, "unexpected xtransfer quantity result");
 
     });
 
 
-    it('should properly update the tables after 1/2 successful reports', async () => {
+    it('ensures reporttx creates a valid transfer document, and releases funds once all reporters report', async () => {
+        const transferId = Math.floor(100000 + Math.random() * 900000)
+        const amount = randomAmount({});
+        const quantity = `${amount} ${networkTokenSymbol}`;
 
-        const banx = await getEos(reporter1User).contract(bancorXContract);
-        await banx.reporttx({
-            tx_id: `${transferId}`,
-            reporter: reporter1User,
-            target: testUser,
-            quantity: `2.0000000000 ${networkTokenSymbol}`,
-            memo: 'text',
-            data: 'txHash',
-            blockchain: 'eth'
-        }, {
-            authorization: [`${reporter1User}@active`]
-        });
+        const initialBalance = Number((await getBalance(testUser, networkToken, networkTokenSymbol)).rows[0].balance.split(' ')[0])
 
+        await expectNoError(
+            reporttx({ tx_id: transferId, reporter: reporter1User, quantity })
+        );
 
-        const transfers = await getEos(bancorXContract).getTableRows({
-            code: bancorXContract,
-            scope: bancorXContract,
-            table: 'transfers',
-            json: true,
-            key: transferId
-        });
+        const transfer = (await getTableRows(bancorXContract, bancorXContract, 'transfers')).rows
+            .find(({ tx_id }) => tx_id === transferId);
 
-        transfers.rows[0].tx_id.should.be.equal(transferId);
-        transfers.rows[0].target.should.be.equal('test1');
-        transfers.rows[0].quantity.should.be.equal('2.0000000000 BNT');
-        transfers.rows[0].blockchain.should.be.equal('eth');
-        transfers.rows[0].memo.should.be.equal('text');
-        transfers.rows[0].data.should.be.equal('txHash');
-        transfers.rows[0].reporters.should.include('reporter1');
-        let balance = await getEos(networkToken).getTableRows({
-            code: networkToken,
-            scope: testUser,
-            table: 'accounts',
-            json: true,
-        });
-        balance["rows"][0]["balance"].should.be.equal('98.0000000000 BNT')
+        transfer.tx_id.should.be.equal(transferId);
+        transfer.target.should.be.equal(testUser);
+        transfer.quantity.should.be.equal(quantity);
+        transfer.blockchain.should.be.equal('eth');
+        transfer.memo.should.be.equal('enjoy your BNTs');
+        transfer.data.should.be.equal('txHash');
+        transfer.reporters.should.include(reporter1User);
 
+        await expectNoError(
+            reporttx({ tx_id: transferId, reporter: reporter2User, quantity })
+        );
+
+        const fullfiledTransfer = (await getTableRows(bancorXContract, bancorXContract, 'transfers')).rows
+            .find(({ tx_id }) => tx_id === transferId);
+        
+        assert.equal(fullfiledTransfer, undefined);
+        
+        const finalBalance = Number((await getBalance(testUser, networkToken, networkTokenSymbol)).rows[0].balance.split(' ')[0])
+        
+        finalBalance.toFixed(8).should.be.equal((initialBalance + Number(amount)).toFixed(8));
     });
 
-    it('should properly update the tables and issue BNT after 2/2 successful reports', async () => {
-        const reporter = await getEos(bancorXContract).contract(bancorXContract);
-        await reporter.enablerpt({
-            enable: 1
-        }, {
-            authorization: [`${bancorXContract}@active`]
-        })
-        const banx = await getEos(reporter2User).contract(bancorXContract);
-
-        let res = await banx.reporttx({
-            tx_id: `${transferId}`,
-            reporter: reporter2User,
-            target: testUser,
-            quantity: `2.0000000000 ${networkTokenSymbol}`,
-            memo: 'text',
-            data: 'txHash',
-            blockchain: 'eth'
-        }, {
-            authorization: [`${reporter2User}@active`]
-        });
-
-
-        let balance = await getEos(networkToken).getTableRows({
-            code: networkToken,
-            scope: testUser,
-            table: 'accounts',
-            json: true,
-        });
-        balance["rows"][0]["balance"].should.be.equal('100.0000000000 BNT')
-
-    })
-
-    it('should throw when calling xTransfer with a token other than BNT', async function() {
-        const token = await getEos(testUser).contract(networkToken);
-        const p = token.transfer({
-            from: testUser,
-            to: bancorXContract,
-            quantity: `2.0000000000 FAKE`,
-            memo: `1.1,eth,ETH_ADDRESS`
-        }, {
-            authorization: [`${testUser}@active`]
-        });
-        await expectError(p, ERRORS.NO_KEY);
+    it('ensures no event is emitted when to xTransfer using an unknown token', async function() {
+        const quantity = `${randomAmount({ decimals: 4 })} EOS`;
+        const res = await expectNoError(
+            transfer('eosio.token', quantity, bancorXContract, testUser, `1.1,eth,ETH_ADDRESS`)
+        );
+        
+        JSON.stringify(res.processed.action_traces).should.not.include('xtransfer');
+        JSON.stringify(res.processed.action_traces).should.not.include('destory');
     });
 
     it('should throw when a non-approved reporter attempts to report a transaction', async () => {
+        const transferId = Math.floor(100000 + Math.random() * 900000)
 
-        const banx = await getEos(testUser).contract(bancorXContract);
-        const p = banx.reporttx({
-            tx_id: `${transferId}`,
-            reporter: reporter1User,
-            target: testUser,
-            quantity: `2.0000000000 ${networkTokenSymbol}`,
-            memo: 'text',
-            data: 'txHash',
-            blockchain: 'eth'
-        }, {
-            authorization: [`${testUser}@active`]
-        });
-
-        await expectError(p, ERRORS.PERMISSIONS);
-
+        await expectError(
+            reporttx({ tx_id: transferId, reporter: testUser }),
+            ERRORS.UNKNOWN_REPORTER
+        );
     });
 
 
     it('should throw when reporters give conflicting data', async () => {
-        let bancorX = await getEos(reporter1User).contract(bancorXContract);
-        await bancorX.reporttx({
-            tx_id: `${transferId}`,
-            reporter: reporter1User,
-            target: testUser,
-            quantity: `2.0000000000 ${networkTokenSymbol}`,
-            memo: 'text',
-            data: 'txHash',
-            blockchain: 'eth'
-        }, {
-            authorization: [`${reporter1User}@active`]
-        });
+        const transferId = Math.floor(100000 + Math.random() * 900000)
 
-        bancorX = await getEos(reporter2User).contract(bancorXContract);
-        const p = bancorX.reporttx({
-            tx_id: `${transferId}`,
-            reporter: reporter2User,
-            target: testUser,
-            quantity: `2.0000000001 ${networkTokenSymbol}`,
-            memo: 'text',
-            data: 'txHash',
-            blockchain: 'eth'
-        }, {
-            authorization: [`${reporter2User}@active`]
-        });
-        await expectError(p, ERRORS.TRANSFER_DATA_MISMATCH);
+        await expectNoError(
+            reporttx({ tx_id: transferId, reporter: reporter1User })
+        );
+        
+        await expectError(
+            reporttx({ tx_id: transferId, reporter: reporter2User, quantity: `2.00000001 ${networkTokenSymbol}` }),
+            ERRORS.TRANSFER_DATA_MISMATCH
+        );
+    })
+
+    it('should throw when the same reporter reports a transaction twice', async () => {
+        const transferId = Math.floor(100000 + Math.random() * 900000)
+        const quantity = `${randomAmount({})} ${networkTokenSymbol}`;
+
+        await expectNoError(
+            reporttx({ tx_id: transferId, reporter: reporter1User, quantity })
+        );
+
+        await snooze(500) // avoid getting a duplicate transaction error from nodeos
+
+        await expectError(
+            reporttx({ tx_id: transferId, reporter: reporter1User, quantity }),
+            ERRORS.DUPLICATE_REPORT
+        );
     })
 
     it('should throw when trying to add an already existing reporter', async () => {
-        const bancorX = await getEos(bancorXContract).contract(bancorXContract);
-        await bancorX.addreporter({
-            reporter: 'reporter4'
-        }, {
-            authorization: `${bancorXContract}@active`
-        });
-        await snooze(1000);
-        const p = bancorX.addreporter({
-            reporter: 'reporter4'
-        }, {
-            authorization: `${bancorXContract}@active`
-        });
-        await expectError(p, ERRORS.REPORTER_ALREADY_DEFINED);
+        const reporter = 'reporter4';
+
+        try {
+            await expectNoError(
+                addreporter(reporter)
+            );
+    
+            await snooze(500) // avoid getting a duplicate transaction error from nodeos
+    
+            await expectError(
+                addreporter(reporter),
+                ERRORS.REPORTER_ALREADY_DEFINED
+            );
+        }
+        finally {
+            // Revert
+            await expectNoError(
+                rmreporter(reporter)
+            );
+        }
     })
     
     it('should throw when trying to remove a non-approved reporter', async () => {
-        const bancorX = await getEos(bancorXContract).contract(bancorXContract);
-        await bancorX.rmreporter({
-            reporter: 'reporter3'
-        }, {
-            authorization: `${bancorXContract}@active`
-        });
-        await snooze(1000);
-        const p = bancorX.rmreporter({
-            reporter: 'reporter3'
-        }, {
-            authorization: `${bancorXContract}@active`
-        });
-        await expectError(p, ERRORS.REPORTER_DOESNT_EXIST);
+        await expectError(rmreporter(testUser), ERRORS.REPORTER_DOESNT_EXIST);
     })
 
     it('should throw when somoneone other than the owner attempts to update the contracts private state variables', async () => {
-        const bancorX = await getEos(testUser).contract(bancorXContract);
-        const p = bancorX.update({
+        const p = update({
             min_reporters: 2,
             min_limit: 1,
             limit_inc: 100000000000000,
             max_issue_limit: 10000000000000000,
-            max_destroy_limit: 10000000000000000},
-            {authorization: `${testUser}@active`});
+            max_destroy_limit: 10000000000000000
+            },
+            { actor: testUser, permission: 'active' });
         await expectError(p, ERRORS.PERMISSIONS);
-    })
-
-    it('verifies that the owner can update the contracts private state variables', async () => {
-        const bancorX = await getEos(bancorXContract).contract(bancorXContract);
-        await bancorX.update({
-            min_reporters: 9,
-            min_limit: 23,
-            limit_inc: 100000009990000,
-            max_issue_limit: 100000555000000,
-            max_destroy_limit: 10000000666000000},
-            {authorization: `${bancorXContract}@active`});
-        const settings = await getEos(bancorXContract).getTableRows({
-            code: bancorXContract,
-            scope: bancorXContract,
-            table: 'settings',
-            json: true
-        });
-        settings.rows[0].min_reporters.should.be.equal(9);
-        settings.rows[0].min_limit.should.be.equal(23);
-        settings.rows[0].limit_inc.should.be.equal('100000009990000');
-        settings.rows[0].max_issue_limit.should.be.equal('100000555000000');
-        settings.rows[0].max_destroy_limit.should.be.equal('10000000666000000');
     })
 
 });

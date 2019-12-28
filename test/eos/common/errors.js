@@ -1,6 +1,10 @@
 
 module.exports = Object.freeze({
     ERRORS: {
+        DUPLICATE_REPORT: 'the reporter already reported the transfer',
+        UNKNOWN_REPORTER: 'the signer is not a known reporter',
+        X_TRANSFERS_DISABLED: 'x transfers are disabled',
+        REPORTING_DISABLED: 'reporting is disabled',
         PERMISSIONS: 'missing authority',
         POSITIVE_TRANSFER: 'must transfer positive quantity',
         CONVERT_SELF: 'cannot convert to self',

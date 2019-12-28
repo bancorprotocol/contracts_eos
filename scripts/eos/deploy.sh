@@ -227,6 +227,11 @@ cleos set account permission multi4tokens active multiconvert --add-code
 
 # Contracts Initialization
 cleos push action bancorxoneos init '["bntbntbntbnt", "2", "1", "100000000000000", "10000000000000000", "10000000000000000"]' -p bancorxoneos
+cleos push action bancorxoneos enablerpt '["1"]' -p bancorxoneos
+cleos push action bancorxoneos enablext '["1"]' -p bancorxoneos
+cleos push action bancorxoneos addreporter '["reporter1"]' -p bancorxoneos
+cleos push action bancorxoneos addreporter '["reporter2"]' -p bancorxoneos
+cleos push action bancorxoneos addreporter '["reporter3"]' -p bancorxoneos
 
 
 on_exit
