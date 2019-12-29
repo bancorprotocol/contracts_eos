@@ -27,8 +27,8 @@ describe('BancorX', () => {
     const networkTokenSymbol = "BNT";
     const networkToken = 'bntbntbntbnt';
     const testUser = 'bnttestuser1';
-    const reporter1User = 'reporter1';
-    const reporter2User = 'reporter2';
+    const reporter1User = 'bntreporter1';
+    const reporter2User = 'bntreporter2';
 
     it('should throw when attempting to call xTransfer when disabled', async () => {
         await expectNoError(
@@ -166,7 +166,7 @@ describe('BancorX', () => {
     })
 
     it('should throw when trying to add an already existing reporter', async () => {
-        const reporter = 'reporter4';
+        const reporter = 'bntreporter4';
 
         try {
             await expectNoError(

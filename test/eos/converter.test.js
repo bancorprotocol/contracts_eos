@@ -22,6 +22,7 @@ const {
 const { 
     init,
     update,
+    setMaxfee,
     setreserve,
     delreserve,
     getReserve,
@@ -36,6 +37,9 @@ describe('Test: BancorConverter', () => {
     const bntStaking = 'stakebnt2eos'
     describe('setup token contracts and issue tokens', function () {
         it('create and issue fakeos token - EOS', async function () {
+            await expectNoError(
+                setMaxfee('thisisbancor', 30000)
+            )
             await expectNoError( 
                 create('fakeos', 'fakeos', 'EOS', false) 
             )
@@ -198,7 +202,9 @@ describe('Test: BancorConverter', () => {
             )
         })
         it('set reserves eos and bnt for bnteos relay', async function () {
-            await expectNoError(setreserve())
+            await expectNoError(
+                setreserve()
+            )
             result = await getReserve('BNT')
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].ratio, 500000, "BNT reserve ratio not set correctly - bnteos")
@@ -384,7 +390,9 @@ describe('Test: BancorConverter', () => {
             assert.equal(result.rows[0].fee, 10000, "fee not set correctly")
         }) 
         it('update bnt2eos with staking', async function () {
-            await expectNoError(update()) 
+            await expectNoError(
+                update()
+            ) 
             //convert expect amount
             await expectError(
                 convertBNT(0), 
@@ -397,16 +405,28 @@ describe('Test: BancorConverter', () => {
     })
     describe('some last invalid ops', function () { 
         it("trying to buy BNTEOS with fakeos - should throw", async () => { 
-            await expectError(convertEOS('5.0000', true), ERRORS.BAD_ORIGIN)
+            await expectError(
+                convertEOS('5.0000', true),
+                ERRORS.MUST_HAVE_TOKEN_ENTRY
+            )
         })
         it("trying to buy BNTEOS with SYS - should throw", async () => { 
-            await expectError(convertSYS('5.0000'), ERRORS.NO_RESERVE)
+            await expectError(
+                convertSYS('5.0000'), 
+                ERRORS.MUST_HAVE_TOKEN_ENTRY
+            )
         })
         it("trying to delete BNT reserve when it's not empty - should throw", async () => { 
-            await expectError(delreserve('EOS'), "may delete only empty reserves")
+            await expectError(
+                delreserve('EOS'), 
+                "may delete only empty reserves"
+            )
         })
         it("trying to delete BNT reserve without permission - should throw", async () => { 
-            await expectError(delreserve('BNT', user1), "missing authority of bnt2eoscnvrt")
+            await expectError(
+                delreserve('BNT', user1), 
+                "missing authority of bnt2eoscnvrt"
+            )
         })
     })
 })

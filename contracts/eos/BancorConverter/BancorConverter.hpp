@@ -202,10 +202,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         using transfer_action = action_wrapper<name("transfer"), &BancorConverter::on_transfer>;
         typedef eosio::multi_index<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves; 
-        
-        constexpr static double RATIO_DENOMINATOR = 1000000.0;
-        constexpr static double FEE_DENOMINATOR = 1000000.0;
-
+    
         void convert(name from, eosio::asset quantity, std::string memo, name code);
         const reserve_t& get_reserve(uint64_t name, const settings_t& settings);
 
@@ -213,14 +210,8 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         uint64_t get_balance_amount(name contract, name owner, symbol_code sym);
         asset get_supply(name contract, symbol_code sym);
 
-        void verify_min_return(eosio::asset quantity, std::string min_return);
-        void verify_entry(name account, name currency_contract, eosio::asset currency);
-
-        double calculate_fee(double amount, uint64_t fee, uint8_t magnitude);
         double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);
         double calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio);
         double quick_convert(double balance, double in, double toBalance);
 
-        float stof(const char* s);
-        
 }; /** @}*/

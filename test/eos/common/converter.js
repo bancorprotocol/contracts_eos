@@ -246,15 +246,20 @@ const setEnabled = async function(actor, enabled = true) {
     })
     return result;
 }
-const setMaxfee = async function(actor, maxfee) {
+const setMaxfee = async function(actor, maxfee, account = actor) {
+    data = {}
+    if (account === 'thisisbancor')
+        data['max_affiliate_fee'] = maxfee 
+    else 
+        data['maxfee'] = maxfee
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account,
             name: "setmaxfee",
             authorization: [{
                 actor,
                 permission: 'active',
-            }], data: { maxfee }
+            }], data
         }]
     }, 
     {

@@ -355,19 +355,12 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * note that the function can also be called if conversions are disabled
         */
         void liquidate(name sender, asset quantity); // quantity to decrease the supply by (in the smart token)
-
-        double calculate_fee(double amount, uint64_t fee, uint8_t magnitude);
         
         asset get_supply(name contract, symbol_code sym);
-
-        void verify_min_return(asset quantity, string min_return);
-        void verify_entry(name account, name currency_contract, symbol currency);
 
         double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);
         double calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio);
         double quick_convert(double balance, double in, double toBalance);
-
-        float stof(const char* s);
 
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
            return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
