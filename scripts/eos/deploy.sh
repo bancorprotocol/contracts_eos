@@ -242,5 +242,15 @@ cleos set account permission multiconvert active '{ "threshold": 1, "keys": [{ "
 cleos set account permission multi4tokens active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multi4tokens","permission":"eosio.code" }, "weight":1 }] }' owner -p multi4tokens
 cleos set account permission multi4tokens active multiconvert --add-code
 
+
+# Contracts Initialization
+cleos push action bancorxoneos init '["bntbntbntbnt", "2", "1", "100000000000000", "10000000000000000", "10000000000000000"]' -p bancorxoneos
+cleos push action bancorxoneos enablerpt '["1"]' -p bancorxoneos
+cleos push action bancorxoneos enablext '["1"]' -p bancorxoneos
+cleos push action bancorxoneos addreporter '["bntreporter1"]' -p bancorxoneos
+cleos push action bancorxoneos addreporter '["bntreporter2"]' -p bancorxoneos
+cleos push action bancorxoneos addreporter '["bntreporter3"]' -p bancorxoneos
+
+
 on_exit
 echo -e "${GREEN}--> Done${NC}"
