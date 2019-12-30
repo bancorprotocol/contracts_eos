@@ -9,7 +9,8 @@ const {
     randomAmount,
     extractEvents,
     calculatePurchaseReturn,
-    calculateSaleReturn
+    calculateSaleReturn,
+    calculateQuickConvertReturn
 } = require('./common/utils')
 
 const {
@@ -79,6 +80,9 @@ describe('Test: multiConverter', () => {
             const CinitSupply = '99000.00000000'
             const Csymbol = 'BNTEOS'
 
+            const DinitSupply = '99000.00000000'
+            const Dsymbol = 'RELAY'
+
             await expectNoError(
                 createConverter(user1, Asymbol, AinitSupply) 
             )
@@ -92,25 +96,40 @@ describe('Test: multiConverter', () => {
             await expectNoError(
                 createConverter(user1, Csymbol, CinitSupply) 
             )
+            await expectNoError(
+                createConverter(user1, Dsymbol, DinitSupply) 
+            )
         })
         it('setup reserves', async function() {
-            let Aratio = 100000
-            let Bratio = 300000
-            let Cratio = 500000
+            const Aratio = 100000
+            const Bratio = 300000
+            const Cratio = 500000
+            const Dratio = 500000
+
             await expectNoError(
                 setreserve(true, bntToken, 'BNT', multiConverter, 'TKNA', user1, Aratio) 
             )
+
             await expectNoError(
                 setreserve(true, bntToken, 'BNT', multiConverter, 'TKNB', user2, Bratio) 
             )
+
             await expectNoError(
                 setreserve(true, bntToken, 'BNT', multiConverter, 'BNTEOS', user1, Cratio) 
             )
             await expectNoError(
                 setreserve(false, 'eosio.token', 'EOS', multiConverter, 'BNTEOS', user1, Cratio) 
             )
+
+            await expectNoError(
+                setreserve(true, bntToken, 'BNT', multiConverter, 'RELAY', user1, Dratio) 
+            )
+            await expectNoError(
+                setreserve(false, 'eosio.token', 'EOS', multiConverter, 'RELAY', user1, Dratio) 
+            )
         })
         it('fund reserves', async function () {        
+            this.timeout(4000)
             //just for opening accounts
             await expectNoError(
                 transfer(multiToken, '0.0001 TKNA', user2, user1, "")
@@ -132,6 +151,13 @@ describe('Test: multiConverter', () => {
             )
             await expectNoError(
                 withdraw(user1, '9.00000000 BNT', 'BNTEOS')
+            )
+
+            await expectNoError( 
+                transfer(bntToken, '999.00000000 BNT', multiConverter, user1, 'fund;RELAY') 
+            )
+            await expectNoError( 
+                transfer('eosio.token', '990.0000 EOS', multiConverter, user1, 'fund;RELAY') 
             )
 
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
@@ -194,6 +220,9 @@ describe('Test: multiConverter', () => {
             )
             await expectNoError(
                 enableConvert(user1, 'BNTEOS')
+            )
+            await expectNoError(
+                enableConvert(user1, 'RELAY')
             )
         })
         it('ensures that fund and withdraw are working properly (pre-launch)', async () => {
@@ -354,8 +383,10 @@ describe('Test: multiConverter', () => {
             const TokenAReserveBalance = Number((await getReserve('BNT', multiConverter, 'TKNA')).rows[0].balance.split(' ')[0])
             const TokenBReserveBalance = Number((await getReserve('BNT', multiConverter, 'TKNB')).rows[0].balance.split(' ')[0])
             const BNTEOSReserveBalance = Number((await getReserve('BNT', multiConverter, 'BNTEOS')).rows[0].balance.split(' ')[0])
+            const RELAYReserveBalance = Number((await getReserve('BNT', multiConverter, 'RELAY')).rows[0].balance.split(' ')[0])
+            
             const totalBntBalance = (await getBalance(multiConverter, bntToken, 'BNT')).rows[0].balance.split(' ')[0]
-            assert.equal((TokenAReserveBalance + TokenBReserveBalance + BNTEOSReserveBalance).toFixed(8), totalBntBalance)
+            assert.equal((TokenAReserveBalance + TokenBReserveBalance + BNTEOSReserveBalance + RELAYReserveBalance).toFixed(8), totalBntBalance)
         })
     })
     describe('Affiliate Fee', async () => {
@@ -537,6 +568,30 @@ describe('Test: multiConverter', () => {
             const finalBalance = Number((await getBalance(user1, multiToken, 'TKNA')).rows[0].balance.split(' ')[0])
  
             const expectedReturn = Number(calculatePurchaseReturn(supply, reserveBalance, ratio, inputAmount).toFixed(4))
+            const actualReturn = Number(new Decimal(finalBalance).sub(initialBalance).toFixed())
+            const eventReturn = Number(Number(events.conversion.return).toFixed(4))
+
+            assert(parseFloat(Math.abs(actualReturn - expectedReturn).toFixed(4)) <= 0.0001)
+            assert(parseFloat(Math.abs(actualReturn - eventReturn).toFixed(4)) <= 0.0001)
+        })
+
+        it('ensures a proper return amount calculation (no fee) [RESERVE --> RESERVE]', async () => {
+            const inputAmount = randomAmount({min: 0, max: 10, decimals: 8 })
+            
+            const initialBalance = Number((await getBalance(user1, 'eosio.token', 'EOS')).rows[0].balance.split(' ')[0])
+            
+            const fromTokenReserveData = (await getReserve('BNT', multiConverter, 'RELAY')).rows[0]
+            const toTokenReserveData = (await getReserve('EOS', multiConverter, 'RELAY')).rows[0]
+            const fromTokenReserveBalance = Number(fromTokenReserveData.balance.split(' ')[0])
+            const toTokenReserveBalance = Number(toTokenReserveData.balance.split(' ')[0])
+            
+            const events = await extractEvents(
+                convertBNT(inputAmount, 'EOS', `${multiConverter}:RELAY`)
+            )
+
+            const finalBalance = Number((await getBalance(user1, 'eosio.token', 'EOS')).rows[0].balance.split(' ')[0])
+                
+            const expectedReturn = Number(calculateQuickConvertReturn(fromTokenReserveBalance, inputAmount, toTokenReserveBalance).toFixed(4))
             const actualReturn = Number(new Decimal(finalBalance).sub(initialBalance).toFixed())
             const eventReturn = Number(Number(events.conversion.return).toFixed(4))
 

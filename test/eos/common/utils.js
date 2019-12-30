@@ -240,6 +240,8 @@ const snooze = ms => new Promise(resolve => setTimeout(resolve, ms))
 const randomAmount = ({ min=0, max=100, decimals=8 }) => {
     return (Math.random() * (max - min) + min).toFixed(decimals)
 }
+
+// Reserve --> Smart
 const calculatePurchaseReturn = (supply, balance, ratio, amount, fee = 0) => {
     supply = Decimal(supply);
     balance = Decimal(balance);
@@ -253,6 +255,8 @@ const calculatePurchaseReturn = (supply, balance, ratio, amount, fee = 0) => {
     )
     return deductFee(newAmount, fee, 1);
 }
+
+// Smart --> Reserve
 const calculateSaleReturn = (supply, balance, ratio, amount, fee = 0) => {
     supply = Decimal(supply)
     balance = Decimal(balance)
@@ -267,7 +271,21 @@ const calculateSaleReturn = (supply, balance, ratio, amount, fee = 0) => {
     )
     return deductFee(newAmount, fee, 1)
 }
+
+// Reserve --> Reserve
+const calculateQuickConvertReturn = (fromTokenReserveBalance, amount, toTokenReserveBalance, fee = 0) => {
+    fromTokenReserveBalance = Decimal(fromTokenReserveBalance);
+    amount = Decimal(amount);
+    toTokenReserveBalance = Decimal(toTokenReserveBalance);
+
+    const newAmount = amount.div(fromTokenReserveBalance.add(amount)).mul(toTokenReserveBalance);
+
+    return deductFee(newAmount, fee, 2);
+}
+
 const deductFee = (amount, fee, magnitude) => {
+    if (fee === 0) return amount;
+
     return amount.mul(
         ONE.minus(fee.div(MAX_FEE)).pow(magnitude)
     )
@@ -315,6 +333,7 @@ module.exports = {
     getTableBoundsForSymbol,
     calculatePurchaseReturn,
     calculateSaleReturn,
+    calculateQuickConvertReturn,
     extractEvents,
     getTableRows
 }
