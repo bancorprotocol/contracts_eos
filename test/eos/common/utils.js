@@ -121,49 +121,75 @@ function getTableBoundsForName(name, asHex = true) {
         upper_bound: upperBound,
     }
 }
-async function randomAccount(accnt = randomAccountName()) {
-    try {
-        const result = await api.transact({
-            actions: [{
-                account: "eosio",
-                name: "newaccount",
-                authorization: [{
-                    actor: "eosio",
-                    permission: "active"
-                }],
-                data: {
-                  creator: "eosio",
-                  name: accnt,
-                  owner: {
-                    threshold: 1,
-                    keys: [{
-                        key: usr,
-                        weight: 1
-                    }],
-                    accounts: [],
-                    waits: []
-                  },
-                  active: {
-                    threshold: 1,
-                    keys: [{
-                        key:usr,
-                        weight: 1
-                    }],
-                    accounts: [],
-                    waits: []
-                  }
-                }
-              }]
+
+async function createAccountOnChain(accountName = randomAccountName(), pubKey = 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV') {
+    const res = await api.transact({
+        actions: [{
+          account: 'eosio',
+          name: 'newaccount',
+          authorization: [{
+            actor: 'eosio',
+            permission: 'active',
+          }],
+          data: {
+            creator: 'eosio',
+            name: accountName,
+            owner: {
+              threshold: 1,
+              keys: [{
+                key: pubKey,
+                weight: 1
+              }],
+              accounts: [],
+              waits: []
+            },
+            active: {
+              threshold: 1,
+              keys: [{
+                key: pubKey,
+                weight: 1
+              }],
+              accounts: [],
+              waits: []
+            },
           },
-          {
-            blocksBehind: 3,
-            expireSeconds: 30
-          })
-        return result
-    } catch(err) {
-        throw(err)
-    }
+        },
+        {
+          account: 'eosio',
+          name: 'buyrambytes',
+          authorization: [{
+            actor: 'eosio',
+            permission: 'active',
+          }],
+          data: {
+            payer: 'eosio',
+            receiver: accountName,
+            bytes: 524288,
+          },
+        },
+        {
+          account: 'eosio',
+          name: 'delegatebw',
+          authorization: [{
+            actor: 'eosio',
+            permission: 'active',
+          }],
+          data: {
+            from: 'eosio',
+            receiver: accountName,
+            stake_net_quantity: '100000.0000 EOS',
+            stake_cpu_quantity: '100000.0000 EOS',
+            transfer: true,
+          }
+        }]
+      }, {
+        blocksBehind: 3,
+        expireSeconds: 30,
+      });
+
+      return { ...res, accountName };
 }
+
 async function expectError(prom, expected_error='') {
     try {
         await prom;
@@ -212,7 +238,7 @@ async function expectNoErrorPrint(prom) {
 const snooze = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 const randomAmount = ({ min=0, max=100, decimals=8 }) => {
-    return (Math.random() * max + min).toFixed(decimals)
+    return (Math.random() * (max - min) + min).toFixed(decimals)
 }
 const calculatePurchaseReturn = (supply, balance, ratio, amount, fee = 0) => {
     supply = Decimal(supply);
@@ -261,11 +287,27 @@ const extractEvents = async (conversionTx) => {
         conversion: rawEvents.find(({ etype }) => etype === 'conversion')
     }
 }
+
+
+async function getTableRows(code, scope, table, key=null, limit=50, reverse=false) {
+    return rpc.get_table_rows({
+        code,
+        scope,
+        table,
+        limit,
+        reverse,
+        show_payer: false,
+        json: true,
+        ...(key ? { key } : {})
+    });
+};
+
+
 module.exports = {
     api, rpc,
     snooze,
     randomAmount,
-    randomAccount,
+    createAccountOnChain,
     expectError,
     expectNoError,
     expectNoErrorPrint,
@@ -273,5 +315,6 @@ module.exports = {
     getTableBoundsForSymbol,
     calculatePurchaseReturn,
     calculateSaleReturn,
-    extractEvents
+    extractEvents,
+    getTableRows
 }

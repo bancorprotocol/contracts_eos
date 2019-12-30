@@ -16,8 +16,7 @@ ACTION BancorNetwork::setmaxfee(uint64_t max_affiliate_fee) {
     check(max_affiliate_fee > 0 && max_affiliate_fee <= MAX_FEE, "fee outside resolution");
 
     if (st == settings_table.end())
-        settings_table.emplace(get_self(), [&](auto& s) {		
-            s.enabled = true;
+        settings_table.emplace(get_self(), [&](auto& s) {
             s.max_fee = max_affiliate_fee;
         });
     else
@@ -48,14 +47,12 @@ void BancorNetwork::on_transfer(name from, name to, asset quantity, string memo)
         memo = memo_object.receiver_memo;
 
         check(!trader.empty() && is_account(name(trader.c_str())), "invalid memo");
-        verify_entry(to, get_first_receiver(), quantity.symbol);
         verify_min_return(new_quantity, memo_object.min_return);
     } else {
         auto path_size = memo_object.path.size();
         to = memo_object.converters[0].account;
         
         check(path_size >= 2 && !(path_size % 2), "bad path format");
-        check(isConverter(to), "converter doesn't exist");
 
         if (memo_object.trader_account.empty()) { // about to enter the first conversion in the path
             memo_object.trader_account = from.to_string();
@@ -66,6 +63,7 @@ void BancorNetwork::on_transfer(name from, name to, asset quantity, string memo)
     if (new_quantity.amount != quantity.amount) // if affiliate fee was deducted from was from quantity
         memo = build_memo(memo_object);
         
+    verify_entry(to, get_first_receiver(), quantity.symbol);
     action(
         permission_level{ get_self(), "active"_n },
         get_first_receiver(), "transfer"_n,
@@ -102,12 +100,6 @@ tuple<asset, memo_structure> BancorNetwork::pay_affiliate(name from, asset quant
         memo.affiliate_fee = "";
     }
     return make_tuple(quantity, memo);
-}
-
-bool BancorNetwork::isConverter(name converter) {
-    settings settings_table(converter, converter.value);
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-    return st.enabled;
 }
 
 // asserts if a conversion resulted in an amount lower than the minimum amount defined by the caller

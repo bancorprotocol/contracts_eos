@@ -7,44 +7,50 @@
 #include "../Token/Token.hpp"
 #include "MultiConverter.hpp"
 
-ACTION MultiConverter::create(name owner, asset initial_supply, asset maximum_supply) {
+ACTION MultiConverter::create(name owner, symbol_code token_code, double initial_supply) {
     require_auth(owner);
-    
+
+    symbol token_symbol = symbol(token_code, DEFAULT_TOKEN_PRECISION);
+    double maximum_supply = DEFAULT_MAX_SUPPLY;
+
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
 
-    converters converters_table(get_self(), initial_supply.symbol.code().raw());
-    auto converter = converters_table.find(initial_supply.symbol.code().raw());
-
-    check(initial_supply.symbol == maximum_supply.symbol, "symbol mismatch");    
+    converters converters_table(get_self(), token_symbol.code().raw());
+    const auto& converter = converters_table.find(token_symbol.code().raw());
+  
     check(converter == converters_table.end(), "converter for the given symbol already exists");
-    check(initial_supply.amount > 0, "must have a non-zero initial supply");
+    check(initial_supply > 0, "must have a non-zero initial supply");
+    check(initial_supply / maximum_supply <= MAX_INITIAL_MAXIMUM_SUPPLY_RATIO , "the ratio between initial and max supply is too big");
     
     converters_table.emplace(owner, [&](auto& c) {
-        c.currency = initial_supply.symbol;
+        c.currency = token_symbol;
         c.owner = owner;
         c.enabled = false;
         c.launched = false;
         c.stake_enabled = false;
         c.fee = 0;
-    });    
+    });
+
+    asset initial_supply_asset = asset(initial_supply * pow(10, token_symbol.precision()) , token_symbol);
+    asset maximum_supply_asset = asset(maximum_supply * pow(10, token_symbol.precision()) , token_symbol);
 
     action( 
         permission_level{ st.multi_token, "active"_n },
         st.multi_token, "create"_n, 
-        make_tuple(get_self(), maximum_supply) 
+        make_tuple(get_self(), maximum_supply_asset) 
     ).send();
 
     action( 
         permission_level{ get_self(), "active"_n },
         st.multi_token, "issue"_n, 
-        make_tuple(get_self(), initial_supply, string("setup"))
+        make_tuple(get_self(), initial_supply_asset, string("setup"))
     ).send();
 
     action(
         permission_level{ get_self(), "active"_n },
         st.multi_token, "transfer"_n,
-        make_tuple(get_self(), owner, initial_supply, string("setup"))
+        make_tuple(get_self(), owner, initial_supply_asset, string("setup"))
     ).send();
 }
 
@@ -255,23 +261,22 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
     
+    check(converter.currency == quantity.symbol, "symbol mismatch");
     check(converter.enabled, "cannot fund when converter is disabled");
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
     double total_ratio = 0.0;
-    auto smart_amount = quantity.amount / pow(10, quantity.symbol.precision());
-    auto current_smart_supply = supply.amount / pow(10, quantity.symbol.precision());
+    double smart_amount = quantity.amount;
+    double current_smart_supply = supply.amount;
+    double percent = smart_amount / current_smart_supply;
 
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
-        auto balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision());
-        uint64_t amount = (smart_amount * balance - 1) / current_smart_supply + 1;
-        amount *= pow(10, reserve.balance.symbol.precision());
-        asset liq = asset(amount, reserve.balance.symbol);
-            
-        mod_account_balance(sender, quantity.symbol.code(), -liq);
-        mod_reserve_balance(quantity.symbol, liq);
+        asset reserve_amount = asset(reserve.balance.amount * percent + 1, reserve.balance.symbol);
+        
+        mod_account_balance(sender, quantity.symbol.code(), -reserve_amount);
+        mod_reserve_balance(quantity.symbol, reserve_amount);
     }
     check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
     action( // issue new smart tokens to the issuer
@@ -290,27 +295,25 @@ void MultiConverter::liquidate(name sender, asset quantity) {
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     check(get_first_receiver() == st.multi_token, "bad origin for this transfer");
-
+    
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
     double total_ratio = 0.0;
-    auto smart_amount = quantity.amount / pow(10, quantity.symbol.precision());
-    auto current_smart_supply = supply.amount / pow(10, quantity.symbol.precision());
+    double smart_amount = quantity.amount;
+    double current_smart_supply = supply.amount;
+    double percent = smart_amount / current_smart_supply;
 
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
-        auto balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision());
-        uint64_t amount = (smart_amount * balance) / current_smart_supply;
-        amount *= pow(10, reserve.balance.symbol.precision());
-        asset liq = asset(amount, reserve.balance.symbol);
+        asset reserve_amount = asset(reserve.balance.amount * percent, reserve.balance.symbol);
         
-        check(liq.amount > 0, "cannot liquidate amounts less than or equal to 0");
-        mod_reserve_balance(quantity.symbol, -liq);
+        check(reserve_amount.amount > 0, "cannot liquidate amounts less than or equal to 0");
+        mod_reserve_balance(quantity.symbol, -reserve_amount);
         action(
             permission_level{ get_self(), "active"_n },
             reserve.contract, "transfer"_n,
-            make_tuple(get_self(), sender, liq, string("liquidation"))
+            make_tuple(get_self(), sender, reserve_amount, string("liquidation"))
         ).send();   
     }
     check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
@@ -589,7 +592,7 @@ void MultiConverter::on_transfer(name from, name to, asset quantity, string memo
 
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
     
-    const auto& splitted_memo = split(memo, ";"); 
+    const auto& splitted_memo = split(memo, ";");
     if (splitted_memo[0] == "fund")
         mod_balances(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver());
     else if (splitted_memo[0] == "liquidate")

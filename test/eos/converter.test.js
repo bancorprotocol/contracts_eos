@@ -407,13 +407,13 @@ describe('Test: BancorConverter', () => {
         it("trying to buy BNTEOS with fakeos - should throw", async () => { 
             await expectError(
                 convertEOS('5.0000', true),
-                ERRORS.BAD_ORIGIN
+                ERRORS.MUST_HAVE_TOKEN_ENTRY
             )
         })
         it("trying to buy BNTEOS with SYS - should throw", async () => { 
             await expectError(
                 convertSYS('5.0000'), 
-                ERRORS.NO_RESERVE
+                ERRORS.MUST_HAVE_TOKEN_ENTRY
             )
         })
         it("trying to delete BNT reserve when it's not empty - should throw", async () => { 

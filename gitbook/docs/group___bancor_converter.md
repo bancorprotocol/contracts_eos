@@ -78,7 +78,7 @@ ACTION delreserve (
 **Parameters:**
 
 
-* currency - reserve token currency symbol 
+* `currency` - reserve token currency symbol 
 
 
 
@@ -106,14 +106,14 @@ can only be called once, by the contract account
 **Parameters:**
 
 
-* smart\_contract - contract account name of the smart token governed by the converter 
-* smart\_currency - currency of the smart token governed by the converter 
-* smart\_enabled - true if the smart token can be converted to/from, false if not 
-* enabled - true if conversions are enabled, false if not 
-* require\_balance - true if conversions that require creating new balance for the calling account should fail, false if not 
-* network - bancor network contract name 
-* max\_fee - maximum conversion fee percentage, 0-30000, 4-pt precision a la eosio.asset 
-* fee - conversion fee percentage, must be lower than the maximum fee, same precision 
+* `smart_contract` - contract account name of the smart token governed by the converter 
+* `smart_currency` - currency of the smart token governed by the converter 
+* `smart_enabled` - true if the smart token can be converted to/from, false if not 
+* `enabled` - true if conversions are enabled, false if not 
+* `require_balance` - true if conversions that require creating new balance for the calling account should fail, false if not 
+* `network` - bancor network contract name 
+* `max_fee` - maximum conversion fee percentage, 0-30000, 4-pt precision a la eosio.asset 
+* `fee` - conversion fee percentage, must be lower than the maximum fee, same precision 
 
 
 
@@ -137,10 +137,10 @@ void on_transfer (
 **Parameters:**
 
 
-* from - the sender of the transfer 
-* to - the receiver of the transfer 
-* quantity - the quantity for the transfer 
-* memo - the memo for the transfer 
+* `from` - the sender of the transfer 
+* `to` - the receiver of the transfer 
+* `quantity` - the quantity for the transfer 
+* `memo` - the memo for the transfer 
 
 
 
@@ -164,10 +164,10 @@ can also be used to update an existing reserve, can only be called by the contra
 **Parameters:**
 
 
-* contract - reserve token contract name 
-* currency - reserve token currency symbol 
-* ratio - reserve ratio, percentage, 0-1000000, precision a la max\_fee 
-* sale\_enabled - true if purchases are enabled with the reserve, false if not 
+* `contract` - reserve token contract name 
+* `currency` - reserve token currency symbol 
+* `ratio` - reserve ratio, percentage, 0-1000000, precision a la max\_fee 
+* `sale_enabled` - true if purchases are enabled with the reserve, false if not 
 
 
 
@@ -191,10 +191,10 @@ can only be called by the contract account
 **Parameters:**
 
 
-* smart\_enabled - true if the smart token can be converted to/from, false if not 
-* enabled - true if conversions are enabled, false if not 
-* require\_balance - true if conversions that require creating new balance for the calling account should fail, false if not 
-* fee - conversion fee percentage, must be lower than the maximum fee, same precision 
+* `smart_enabled` - true if the smart token can be converted to/from, false if not 
+* `enabled` - true if conversions are enabled, false if not 
+* `require_balance` - true if conversions that require creating new balance for the calling account should fail, false if not 
+* `fee` - conversion fee percentage, must be lower than the maximum fee, same precision 
 
 
 
