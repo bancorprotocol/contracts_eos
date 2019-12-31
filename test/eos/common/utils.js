@@ -277,6 +277,7 @@ const calculateQuickConvertReturn = (fromTokenReserveBalance, amount, toTokenRes
     fromTokenReserveBalance = Decimal(fromTokenReserveBalance);
     amount = Decimal(amount);
     toTokenReserveBalance = Decimal(toTokenReserveBalance);
+    fee = Decimal(fee);
 
     const newAmount = amount.div(fromTokenReserveBalance.add(amount)).mul(toTokenReserveBalance);
 
@@ -284,7 +285,7 @@ const calculateQuickConvertReturn = (fromTokenReserveBalance, amount, toTokenRes
 }
 
 const deductFee = (amount, fee, magnitude) => {
-    if (fee === 0) return amount;
+    if (fee.equals(0)) return amount;
 
     return amount.mul(
         ONE.minus(fee.div(MAX_FEE)).pow(magnitude)
@@ -294,16 +295,19 @@ const extractEvents = async (conversionTx) => {
     if (conversionTx instanceof Promise)
         conversionTx = await expectNoError(conversionTx);
     
-    const rawEvents = conversionTx
-        .processed.action_traces[0].inline_traces[2].inline_traces[1].console
-        .split("\n")
-        .filter(Boolean)
-        .map(JSON.parse)
+    const rawEvents = getConsoleOutputRecursively(conversionTx.processed.action_traces[0])
     
     return {
         priceData: rawEvents.filter(({ etype }) => etype === 'price_data'),
-        conversion: rawEvents.find(({ etype }) => etype === 'conversion')
+        conversion: rawEvents.filter(({ etype }) => etype === 'conversion')
     }
+}
+
+function getConsoleOutputRecursively(obj) {
+    if (!obj.hasOwnProperty('inline_traces') || !(obj.inline_traces instanceof Array) || obj.inline_traces.length === 0)
+        return obj.console ? obj.console.split('\n').filter(Boolean).map(JSON.parse) : []
+
+    return obj.inline_traces.map(getConsoleOutputRecursively).flat();
 }
 
 
