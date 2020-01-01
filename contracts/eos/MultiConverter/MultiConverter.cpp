@@ -529,11 +529,11 @@ void MultiConverter::complete_convert(memo_structure memo_object, name to_token_
 }
 
 // returns a reserve object, can also be called for the smart token itself
-const MultiConverter::reserve_t& MultiConverter::get_reserve(uint64_t symbl, const converter_t& converter) {
+const MultiConverter::reserve_t& MultiConverter::get_reserve(symbol_code symbl, const converter_t& converter) {
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
 
-    if (converter.currency.code().raw() == symbl) { // smart token incoming/outgoing, not actually a reserve, returned as such for semantics purposes only
+    if (converter.currency.code() == symbl) { // smart token incoming/outgoing, not actually a reserve, returned as such for semantics purposes only
         asset supply = get_supply(st.multi_token, converter.currency.code());
         static reserve_t temp_reserve = {
             st.multi_token, 0, 
@@ -543,7 +543,7 @@ const MultiConverter::reserve_t& MultiConverter::get_reserve(uint64_t symbl, con
         return temp_reserve;
     }
     reserves reserves_table(get_self(), converter.currency.code().raw());
-    const auto& reserve = reserves_table.get(symbl, "reserve not found");
+    const auto& reserve = reserves_table.get(symbl.raw(), "reserve not found");
     return reserve;
 }
 

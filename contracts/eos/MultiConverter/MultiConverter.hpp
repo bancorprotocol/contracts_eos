@@ -369,7 +369,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         double calculate_return(const reserve_t& from_token, const reserve_t& to_token, double from_amount, string memo, const converter_t& converter, name multi_token);
         void complete_convert(memo_structure memo_object, name to_token_contract, double to_return, symbol to_symbol, symbol converter_currency);
 
-        const reserve_t& get_reserve(uint64_t name, const converter_t& converter);
+        const reserve_t& get_reserve(symbol_code symbl, const converter_t& converter);
 
         void mod_reserve_balance(symbol converter_currency, asset value);
         void mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity);
