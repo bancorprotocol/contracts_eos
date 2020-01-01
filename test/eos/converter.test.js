@@ -146,6 +146,22 @@ describe('Test: BancorConverter', () => {
             //
             expected = '20300.00000000 RELAY'
             assert.equal(result.rows[0].supply, expected, "supply not set correctly - RELAY")    
+        })
+        it('create and issue relay token - RELAYB', async function () {
+            await expectNoError( 
+                create('bnt2eoscnvrt', 'bnt2eosrelay', 'RELAYB') 
+            )
+            await expectNoError( 
+                issue('bnt2eosrelay', 'bnt2eoscnvrt', '20300.00000000 RELAYB', 'setup') 
+            )    
+            const result = await get('bnt2eosrelay', 'RELAYB')
+            assert.equal(result.rows.length, 1)
+            //
+            var expected = '250000000.00000000 RELAYB'
+            assert.equal(result.rows[0].max_supply, expected, "max_supply not set correctly - RELAYB")    
+            //
+            expected = '20300.00000000 RELAYB'
+            assert.equal(result.rows[0].supply, expected, "supply not set correctly - RELAYB")    
         })     
         it('create and issue relay token - BNTSYS', async function () {
             await expectNoError( 

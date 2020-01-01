@@ -297,10 +297,11 @@ const extractEvents = async (conversionTx) => {
     
     const rawEvents = getConsoleOutputRecursively(conversionTx.processed.action_traces[0])
     
-    return {
-        priceData: rawEvents.filter(({ etype }) => etype === 'price_data'),
-        conversion: rawEvents.filter(({ etype }) => etype === 'conversion')
-    }
+    return rawEvents.reduce((acc, o) => (acc[o.etype] ? { ...acc, [o.etype]: [...acc[o.etype], o] } : { ...acc, [o.etype]: [o] } ), {})
+    // return {
+    //     priceData: rawEvents.filter(({ etype }) => etype === 'price_data'),
+    //     conversion: rawEvents.filter(({ etype }) => etype === 'conversion')
+    // }
 }
 
 function getConsoleOutputRecursively(obj) {
