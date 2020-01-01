@@ -413,8 +413,8 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
 
     check(settings.active && converter.enabled, "conversions are disabled");
     
-    auto from_path_currency = quantity.symbol.code().raw();
-    auto to_path_currency = symbol_code(memo_object.path[1].c_str()).raw();
+    symbol_code from_path_currency = quantity.symbol.code();
+    symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
 
     double from_amount = quantity.amount / pow(10, quantity.symbol.precision());
@@ -424,8 +424,8 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
     check(to_token.sale_enabled, "'to' token purchases disabled");
     check(code == from_token.contract, "unknown 'from' contract");
 
-    bool incoming_smart_token = from_token.balance.symbol.code().raw() == converter.currency.code().raw();
-    bool outgoing_smart_token = to_token.balance.symbol.code().raw() == converter.currency.code().raw();
+    bool incoming_smart_token = from_token.balance.symbol.code() == converter.currency.code();
+    bool outgoing_smart_token = to_token.balance.symbol.code() == converter.currency.code();
 
     if (!incoming_smart_token) // add to reserve
         mod_reserve_balance(converter.currency, quantity);    
