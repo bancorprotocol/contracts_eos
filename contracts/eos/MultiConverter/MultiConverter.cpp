@@ -403,7 +403,7 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
     memo_structure memo_object = parse_memo(memo);
     check(memo_object.path.size() > 1, "invalid memo format");
     check(memo_object.converters[0].account == get_self(), "wrong converter");
-    
+
     symbol_code from_path_currency = quantity.symbol.code();
     symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
@@ -449,10 +449,8 @@ asset MultiConverter::calculate_return(extended_asset from_token, extended_symbo
     asset supply = get_supply(multi_token, converter.currency.code());
     double current_smart_supply = supply.amount / pow(10, converter.currency.precision());
     
-    double current_from_balance;
-    double current_to_balance;
-    reserve_t input_reserve;
-    reserve_t to_reserve;
+    double current_from_balance, current_to_balance;
+    reserve_t input_reserve, to_reserve;
     if (!incoming_smart_token) {
         input_reserve = get_reserve(from_symbol.code(), converter.currency.code());
         current_from_balance = input_reserve.balance.amount / pow(10, input_reserve.balance.symbol.precision());
