@@ -72,11 +72,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          *//*! \cond DOCS_EXCLUDE */
             TABLE settings_t { /*! \endcond */
                 /**
-                 * @brief toggle boolean to enable/disable all the converters in this contract
-                 */
-                bool active;
-
-                /**
                  * @brief maximum conversion fee for converters in this contract
                  */
                 uint64_t max_fee;
@@ -266,12 +261,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @param maxfee - maximum fee for all converters in this multi-converter
          */
         ACTION setmaxfee(uint64_t maxfee);
-
-        /**
-         * @brief modify enabled in this multi-converter's settings
-         * @param enabled - false will override individual enabled flags for all converters
-         */
-        ACTION setenabled(bool enabled);
         
         // the 4 actions below updates the converter settings, can only be called by the converter owner after creation
 

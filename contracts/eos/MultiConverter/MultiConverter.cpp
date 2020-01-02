@@ -54,16 +54,6 @@ ACTION MultiConverter::create(name owner, symbol_code token_code, double initial
     ).send();
 }
 
-ACTION MultiConverter::setenabled(bool enabled) {   
-    require_auth(get_self());
-    settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "set token contract first");
-    check(enabled != st.active, "setting same value as before");
-    settings_table.modify(st, same_payer, [&](auto& s) {		
-        s.active = enabled;
-    });
-}
-
 ACTION MultiConverter::setmaxfee(uint64_t maxfee) {
     require_auth(get_self());
    
@@ -101,8 +91,7 @@ ACTION MultiConverter::setmultitokn(name multi_token) {
 
     check(st == settings_table.end(), "can only call setmultitokn once");
     
-    settings_table.emplace(get_self(), [&](auto& s) {		
-        s.active = false;
+    settings_table.emplace(get_self(), [&](auto& s) {
         s.multi_token = multi_token;
     });
 }
@@ -414,7 +403,7 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
     converters converters_table(get_self(), converter_currency_code.raw());
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
 
-    check(settings.active && converter.enabled, "conversions are disabled");
+    check(converter.enabled, "conversions are disabled");
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
     check(
         (quantity.symbol == converter.currency && code == settings.multi_token) ||
@@ -606,7 +595,7 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
     if (code == receiver)
         switch (action) {
             EOSIO_DISPATCH_HELPER(MultiConverter, (create)(close)
-            (setmultitokn)(setstaking)(setmaxfee)(setenabled)
+            (setmultitokn)(setstaking)(setmaxfee)
             (updateowner)(updatefee)(enablecnvrt)(enablestake)
             (setreserve)(delreserve)(withdraw)(fund)) 
         }    

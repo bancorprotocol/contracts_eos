@@ -34,7 +34,6 @@ const {
     delreserve,
     getReserve,
     getSettings,
-    setEnabled,
     setStaking,
     enableStake,
     updateOwner,
@@ -58,12 +57,8 @@ describe('Test: multiConverter', () => {
             await expectNoError( 
                 setMultitoken(multiConverter) 
             )
-            await expectNoError(
-                setEnabled(multiConverter)
-            )
             result = await getSettings(multiConverter)
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].active, true, "multiconverter not enabled")
             await expectNoError(
                 setStaking(multiConverter)
             )

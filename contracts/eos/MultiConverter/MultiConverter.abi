@@ -172,16 +172,6 @@
             ]
         },
         {
-            "name": "setenabled",
-            "base": "",
-            "fields": [
-                {
-                    "name": "enabled",
-                    "type": "bool"
-                }
-            ]
-        },
-        {
             "name": "setmaxfee",
             "base": "",
             "fields": [
@@ -241,10 +231,6 @@
             "name": "settings_t",
             "base": "",
             "fields": [
-                {
-                    "name": "active",
-                    "type": "bool"
-                },
                 {
                     "name": "max_fee",
                     "type": "uint64"
@@ -335,11 +321,6 @@
         {
             "name": "fund",
             "type": "fund",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "setenabled",
-            "type": "setenabled",
             "ricardian_contract": ""
         },
         {
