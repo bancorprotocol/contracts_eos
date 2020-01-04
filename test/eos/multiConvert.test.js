@@ -27,7 +27,6 @@ const {
     createConverter,
     delConverter,
     setMultitoken,
-    enableConvert,
     getConverter,
     getAccount,
     setreserve,
@@ -186,43 +185,7 @@ describe('Test: multiConverter', () => {
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '990.0000 EOS', "funded amount invalid - BNTEOS")
         })
-        it("should throw error when trying to convert while disabled", async () => {
-            await expectError(
-                withdraw(user2, '9.00000000 BNT', 'BNTEOS'),
-                "only converter owner may fund/withdraw prior to activation"
-            )
-            await expectError(
-                withdraw(user1, '1000.00000000 BNT', 'BNTEOS'),
-                "insufficient amount in reserve"
-            )
-            await expectError(
-                transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, 'thisisbancor', user1, 
-                                 `1,${multiConverter}:TKNA TKNA,0.0001,${user1}`
-                        ), 
-                ERRORS.CONVERSIONS_DISABLED
-            )
-            await expectError(
-                transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, 'thisisbancor', user1, 
-                                 `1,${multiConverter}:TKNB TKNB,0.0001,${user1}`
-                        ),
-                ERRORS.CONVERSIONS_DISABLED
-            )
-            let Bfee = 10000
-            await expectNoError(
-                updateFee(user2, 'TKNB', Bfee)
-            )
-            result = await getConverter('TKNB')
-            assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].fee, Bfee, "fee not properly set - TKNA")
-        })
-        it("enable converters and staking", async () => { 
-            await expectNoError(
-               enableConvert(user1, 'TKNA')
-            )
-            result = await getConverter('TKNA')
-            assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].enabled, true, "converter not enabled - TKNA")
-            
+        it("enable staking", async () => {
             await expectNoError(
                 enableStake(user1, 'BNTEOS')
             )
@@ -232,18 +195,6 @@ describe('Test: multiConverter', () => {
             await expectError(
                 updateFee(user2, 'BNTEOS', 10),
                 ERRORS.PERMISSIONS
-            )
-            await expectNoError(
-                enableConvert(user2, 'TKNB')
-            )
-            await expectNoError(
-                enableConvert(user1, 'BNTEOS')
-            )
-            await expectNoError(
-                enableConvert(user1, 'RELAY')
-            )
-            await expectNoError(
-                enableConvert(user1, 'RELAYB')
             )
         })
         it('ensures that fund and withdraw are working properly (pre-launch)', async () => {

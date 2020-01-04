@@ -44,11 +44,7 @@
                     "type": "name"
                 },
                 {
-                    "name": "enabled",
-                    "type": "bool"
-                },
-                {
-                    "name": "launched",
+                    "name": "active",
                     "type": "bool"
                 },
                 {
@@ -90,20 +86,6 @@
                 {
                     "name": "currency",
                     "type": "symbol_code"
-                }
-            ]
-        },
-        {
-            "name": "enablecnvrt",
-            "base": "",
-            "fields": [
-                {
-                    "name": "currency",
-                    "type": "symbol_code"
-                },
-                {
-                    "name": "enabled",
-                    "type": "bool"
                 }
             ]
         },
@@ -162,10 +144,6 @@
                     "type": "uint64"
                 },
                 {
-                    "name": "sale_enabled",
-                    "type": "bool"
-                },
-                {
                     "name": "balance",
                     "type": "asset"
                 }
@@ -206,10 +184,6 @@
                 {
                     "name": "contract",
                     "type": "name"
-                },
-                {
-                    "name": "sale_enabled",
-                    "type": "bool"
                 },
                 {
                     "name": "ratio",
@@ -306,11 +280,6 @@
         {
             "name": "delreserve",
             "type": "delreserve",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "enablecnvrt",
-            "type": "enablecnvrt",
             "ricardian_contract": ""
         },
         {

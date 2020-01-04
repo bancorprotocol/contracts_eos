@@ -26,8 +26,7 @@ ACTION MultiConverter::create(name owner, symbol_code token_code, double initial
     converters_table.emplace(owner, [&](auto& c) {
         c.currency = token_symbol;
         c.owner = owner;
-        c.enabled = false;
-        c.launched = false;
+        c.active = false;
         c.stake_enabled = false;
         c.fee = 0;
     });
@@ -96,35 +95,6 @@ ACTION MultiConverter::setmultitokn(name multi_token) {
     });
 }
 
-ACTION MultiConverter::enablecnvrt(symbol_code currency, bool enabled) {
-    converters converters_table(get_self(), currency.raw());
-    settings settings_table(get_self(), get_self().value);
-    
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-    const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
-    require_auth(converter.owner);
-    bool prevEnabled = converter.enabled;
-    check(enabled != prevEnabled, "setting same value as before");
-    converters_table.modify(converter, same_payer, [&](auto& c) {
-        c.enabled = enabled;
-        c.launched = true;
-    });
-
-    if (!prevEnabled) {
-        reserves reserves_table(get_self(), currency.raw());
-        
-        asset supply = get_supply(st.multi_token, converter.currency.code());
-        auto current_smart_supply = supply.amount / pow(10, converter.currency.precision());
-
-        for (auto& reserve : reserves_table) {
-            auto reserve_balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision()); 
-            EMIT_PRICE_DATA_EVENT(currency, current_smart_supply, 
-                                  reserve.contract, reserve.balance.symbol.code(), 
-                                  reserve_balance, reserve.ratio);
-        }
-    }    
-}
-
 ACTION MultiConverter::enablestake(symbol_code currency, bool enabled) {
     converters converters_table(get_self(), currency.raw());
     settings settings_table(get_self(), get_self().value);
@@ -174,7 +144,7 @@ ACTION MultiConverter::updatefee(symbol_code currency, uint64_t fee) {
     }
 }
 
-ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, bool sale_enabled, uint64_t ratio) {
+ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
     converters converters_table(get_self(), converter_currency_code.raw());
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     require_auth(converter.owner);
@@ -196,7 +166,6 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
         check(reserve->contract == contract, "cannot update the reserve contract name");
         reserves_table.modify(reserve, get_self(), [&](auto& r) {
             r.ratio = ratio;
-            r.sale_enabled = sale_enabled;
         });
         auto reserve_balance = reserve->balance.amount / pow(10, currency.precision()); 
         EMIT_PRICE_DATA_EVENT(converter_currency_code, 
@@ -206,7 +175,6 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
         reserves_table.emplace(converter.owner, [&](auto& r) {
             r.contract = contract;
             r.ratio = ratio;
-            r.sale_enabled = sale_enabled;
             r.balance = asset(0, currency);
         });
     
@@ -251,10 +219,10 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
     const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
     
     check(converter.currency == quantity.symbol, "symbol mismatch");
-    check(converter.enabled, "cannot fund when converter is disabled");
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
+    uint64_t reserves_sum = 0;
     double total_ratio = 0.0;
     double smart_amount = quantity.amount;
     double current_smart_supply = supply.amount;
@@ -262,12 +230,17 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
 
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
+        reserves_sum += reserve.balance.amount;
         asset reserve_amount = asset(reserve.balance.amount * percent + 1, reserve.balance.symbol);
-        
+
         mod_account_balance(sender, quantity.symbol.code(), -reserve_amount);
         mod_reserve_balance(quantity.symbol, reserve_amount);
     }
     check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
+
+    if (!converter.active && reserves_sum == 0)
+        converters_table.modify(converter, same_payer, [&](auto& c) { c.active = true; });
+
     action( // issue new smart tokens to the issuer
         permission_level{ get_self(), "active"_n },
         st.multi_token, "issue"_n, 
@@ -360,7 +333,7 @@ void MultiConverter::mod_balances(name sender, asset quantity, symbol_code conve
             make_tuple(get_self(), sender, -quantity, string("withdrawal"))
         ).send();
     
-    if (converter.launched)
+    if (converter.active)
         mod_account_balance(sender, converter_currency_code, quantity);
     else {
         check(sender == converter.owner, "only converter owner may fund/withdraw prior to activation");
@@ -403,7 +376,6 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
     converters converters_table(get_self(), converter_currency_code.raw());
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
 
-    check(converter.enabled, "conversions are disabled");
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
     check(
         (quantity.symbol == converter.currency && code == settings.multi_token) ||
@@ -418,7 +390,6 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
     }
     else {
         const reserve_t& r = get_reserve(to_path_currency, converter.currency.code());
-        check(r.sale_enabled, "'to' token purchases disabled"); // TODO: sale_enabled should be purchase_enabled
         to_token = extended_symbol(r.balance.symbol, r.contract);
     }
 
@@ -596,7 +567,7 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
         switch (action) {
             EOSIO_DISPATCH_HELPER(MultiConverter, (create)(close)
             (setmultitokn)(setstaking)(setmaxfee)
-            (updateowner)(updatefee)(enablecnvrt)(enablestake)
+            (updateowner)(updatefee)(enablestake)
             (setreserve)(delreserve)(withdraw)(fund)) 
         }    
 }

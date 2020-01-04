@@ -110,11 +110,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
                 uint64_t ratio;
 
                 /**
-                 * @brief toggle boolean to enable/disable conversions through this reserve
-                 */
-                bool sale_enabled;
-
-                /**
                  * @brief amount in the reserve
                  * @details PRIMARY KEY for this table is `balance.symbol.code().raw()`
                  */
@@ -168,14 +163,9 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
                 name owner;
 
                 /**
-                 * @brief toggle boolean to enable/disable this converter
+                 * @brief Has this converter active (ever been funded)
                  */
-                bool enabled;
- 
-                /**
-                 * @brief Has this converter launched (ever been enabled)
-                 */
-                bool launched;
+                bool active;
 
                 /**                
                  * @brief toggle boolean to enable/disable this staking and voting for this converter
@@ -279,13 +269,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         ACTION updatefee(symbol_code currency, uint64_t fee);
         
         /**
-         * @brief flag indicating if conversions are enabled, false if not
-         * @param currency - the currency symbol governed by the converter
-         * @param enabled - true if conversions for this symbol are enabled
-         */
-        ACTION enablecnvrt(symbol_code currency, bool enabled); 
-        
-        /**
          * @brief flag indicating if the smart token can be staked, false if not
          * @param currency - the currency symbol governed by the converter
          * @param enabled - true if staking/voting for this symbol are enabled
@@ -298,10 +281,9 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @param converter_currency_code - the currency code of the currency governed by the converter
          * @param currency - reserve token currency symbol
          * @param contract - reserve token contract name
-         * @param sale_enabled - true if selling is enabled with the reserve, false if not
          * @param ratio - reserve ratio, percentage, 0-1000000
          */
-        ACTION setreserve(symbol_code converter_currency_code, symbol currency, name contract, bool sale_enabled, uint64_t ratio);
+        ACTION setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio);
 
         /**
          * @brief deletes an empty reserve in the converter
@@ -322,7 +304,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @brief buys smart tokens with all connector tokens using the same percentage
          * @details i.e. if the caller increases the supply by 10%, it will cost an amount equal to
          * 10% of each connector token balance
-         * can only be called if the total ratio is exactly 100% and while conversions are enabled
+         * can only be called if the total ratio is exactly 100%
          * @param  sender - sender of the quantity
          * @param quantity - amount to increase the supply by (in the smart token)
         */
