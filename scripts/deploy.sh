@@ -195,7 +195,7 @@ cleos set account permission bnt2aaarelay active '{ "threshold": 1, "keys": [{ "
 cleos set account permission bnt2bbbcnvrt active '{ "threshold": 1, "keys": [{ "key": "EOS8UAsFY4RacdaeuadicrkP66JQxPsbNyucmbT8Z4GjwFoytsK9u", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2bbbcnvrt","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2bbbcnvrt
 cleos set account permission bnt2bbbrelay active '{ "threshold": 1, "keys": [{ "key": "EOS8UAsFY4RacdaeuadicrkP66JQxPsbNyucmbT8Z4GjwFoytsK9u", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2bbbrelay","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2bbbrelay
 
-./scripts/eos/deploy_bancor_network.sh -u "$NODEOS_LOCATION"
+./scripts/deploy_bancor_network.sh -u "$NODEOS_LOCATION"
 
 on_exit
 echo -e "${GREEN}--> Done${NC}"
