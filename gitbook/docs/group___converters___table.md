@@ -26,10 +26,9 @@ _This table stores the key information about all converters in this contract._ [
 
 | Type | Name |
 | ---: | :--- |
+|  bool | [**active**](group___converters___table.md#variable-active)  <br>_Has this converter active (ever been funded)_  |
 |  symbol | [**currency**](group___converters___table.md#variable-currency)  <br>_symbol of the smart token_  _representing a share in the reserves of this converter_ |
-|  bool | [**enabled**](group___converters___table.md#variable-enabled)  <br>_toggle boolean to enable/disable this converter_  |
 |  uint64\_t | [**fee**](group___converters___table.md#variable-fee)  <br>_conversion fee for this converter, applied on every hop_  |
-|  bool | [**launched**](group___converters___table.md#variable-launched)  <br>_Has this converter launched (ever been enabled)_  |
 |  name | [**owner**](group___converters___table.md#variable-owner)  <br>_creator of the converter_  |
 |  bool | [**stake\_enabled**](group___converters___table.md#variable-stake-enabled)  <br>_toggle boolean to enable/disable this staking and voting for this converter_  |
 
@@ -51,6 +50,15 @@ SCOPE of this table is the converters' smart token symbol's `code().raw()` value
 ## Public Attributes Documentation
 
 
+### <a href="#variable-active" id="variable-active">variable active </a>
+
+
+```cpp
+bool active;
+```
+
+
+
 ### <a href="#variable-currency" id="variable-currency">variable currency </a>
 
 
@@ -63,29 +71,11 @@ PRIMARY KEY for this table is `currency.code().raw()`
 
         
 
-### <a href="#variable-enabled" id="variable-enabled">variable enabled </a>
-
-
-```cpp
-bool enabled;
-```
-
-
-
 ### <a href="#variable-fee" id="variable-fee">variable fee </a>
 
 
 ```cpp
 uint64_t fee;
-```
-
-
-
-### <a href="#variable-launched" id="variable-launched">variable launched </a>
-
-
-```cpp
-bool launched;
 ```
 
 

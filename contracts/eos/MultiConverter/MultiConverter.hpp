@@ -10,6 +10,8 @@
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
 
+#include "../Common/common.hpp"
+
 using namespace eosio;
 using namespace std;
 
@@ -70,11 +72,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          *//*! \cond DOCS_EXCLUDE */
             TABLE settings_t { /*! \endcond */
                 /**
-                 * @brief toggle boolean to enable/disable all the converters in this contract
-                 */
-                bool active;
-
-                /**
                  * @brief maximum conversion fee for converters in this contract
                  */
                 uint64_t max_fee;
@@ -113,11 +110,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
                 uint64_t ratio;
 
                 /**
-                 * @brief toggle boolean to enable/disable conversions through this reserve
-                 */
-                bool sale_enabled;
-
-                /**
                  * @brief amount in the reserve
                  * @details PRIMARY KEY for this table is `balance.symbol.code().raw()`
                  */
@@ -125,6 +117,29 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
 
                 /*! \cond DOCS_EXCLUDE */
                 uint64_t primary_key() const { return balance.symbol.code().raw(); }
+                /*! \endcond */
+
+            }; /** @}*/
+        
+        /** 
+         * @defgroup Paths_Table Paths Table
+         * @brief This table stores the aggregate set of (output) reserves which can be purchased in exchange for a given (input) reserve 
+         * @details SCOPE of this table is the MultiConverter contract (`_self`)
+         * @{
+         *//*! \cond DOCS_EXCLUDE */
+            TABLE path_t { /*! \endcond */
+                /**
+                 * @brief reserves you can buy in exchange for `reserve` below
+                 */
+                set<symbol_code> reserves;
+                
+                /**
+                 * @brief the reserve you can sell to buy `reserves` above
+                 */
+                symbol_code reserve;
+
+                /*! \cond DOCS_EXCLUDE */
+                uint64_t primary_key() const { return reserve.raw(); }
                 /*! \endcond */
 
             }; /** @}*/
@@ -146,16 +161,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
                  * @brief creator of the converter
                  */
                 name owner;
-
-                /**
-                 * @brief toggle boolean to enable/disable this converter
-                 */
-                bool enabled;
- 
-                /**
-                 * @brief Has this converter launched (ever been enabled)
-                 */
-                bool launched;
 
                 /**                
                  * @brief toggle boolean to enable/disable this staking and voting for this converter
@@ -241,12 +246,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @param maxfee - maximum fee for all converters in this multi-converter
          */
         ACTION setmaxfee(uint64_t maxfee);
-
-        /**
-         * @brief modify enabled in this multi-converter's settings
-         * @param enabled - false will override individual enabled flags for all converters
-         */
-        ACTION setenabled(bool enabled);
         
         // the 4 actions below updates the converter settings, can only be called by the converter owner after creation
 
@@ -265,13 +264,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         ACTION updatefee(symbol_code currency, uint64_t fee);
         
         /**
-         * @brief flag indicating if conversions are enabled, false if not
-         * @param currency - the currency symbol governed by the converter
-         * @param enabled - true if conversions for this symbol are enabled
-         */
-        ACTION enablecnvrt(symbol_code currency, bool enabled); 
-        
-        /**
          * @brief flag indicating if the smart token can be staked, false if not
          * @param currency - the currency symbol governed by the converter
          * @param enabled - true if staking/voting for this symbol are enabled
@@ -284,10 +276,9 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @param converter_currency_code - the currency code of the currency governed by the converter
          * @param currency - reserve token currency symbol
          * @param contract - reserve token contract name
-         * @param sale_enabled - true if selling is enabled with the reserve, false if not
          * @param ratio - reserve ratio, percentage, 0-1000000
          */
-        ACTION setreserve(symbol_code converter_currency_code, symbol currency, name contract, bool sale_enabled, uint64_t ratio);
+        ACTION setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio);
 
         /**
          * @brief deletes an empty reserve in the converter
@@ -308,7 +299,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @brief buys smart tokens with all connector tokens using the same percentage
          * @details i.e. if the caller increases the supply by 10%, it will cost an amount equal to
          * 10% of each connector token balance
-         * can only be called if the total ratio is exactly 100% and while conversions are enabled
+         * can only be called if the total ratio is exactly 100%
          * @param  sender - sender of the quantity
          * @param quantity - amount to increase the supply by (in the smart token)
         */
@@ -316,7 +307,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         
         /**
          * @brief transfer intercepts with standard transfer args
-         * @details `memo` containing a keyword following a semicolon at the end of the conversion path indicates special kind of transfer which otherwise would be interpreted as a standard conversion:
+         * @details `memo` containing a keyword following a semicolon at the end of the conversion path indicates special kind of transfer:
          * - e.g. transferring smart tokens with keyword "liquidate", or
          * - transferring reserve tokens with keyword "fund"
          * @param from - the sender of the transfer
@@ -332,6 +323,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         typedef eosio::multi_index<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
+        typedef eosio::multi_index<"paths"_n, path_t> paths;
         typedef eosio::multi_index<"accounts"_n, account_t,         
                         indexed_by<"bycnvrt"_n, 
                             const_mem_fun <account_t, uint128_t, 
@@ -340,8 +332,11 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
 
     private: 
         void convert(name from, asset quantity, string memo, name code);
+        asset calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token);
+        void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
-        const reserve_t& get_reserve(uint64_t name, const converter_t& converter);
+        const reserve_t& get_reserve(symbol_code symbl, symbol_code converter_currency);
+        bool is_converter_active(const converter_t& converter);
 
         void mod_reserve_balance(symbol converter_currency, asset value);
         void mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity);
@@ -355,7 +350,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * note that the function can also be called if conversions are disabled
         */
         void liquidate(name sender, asset quantity); // quantity to decrease the supply by (in the smart token)
-        
+
         asset get_supply(name contract, symbol_code sym);
 
         double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);

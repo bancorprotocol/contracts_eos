@@ -215,8 +215,7 @@ const setreserve = async function(precise = true, token = networkToken,
                     contract: token,
                     currency: `${precision},${symbol}`,
                     ratio,
-                    sale_enabled: true,
-                    ...(converterScope ? { converter_currency_code: converterScope } : {})
+                    ...(converterScope ? { converter_currency_code: converterScope } : { sale_enabled: true })
                 }
             }]
         }, 

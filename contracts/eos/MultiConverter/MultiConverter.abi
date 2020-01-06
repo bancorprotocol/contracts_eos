@@ -44,14 +44,6 @@
                     "type": "name"
                 },
                 {
-                    "name": "enabled",
-                    "type": "bool"
-                },
-                {
-                    "name": "launched",
-                    "type": "bool"
-                },
-                {
                     "name": "stake_enabled",
                     "type": "bool"
                 },
@@ -94,20 +86,6 @@
             ]
         },
         {
-            "name": "enablecnvrt",
-            "base": "",
-            "fields": [
-                {
-                    "name": "currency",
-                    "type": "symbol_code"
-                },
-                {
-                    "name": "enabled",
-                    "type": "bool"
-                }
-            ]
-        },
-        {
             "name": "enablestake",
             "base": "",
             "fields": [
@@ -136,6 +114,20 @@
             ]
         },
         {
+            "name": "path_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "reserves",
+                    "type": "symbol_code[]"
+                },
+                {
+                    "name": "reserve",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
             "name": "reserve_t",
             "base": "",
             "fields": [
@@ -148,22 +140,8 @@
                     "type": "uint64"
                 },
                 {
-                    "name": "sale_enabled",
-                    "type": "bool"
-                },
-                {
                     "name": "balance",
                     "type": "asset"
-                }
-            ]
-        },
-        {
-            "name": "setenabled",
-            "base": "",
-            "fields": [
-                {
-                    "name": "enabled",
-                    "type": "bool"
                 }
             ]
         },
@@ -204,10 +182,6 @@
                     "type": "name"
                 },
                 {
-                    "name": "sale_enabled",
-                    "type": "bool"
-                },
-                {
                     "name": "ratio",
                     "type": "uint64"
                 }
@@ -227,10 +201,6 @@
             "name": "settings_t",
             "base": "",
             "fields": [
-                {
-                    "name": "active",
-                    "type": "bool"
-                },
                 {
                     "name": "max_fee",
                     "type": "uint64"
@@ -309,11 +279,6 @@
             "ricardian_contract": ""
         },
         {
-            "name": "enablecnvrt",
-            "type": "enablecnvrt",
-            "ricardian_contract": ""
-        },
-        {
             "name": "enablestake",
             "type": "enablestake",
             "ricardian_contract": ""
@@ -321,11 +286,6 @@
         {
             "name": "fund",
             "type": "fund",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "setenabled",
-            "type": "setenabled",
             "ricardian_contract": ""
         },
         {
@@ -375,6 +335,13 @@
         {
             "name": "converters",
             "type": "converter_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "paths",
+            "type": "path_t",
             "index_type": "i64",
             "key_names": [],
             "key_types": []

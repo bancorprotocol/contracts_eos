@@ -4,7 +4,6 @@
  *  @copyright defined in ../../../LICENSE
  */
 
-#include "../Common/common.hpp"
 #include "../Token/Token.hpp"
 #include "MultiConverter.hpp"
 
@@ -27,8 +26,6 @@ ACTION MultiConverter::create(name owner, symbol_code token_code, double initial
     converters_table.emplace(owner, [&](auto& c) {
         c.currency = token_symbol;
         c.owner = owner;
-        c.enabled = false;
-        c.launched = false;
         c.stake_enabled = false;
         c.fee = 0;
     });
@@ -53,16 +50,6 @@ ACTION MultiConverter::create(name owner, symbol_code token_code, double initial
         st.multi_token, "transfer"_n,
         make_tuple(get_self(), owner, initial_supply_asset, string("setup"))
     ).send();
-}
-
-ACTION MultiConverter::setenabled(bool enabled) {   
-    require_auth(get_self());
-    settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "set token contract first");
-    check(enabled != st.active, "setting same value as before");
-    settings_table.modify(st, same_payer, [&](auto& s) {		
-        s.active = enabled;
-    });
 }
 
 ACTION MultiConverter::setmaxfee(uint64_t maxfee) {
@@ -102,39 +89,9 @@ ACTION MultiConverter::setmultitokn(name multi_token) {
 
     check(st == settings_table.end(), "can only call setmultitokn once");
     
-    settings_table.emplace(get_self(), [&](auto& s) {		
-        s.active = false;
+    settings_table.emplace(get_self(), [&](auto& s) {
         s.multi_token = multi_token;
     });
-}
-
-ACTION MultiConverter::enablecnvrt(symbol_code currency, bool enabled) {
-    converters converters_table(get_self(), currency.raw());
-    settings settings_table(get_self(), get_self().value);
-    
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-    const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
-    require_auth(converter.owner);
-    bool prevEnabled = converter.enabled;
-    check(enabled != prevEnabled, "setting same value as before");
-    converters_table.modify(converter, same_payer, [&](auto& c) {
-        c.enabled = enabled;
-        c.launched = true;
-    });
-
-    if (!prevEnabled) {
-        reserves reserves_table(get_self(), currency.raw());
-        
-        asset supply = get_supply(st.multi_token, converter.currency.code());
-        auto current_smart_supply = supply.amount / pow(10, converter.currency.precision());
-
-        for (auto& reserve : reserves_table) {
-            auto reserve_balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision()); 
-            EMIT_PRICE_DATA_EVENT(currency, current_smart_supply, 
-                                  reserve.contract, reserve.balance.symbol.code(), 
-                                  reserve_balance, reserve.ratio);
-        }
-    }    
 }
 
 ACTION MultiConverter::enablestake(symbol_code currency, bool enabled) {
@@ -186,7 +143,7 @@ ACTION MultiConverter::updatefee(symbol_code currency, uint64_t fee) {
     }
 }
 
-ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, bool sale_enabled, uint64_t ratio) {
+ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
     converters converters_table(get_self(), converter_currency_code.raw());
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     require_auth(converter.owner);
@@ -208,7 +165,6 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
         check(reserve->contract == contract, "cannot update the reserve contract name");
         reserves_table.modify(reserve, get_self(), [&](auto& r) {
             r.ratio = ratio;
-            r.sale_enabled = sale_enabled;
         });
         auto reserve_balance = reserve->balance.amount / pow(10, currency.precision()); 
         EMIT_PRICE_DATA_EVENT(converter_currency_code, 
@@ -218,7 +174,6 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
         reserves_table.emplace(converter.owner, [&](auto& r) {
             r.contract = contract;
             r.ratio = ratio;
-            r.sale_enabled = sale_enabled;
             r.balance = asset(0, currency);
         });
     
@@ -263,7 +218,6 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
     const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
     
     check(converter.currency == quantity.symbol, "symbol mismatch");
-    check(converter.enabled, "cannot fund when converter is disabled");
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
@@ -275,11 +229,12 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
         asset reserve_amount = asset(reserve.balance.amount * percent + 1, reserve.balance.symbol);
-        
+
         mod_account_balance(sender, quantity.symbol.code(), -reserve_amount);
         mod_reserve_balance(quantity.symbol, reserve_amount);
     }
     check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
+
     action( // issue new smart tokens to the issuer
         permission_level{ get_self(), "active"_n },
         st.multi_token, "issue"_n, 
@@ -372,7 +327,7 @@ void MultiConverter::mod_balances(name sender, asset quantity, symbol_code conve
             make_tuple(get_self(), sender, -quantity, string("withdrawal"))
         ).send();
     
-    if (converter.launched)
+    if (is_converter_active(converter))
         mod_account_balance(sender, converter_currency_code, quantity);
     else {
         check(sender == converter.owner, "only converter owner may fund/withdraw prior to activation");
@@ -401,152 +356,153 @@ void MultiConverter::mod_reserve_balance(symbol converter_currency, asset value)
 }
 
 void MultiConverter::convert(name from, asset quantity, string memo, name code) {
-    auto memo_object = parse_memo(memo);
+    memo_structure memo_object = parse_memo(memo);
     check(memo_object.path.size() > 1, "invalid memo format");
+    check(memo_object.converters[0].account == get_self(), "wrong converter");
+
+    symbol_code from_path_currency = quantity.symbol.code();
+    symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
     settings settings_table(get_self(), get_self().value);
     const auto& settings = settings_table.get("settings"_n.value, "settings do not exist");
-
+    
     symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
     converters converters_table(get_self(), converter_currency_code.raw());
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
-    
-    check(settings.active && converter.enabled, "conversions are disabled");
-    check(from == BANCOR_NETWORK, "converter can only receive from network contract");
-    check(memo_object.converters[0].account == get_self(), "wrong converter");
-    
-    auto from_path_currency = quantity.symbol.code().raw();
-    auto to_path_currency = symbol_code(memo_object.path[1].c_str()).raw();
-    check(from_path_currency != to_path_currency, "cannot convert to self");
 
-    auto from_amount = quantity.amount / pow(10, quantity.symbol.precision());
-    auto smart_symbol_name = converter.currency.code().raw();
-    auto from_token = get_reserve(from_path_currency, converter);
-    auto to_token = get_reserve(to_path_currency, converter);
-
-    auto from_symbol = from_token.balance.symbol;
-    auto to_symbol = to_token.balance.symbol;
+    check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
+    check(
+        (quantity.symbol == converter.currency && code == settings.multi_token) ||
+        code == get_reserve(from_path_currency, converter.currency.code()).contract
+        , "unknown 'from' contract");
     
-    auto from_contract = from_token.contract;
-    auto to_contract = to_token.contract;
-
-    bool incoming_smart_token = from_symbol.code().raw() == smart_symbol_name;
-    bool outgoing_smart_token = to_symbol.code().raw() == smart_symbol_name;
-    
-    auto from_ratio = from_token.ratio;
-    auto to_ratio = to_token.ratio;
-
-    check(to_token.sale_enabled, "'to' token purchases disabled");
-    check(code == from_contract, "unknown 'from' contract");
-    
-    double current_from_balance = from_token.balance.amount / pow(10, from_symbol.precision());
-    double current_to_balance = to_token.balance.amount / pow(10, to_symbol.precision());
-    if (!incoming_smart_token) // add to reserve
-        mod_reserve_balance(converter.currency, quantity);
-    
-    asset supply = get_supply(settings.multi_token, converter.currency.code());
-    auto current_smart_supply = supply.amount / pow(10, converter.currency.precision());
-
-    name final_to = name(memo_object.dest_account.c_str());
-    double smart_tokens = 0;
-    double to_tokens = 0;
-    bool quick = false;
-    if (incoming_smart_token) { // destory received token
-        action(
-            permission_level{ get_self(), "active"_n },
-            settings.multi_token, "retire"_n,
-            make_tuple(quantity, string("destroy on conversion"))
-        ).send();
-
-        smart_tokens = from_amount;
-    }
-    
-    else if (!incoming_smart_token && !outgoing_smart_token && (from_ratio == to_ratio)) {
-        to_tokens = quick_convert(current_from_balance, from_amount, current_to_balance);
-        quick = true;
+    extended_asset from_token = extended_asset(quantity, code);
+    extended_symbol to_token;
+    if (to_path_currency == converter.currency.code()) {
+        check(memo_object.path.size() == 2, "smart token must be final currency");
+        to_token = extended_symbol(converter.currency, settings.multi_token);
     }
     else {
-        smart_tokens = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, from_ratio);
-        current_smart_supply += smart_tokens;
+        const reserve_t& r = get_reserve(to_path_currency, converter.currency.code());
+        to_token = extended_symbol(r.balance.symbol, r.contract);
     }
+
+    asset to_return = calculate_return(from_token, to_token, memo, converter, settings.multi_token);
+    apply_conversion(memo_object, from_token, extended_asset(to_return, to_token.get_contract()), converter.currency);
+}
+
+asset MultiConverter::calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token) {
+    symbol from_symbol = from_token.quantity.symbol;
+    symbol to_symbol = to_token.get_symbol();
+
+    double from_amount = from_token.quantity.amount / pow(10, from_symbol.precision());
+
+    bool incoming_smart_token = from_symbol == converter.currency;    
+    bool outgoing_smart_token = to_symbol == converter.currency;
+        
+    asset supply = get_supply(multi_token, converter.currency.code());
+    double current_smart_supply = supply.amount / pow(10, converter.currency.precision());
     
-    auto issue = false;
-    if (outgoing_smart_token) {
-        check(memo_object.path.size() == 2, "smart token must be final currency");
-        to_tokens = smart_tokens;
-        issue = true;
+    double current_from_balance, current_to_balance;
+    reserve_t input_reserve, to_reserve;
+    if (!incoming_smart_token) {
+        input_reserve = get_reserve(from_symbol.code(), converter.currency.code());
+        current_from_balance = input_reserve.balance.amount / pow(10, input_reserve.balance.symbol.precision());
     }
-    else if (!quick) {
-        to_tokens = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_ratio);
-        current_smart_supply -= smart_tokens;
+    if (!outgoing_smart_token) {
+        to_reserve = get_reserve(to_symbol.code(), converter.currency.code());
+        current_to_balance = to_reserve.balance.amount / pow(10, to_reserve.balance.symbol.precision());    
+    }
+    bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.ratio == to_reserve.ratio;
+
+    double smart_tokens = from_amount;
+    double to_return = 0;
+    if (quick_conversion) { // Reserve --> Reserve
+        to_return = quick_convert(current_from_balance, from_amount, current_to_balance);   
+    }
+    else {
+        if (!incoming_smart_token) { // Reserve --> Smart
+            smart_tokens = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, input_reserve.ratio);
+            current_smart_supply += smart_tokens;
+            to_return = smart_tokens;
+        }
+        if (!outgoing_smart_token) { // Smart --> Reserve
+            to_return = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_reserve.ratio);
+            current_smart_supply -= smart_tokens;
+        }
     }
     
     uint8_t magnitude = incoming_smart_token || outgoing_smart_token ? 1 : 2;
-    double fee = calculate_fee(to_tokens, converter.fee, magnitude);
-    to_tokens -= fee;
+    double fee = calculate_fee(to_return, converter.fee, magnitude);
+    to_return -= fee;
     if (outgoing_smart_token)
         current_smart_supply -= fee;
-
-    double formatted_total_fee_amount = to_fixed(fee, to_symbol.precision());
+    
     double formatted_smart_supply = to_fixed(current_smart_supply, converter.currency.precision());
-    
-    EMIT_CONVERSION_EVENT(converter_currency_code, memo, 
-                          from_token.contract, from_symbol.code(), 
-                          to_token.contract, to_symbol.code(), 
-                          from_amount, to_tokens, formatted_total_fee_amount);
-    
     if (!incoming_smart_token)
-        EMIT_PRICE_DATA_EVENT(converter_currency_code, formatted_smart_supply, 
+        EMIT_PRICE_DATA_EVENT(converter.currency.code(), formatted_smart_supply, 
                               from_token.contract, from_symbol.code(), 
-                              current_from_balance + from_amount, (from_ratio / MAX_RATIO));
+                              current_from_balance + from_amount, (input_reserve.ratio / MAX_RATIO));
     if (!outgoing_smart_token)
-        EMIT_PRICE_DATA_EVENT(converter_currency_code, formatted_smart_supply, 
-                              to_token.contract, to_symbol.code(), 
-                              current_to_balance - to_tokens, (to_ratio / MAX_RATIO));  
+        EMIT_PRICE_DATA_EVENT(converter.currency.code(), formatted_smart_supply, 
+                              to_token.get_contract(), to_symbol.code(), 
+                              current_to_balance - to_return, (to_reserve.ratio / MAX_RATIO)); 
 
+    EMIT_CONVERSION_EVENT(converter.currency.code(), memo, 
+                          from_token.contract, from_symbol.code(), 
+                          to_token.get_contract(), to_symbol.code(), 
+                          from_amount, to_return, to_fixed(fee, to_symbol.precision())); 
+    
+    return asset(to_return * pow(10, to_symbol.precision()), to_symbol);
+}
+
+void MultiConverter::apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency) {
     path new_path = memo_object.path;
     new_path.erase(new_path.begin(), new_path.begin() + 2);
     memo_object.path = new_path;
     
     auto new_memo = build_memo(memo_object);                         
     
-    uint64_t to_amount = to_tokens * pow(10, to_symbol.precision());
-    auto new_asset = asset(to_amount, to_symbol);
-
-    if (issue)
+    if (from_token.quantity.symbol == converter_currency)
         action(
             permission_level{ get_self(), "active"_n },
-            to_contract, "issue"_n,
-            make_tuple(get_self(), new_asset, new_memo)
+            from_token.contract, "retire"_n,
+            make_tuple(from_token.quantity, string("destroy on conversion"))
+        ).send();  
+    else
+        mod_reserve_balance(converter_currency, from_token.quantity);  
+        
+    if (to_return.quantity.symbol == converter_currency)
+        action(
+            permission_level{ get_self(), "active"_n },
+            to_return.contract, "issue"_n,
+            make_tuple(get_self(), to_return.quantity, new_memo)
         ).send();
     else
-        mod_reserve_balance(converter.currency, -new_asset); //subtract from reserve
+        mod_reserve_balance(converter_currency, -to_return.quantity); // subtract from reserve
         
-    check(new_asset.amount > 0, "below min return");
+    check(to_return.quantity.amount > 0, "below min return");
     action(
         permission_level{ get_self(), "active"_n },
-        to_contract, "transfer"_n,
-        make_tuple(get_self(), BANCOR_NETWORK, new_asset, new_memo)
+        to_return.contract, "transfer"_n,
+        make_tuple(get_self(), BANCOR_NETWORK, to_return.quantity, new_memo)
     ).send();
 }
 
- // returns a reserve object
- // can also be called for the smart token itself
-const MultiConverter::reserve_t& MultiConverter::get_reserve(uint64_t symbl, const converter_t& converter) {
-    settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-
-    if (converter.currency.code().raw() == symbl) { // smart token
-        asset supply = get_supply(st.multi_token, converter.currency.code());
-        static reserve_t temp_reserve = {
-            st.multi_token, 0, 
-            converter.enabled,
-            supply
-        };
-        return temp_reserve;
-    }
+bool MultiConverter::is_converter_active(const converter_t& converter) {
     reserves reserves_table(get_self(), converter.currency.code().raw());
-    const auto& reserve = reserves_table.get(symbl, "reserve not found");
+
+    for (auto& reserve : reserves_table) {
+        if (reserve.balance.amount == 0)
+            return false;
+    }
+    return true;
+}
+
+// returns a reserve object, can also be called for the smart token itself
+const MultiConverter::reserve_t& MultiConverter::get_reserve(symbol_code symbl, symbol_code converter_currency) {
+    reserves reserves_table(get_self(), converter_currency.raw());
+    const auto& reserve = reserves_table.get(symbl.raw(), "reserve not found");
     return reserve;
 }
 
@@ -558,7 +514,7 @@ asset MultiConverter::get_supply(name contract, symbol_code sym) {
 }
 
 // given a token supply, reserve balance, ratio and a input amount (in the reserve token),
-// calculates the return for a given conversion (in the main token)
+// calculates the return for a given conversion (in the smart token)
 double MultiConverter::calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio) {
     double R(supply);
     double C(balance);
@@ -570,7 +526,7 @@ double MultiConverter::calculate_purchase_return(double balance, double deposit_
     return E;
 }
 
-// given a token supply, reserve balance, ratio and a input amount (in the main token),
+// given a token supply, reserve balance, ratio and a input amount (in the smart token),
 // calculates the return for a given conversion (in the reserve token)
 double MultiConverter::calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio) {
     double R(supply);
@@ -601,7 +557,10 @@ void MultiConverter::on_transfer(name from, name to, asset quantity, string memo
     else if (splitted_memo[0] == "liquidate")
         liquidate(from, quantity);
     
-    else convert(from, quantity, memo, get_first_receiver()); 
+    else {
+        check(from == BANCOR_NETWORK, "converter can only receive from network contract");
+        convert(from, quantity, memo, get_first_receiver()); 
+    }
 }
 
 extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
@@ -611,8 +570,8 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
     if (code == receiver)
         switch (action) {
             EOSIO_DISPATCH_HELPER(MultiConverter, (create)(close)
-            (setmultitokn)(setstaking)(setmaxfee)(setenabled)
-            (updateowner)(updatefee)(enablecnvrt)(enablestake)
+            (setmultitokn)(setstaking)(setmaxfee)
+            (updateowner)(updatefee)(enablestake)
             (setreserve)(delreserve)(withdraw)(fund)) 
         }    
 }
