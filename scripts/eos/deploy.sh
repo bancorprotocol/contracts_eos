@@ -49,17 +49,8 @@ cleos wallet unlock --password="$PASSWORD"
 
 
 # test keys
-BNT_PUB="EOS8HuvjfQeUS7tMdHPPrkTFMnEP7nr6oivvuJyNcvW9Sx5MxJSkZ" 
-BNT_PRV="5JS9bTWMc52HWmMC8v58hdfePTxPV5dd5fcxq92xUzbfmafeeRo"
-
-CON_PUB="EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3" 
-CON_PRV="5KgKxmnm8oh5WbHC4jmLARNFdkkgVdZ389rdxwGEiBdAJHkubBH"
-
-REP_PUB="EOS833HgCT3egUJRDnW5k3BQGqXAEDmoYo6q1s7wWnovn6B9Mb1pd" 
-REP_PRV="5JFLPVygcZZdEno2WWWkf3fPriuxnvjtVpkThifYM5HwcKg6ndu"
-
-USR_PUB="EOS8UAsFY4RacdaeuadicrkP66JQxPsbNyucmbT8Z4GjwFoytsK9u" 
-USR_PRV="5JKAjH9WH4XnZCEe8v5Wir7awV4YBTVa8KUSqWJbQR6QGtj4yce"
+MASTER_PUB_KEY="EOS8HuvjfQeUS7tMdHPPrkTFMnEP7nr6oivvuJyNcvW9Sx5MxJSkZ" 
+MASTER_PRV_KEY="5JS9bTWMc52HWmMC8v58hdfePTxPV5dd5fcxq92xUzbfmafeeRo"
 
 
 # EOSIO system-related keys
@@ -153,46 +144,30 @@ cleos set contract eosio.wrap $EOSIO_CONTRACTS_ROOT/eosio.wrap/
 # 1) Import user keys
 
 echo -e "${CYAN}-----------------------CONTRACT / USER KEYS-----------------------${NC}"
-cleos wallet import --private-key "$REP_PRV"
-cleos wallet import --private-key "$BNT_PRV"
-cleos wallet import --private-key "$CON_PRV"
-cleos wallet import --private-key "$USR_PRV"
+cleos wallet import --private-key "$MASTER_PRV_KEY"
+cleos wallet import --private-key "$MASTER_PRV_KEY"
+cleos wallet import --private-key "$MASTER_PRV_KEY"
+cleos wallet import --private-key "$MASTER_PRV_KEY"
 
 
 # 2) Create accounts
 
-cleos system newaccount eosio bntreporter1 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio bntreporter2 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio bntreporter3 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio bntreporter4 $REP_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bntreporter4 $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 
-cleos system newaccount eosio bancorxoneos $BNT_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio thisisbancor $BNT_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio bntbntbntbnt $BNT_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio bntxrerouter $BNT_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bnttestuser1 $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bnttestuser2 $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio fakeos $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 
-cleos system newaccount eosio bnt2eoscnvrt $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio bnt2eosrelay $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio bnt2syscnvrt $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
+cleos system newaccount eosio bnt2sysrelay $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 
-cleos system newaccount eosio bnttestuser1 $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio bnttestuser2 $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio fakeos $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
+cleos system newaccount eosio bnt2aaacnvrt $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
+cleos system newaccount eosio bnt2aaarelay $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
+cleos system newaccount eosio aaa $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 
-cleos system newaccount eosio bnt2syscnvrt $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
-cleos system newaccount eosio bnt2sysrelay $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
-
-cleos system newaccount eosio bnt2aaacnvrt $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
-cleos system newaccount eosio bnt2aaarelay $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
-cleos system newaccount eosio aaa $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
-
-cleos system newaccount eosio bnt2bbbcnvrt $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
-cleos system newaccount eosio bnt2bbbrelay $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
-cleos system newaccount eosio bbb $USR_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
-
-cleos system newaccount eosio multiconvert $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio multi4tokens $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio multistaking $CON_PUB --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-
+cleos system newaccount eosio bnt2bbbcnvrt $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
+cleos system newaccount eosio bnt2bbbrelay $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
+cleos system newaccount eosio bbb $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 
 # 3) Deploy contracts
 
@@ -201,33 +176,15 @@ cleos set contract fakeos $EOSIO_CONTRACTS_ROOT/eosio.token/
 cleos set contract aaa $EOSIO_CONTRACTS_ROOT/eosio.token/
 cleos set contract bbb $EOSIO_CONTRACTS_ROOT/eosio.token/
 
-cleos set contract bntxrerouter $MY_CONTRACTS_BUILD/XTransferRerouter
-cleos set contract thisisbancor $MY_CONTRACTS_BUILD/BancorNetwork
-cleos set contract bancorxoneos $MY_CONTRACTS_BUILD/BancorX
-cleos set contract bntbntbntbnt $MY_CONTRACTS_BUILD/Token
-
-cleos set contract bnt2eoscnvrt $MY_CONTRACTS_BUILD/BancorConverter
 cleos set contract bnt2syscnvrt $MY_CONTRACTS_BUILD/BancorConverter
 cleos set contract bnt2aaacnvrt $MY_CONTRACTS_BUILD/BancorConverter
 cleos set contract bnt2bbbcnvrt $MY_CONTRACTS_BUILD/BancorConverter
 
-cleos set contract bnt2eosrelay $EOSIO_CONTRACTS_ROOT/eosio.token/ 
 cleos set contract bnt2sysrelay $EOSIO_CONTRACTS_ROOT/eosio.token/ 
 cleos set contract bnt2aaarelay $EOSIO_CONTRACTS_ROOT/eosio.token/ 
 cleos set contract bnt2bbbrelay $EOSIO_CONTRACTS_ROOT/eosio.token/
 
-cleos set contract multiconvert $MY_CONTRACTS_BUILD/MultiConverter
-cleos set contract multi4tokens $EOSIO_CONTRACTS_ROOT/eosio.token/
-
 # 4) Set Permissions
-
-cleos set account permission bntxrerouter active '{ "threshold": 1, "keys": [{ "key": "EOS8HuvjfQeUS7tMdHPPrkTFMnEP7nr6oivvuJyNcvW9Sx5MxJSkZ", "weight": 1 }], "accounts": [{ "permission": { "actor":"bntxrerouter","permission":"eosio.code" }, "weight":1 }] }' owner -p bntxrerouter 
-cleos set account permission thisisbancor active '{ "threshold": 1, "keys": [{ "key": "EOS8HuvjfQeUS7tMdHPPrkTFMnEP7nr6oivvuJyNcvW9Sx5MxJSkZ", "weight": 1 }], "accounts": [{ "permission": { "actor":"thisisbancor","permission":"eosio.code" }, "weight":1 }] }' owner -p thisisbancor
-cleos set account permission bancorxoneos active '{ "threshold": 1, "keys": [{ "key": "EOS8HuvjfQeUS7tMdHPPrkTFMnEP7nr6oivvuJyNcvW9Sx5MxJSkZ", "weight": 1 }], "accounts": [{ "permission": { "actor":"bancorxoneos","permission":"eosio.code" }, "weight":1 }] }' owner -p bancorxoneos
-cleos set account permission bntbntbntbnt active '{ "threshold": 1, "keys": [{ "key": "EOS8HuvjfQeUS7tMdHPPrkTFMnEP7nr6oivvuJyNcvW9Sx5MxJSkZ", "weight": 1 }], "accounts": [{ "permission": { "actor":"bntbntbntbnt","permission":"eosio.code" }, "weight":1 }] }' owner -p bntbntbntbnt
-
-cleos set account permission bnt2eoscnvrt active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2eoscnvrt","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2eoscnvrt
-cleos set account permission bnt2eosrelay active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2eosrelay","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2eosrelay
 
 cleos set account permission bnt2syscnvrt active '{ "threshold": 1, "keys": [{ "key": "EOS8UAsFY4RacdaeuadicrkP66JQxPsbNyucmbT8Z4GjwFoytsK9u", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2syscnvrt","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2syscnvrt
 cleos set account permission bnt2sysrelay active '{ "threshold": 1, "keys": [{ "key": "EOS8UAsFY4RacdaeuadicrkP66JQxPsbNyucmbT8Z4GjwFoytsK9u", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2sysrelay","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2sysrelay
@@ -238,19 +195,7 @@ cleos set account permission bnt2aaarelay active '{ "threshold": 1, "keys": [{ "
 cleos set account permission bnt2bbbcnvrt active '{ "threshold": 1, "keys": [{ "key": "EOS8UAsFY4RacdaeuadicrkP66JQxPsbNyucmbT8Z4GjwFoytsK9u", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2bbbcnvrt","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2bbbcnvrt
 cleos set account permission bnt2bbbrelay active '{ "threshold": 1, "keys": [{ "key": "EOS8UAsFY4RacdaeuadicrkP66JQxPsbNyucmbT8Z4GjwFoytsK9u", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2bbbrelay","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2bbbrelay
 
-cleos set account permission multiconvert active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multiconvert","permission":"eosio.code" }, "weight":1 }] }' owner -p multiconvert
-cleos set account permission multi4tokens active '{ "threshold": 1, "keys": [{ "key": "EOS7pscBeDbJTNn5SNxxowmWwoM7hGj3jDmgxp5KTv7gR89Ny5ii3", "weight": 1 }], "accounts": [{ "permission": { "actor":"multi4tokens","permission":"eosio.code" }, "weight":1 }] }' owner -p multi4tokens
-cleos set account permission multi4tokens active multiconvert --add-code
-
-
-# Contracts Initialization
-cleos push action bancorxoneos init '["bntbntbntbnt", "2", "1", "100000000000000", "10000000000000000", "10000000000000000"]' -p bancorxoneos
-cleos push action bancorxoneos enablerpt '["1"]' -p bancorxoneos
-cleos push action bancorxoneos enablext '["1"]' -p bancorxoneos
-cleos push action bancorxoneos addreporter '["bntreporter1"]' -p bancorxoneos
-cleos push action bancorxoneos addreporter '["bntreporter2"]' -p bancorxoneos
-cleos push action bancorxoneos addreporter '["bntreporter3"]' -p bancorxoneos
-
+./scripts/eos/deploy_bancor_network.sh -u "$NODEOS_LOCATION"
 
 on_exit
 echo -e "${GREEN}--> Done${NC}"
