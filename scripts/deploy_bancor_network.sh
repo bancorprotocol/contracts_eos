@@ -4,6 +4,7 @@ source ./scripts/deploy/default.conf
 # test keys
 MASTER_PUB_KEY="EOS8HuvjfQeUS7tMdHPPrkTFMnEP7nr6oivvuJyNcvW9Sx5MxJSkZ" 
 MASTER_PRV_KEY="5JS9bTWMc52HWmMC8v58hdfePTxPV5dd5fcxq92xUzbfmafeeRo"
+MASTER_ACCOUNT="eosio"
 
 
 CYAN='\033[1;36m'
@@ -116,7 +117,22 @@ if [ $INIT_MULTI_CONVERTER == true ] ; then # MultiConverter
 fi
 
 if [ $INIT_BNT == true ] ; then # BNT Token & Converter
-  cleos push action bnt2eoscnvrt init '["bnt2eosrelay", "0.00000000 BNTEOS", "1", "thisisbancor", require_balance: false, max_fee: 30000, fee: fee]' -p bnt2eoscnvrt
+  cleos push action bntbntbntbnt create '["bancorxoneos", "250000000.00000000 BNT"]' -p bntbntbntbnt
+  cleos push action bnt2eosrelay create '["bnt2eoscnvrt", "250000000.00000000 BNTEOS"]' -p bnt2eosrelay
+  
+  cleos push action bnt2eoscnvrt init '["bnt2eosrelay", "0.00000000 BNTEOS", "1", "1", "thisisbancor", "0", "30000", "0"]' -p bnt2eoscnvrt
+  
+  cleos push action bnt2eoscnvrt setreserve '["bntbntbntbnt", "8,BNT", "500000", "1"]' -p bnt2eoscnvrt
+  cleos push action bnt2eoscnvrt setreserve '["eosio.token", "4,EOS", "500000", "1"]' -p bnt2eoscnvrt
+  
+  cleos push action bnt2eosrelay issue '[ "bnt2eoscnvrt", "2030.00000000 BNTEOS", ""]' -p bnt2eoscnvrt
+  cleos push action bnt2eosrelay transfer '["bnt2eoscnvrt", '"$MASTER_ACCOUNT"', "2030.00000000 BNTEOS", ""]' -p bnt2eoscnvrt
+
+  cleos push action bntbntbntbnt issue '[ "bancorxoneos", "10000.00000000 BNT", ""]' -p bancorxoneos
+  cleos push action bntbntbntbnt transfer '["bancorxoneos", '"$MASTER_ACCOUNT"', "10000.00000000 BNT", ""]' -p bancorxoneos
+
+  cleos push action bntbntbntbnt transfer '["'$MASTER_ACCOUNT'", "bnt2eoscnvrt", "1000.00000000 BNT", "setup"]' -p $MASTER_ACCOUNT
+  cleos push action eosio.token transfer '["'$MASTER_ACCOUNT'", "bnt2eoscnvrt", "1000.0000 EOS", "setup"]' -p $MASTER_ACCOUNT
 fi
 
 if [ $INIT_BANCOR_NETWORK == true ] ; then # BancorNetwork
