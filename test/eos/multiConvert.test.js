@@ -102,7 +102,6 @@ describe('Test: multiConverter', () => {
             )
         })
         it('setup reserves', async function() {
-            this.timeout(4000)
             const Aratio = 100000
             const Bratio = 300000
             const Cratio = 500000
@@ -139,7 +138,6 @@ describe('Test: multiConverter', () => {
             )
         })
         it('fund reserves', async function () {        
-            this.timeout(4000)
             //just for opening accounts
             await expectNoError(
                 transfer(multiToken, '0.0001 TKNA', user2, user1, "")
@@ -154,13 +152,10 @@ describe('Test: multiConverter', () => {
                 transfer(bntToken, '1000.00000000 BNT', multiConverter, user2, 'fund;TKNB') 
             )
             await expectNoError( 
-                transfer(bntToken, '999.00000000 BNT', multiConverter, user1, 'fund;BNTEOS') 
+                transfer(bntToken, '990.00000000 BNT', multiConverter, user1, 'fund;BNTEOS') 
             )
             await expectNoError( 
                 transfer('eosio.token', '990.0000 EOS', multiConverter, user1, 'fund;BNTEOS') 
-            )
-            await expectNoError(
-                withdraw(user1, '9.00000000 BNT', 'BNTEOS')
             )
 
             await expectNoError( 
@@ -176,7 +171,7 @@ describe('Test: multiConverter', () => {
             await expectNoError( 
                 transfer('eosio.token', '990.0000 EOS', multiConverter, user1, 'fund;RELAYB') 
             )
-
+            
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '990.00000000 BNT', "withdrawal invalid - BNTEOS")
@@ -628,7 +623,10 @@ describe('Test: multiConverter', () => {
         it('ensures a proper return amount calculation (with fee) [RESERVE --> SMART]', async () => {
             const inputAmount = '2.20130604'
 
-            const fee = 10000
+            const fee = Math.round(Math.random() * 300);
+            await expectNoError(
+                updateFee(user1, 'TKNB', fee)
+            )
             
             const initialBalance = Number((await getBalance(user1, multiToken, 'TKNB')).rows[0].balance.split(' ')[0])
             const tokenStats = (await get(multiToken, 'TKNB')).rows[0]
@@ -654,7 +652,10 @@ describe('Test: multiConverter', () => {
         it('ensures a proper return amount calculation (with fee) [SMART --> RESERVE]', async () => {
             const inputAmount = '4.2213'
 
-            const fee = 10000
+            const fee = Math.round(Math.random() * 300);
+            await expectNoError(
+                updateFee(user1, 'TKNB', fee)
+            )
             
             const initialBalance = Number((await getBalance(user1, bntToken, 'BNT')).rows[0].balance.split(' ')[0])
             const tokenStats = (await get(multiToken, 'TKNB')).rows[0]

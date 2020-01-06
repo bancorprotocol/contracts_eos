@@ -162,11 +162,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
                  */
                 name owner;
 
-                /**
-                 * @brief Has this converter active (ever been funded)
-                 */
-                bool active;
-
                 /**                
                  * @brief toggle boolean to enable/disable this staking and voting for this converter
                  */
@@ -341,6 +336,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
         const reserve_t& get_reserve(symbol_code symbl, symbol_code converter_currency);
+        bool is_converter_active(const converter_t& converter);
 
         void mod_reserve_balance(symbol converter_currency, asset value);
         void mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity);

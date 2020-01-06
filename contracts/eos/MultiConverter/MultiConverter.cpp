@@ -26,7 +26,6 @@ ACTION MultiConverter::create(name owner, symbol_code token_code, double initial
     converters_table.emplace(owner, [&](auto& c) {
         c.currency = token_symbol;
         c.owner = owner;
-        c.active = false;
         c.stake_enabled = false;
         c.fee = 0;
     });
@@ -222,7 +221,6 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
-    uint64_t reserves_sum = 0;
     double total_ratio = 0.0;
     double smart_amount = quantity.amount;
     double current_smart_supply = supply.amount;
@@ -230,16 +228,12 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
 
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
-        reserves_sum += reserve.balance.amount;
         asset reserve_amount = asset(reserve.balance.amount * percent + 1, reserve.balance.symbol);
 
         mod_account_balance(sender, quantity.symbol.code(), -reserve_amount);
         mod_reserve_balance(quantity.symbol, reserve_amount);
     }
     check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
-
-    if (!converter.active && reserves_sum == 0)
-        converters_table.modify(converter, same_payer, [&](auto& c) { c.active = true; });
 
     action( // issue new smart tokens to the issuer
         permission_level{ get_self(), "active"_n },
@@ -333,7 +327,7 @@ void MultiConverter::mod_balances(name sender, asset quantity, symbol_code conve
             make_tuple(get_self(), sender, -quantity, string("withdrawal"))
         ).send();
     
-    if (converter.active)
+    if (is_converter_active(converter))
         mod_account_balance(sender, converter_currency_code, quantity);
     else {
         check(sender == converter.owner, "only converter owner may fund/withdraw prior to activation");
@@ -493,6 +487,16 @@ void MultiConverter::apply_conversion(memo_structure memo_object, extended_asset
         to_return.contract, "transfer"_n,
         make_tuple(get_self(), BANCOR_NETWORK, to_return.quantity, new_memo)
     ).send();
+}
+
+bool MultiConverter::is_converter_active(const converter_t& converter) {
+    reserves reserves_table(get_self(), converter.currency.code().raw());
+
+    for (auto& reserve : reserves_table) {
+        if (reserve.balance.amount == 0)
+            return false;
+    }
+    return true;
 }
 
 // returns a reserve object, can also be called for the smart token itself

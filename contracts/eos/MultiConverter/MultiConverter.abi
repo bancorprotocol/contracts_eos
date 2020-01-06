@@ -44,10 +44,6 @@
                     "type": "name"
                 },
                 {
-                    "name": "active",
-                    "type": "bool"
-                },
-                {
                     "name": "stake_enabled",
                     "type": "bool"
                 },
