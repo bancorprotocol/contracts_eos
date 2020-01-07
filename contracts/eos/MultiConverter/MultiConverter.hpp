@@ -122,29 +122,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
             }; /** @}*/
         
         /** 
-         * @defgroup Paths_Table Paths Table
-         * @brief This table stores the aggregate set of (output) reserves which can be purchased in exchange for a given (input) reserve 
-         * @details SCOPE of this table is the MultiConverter contract (`_self`)
-         * @{
-         *//*! \cond DOCS_EXCLUDE */
-            TABLE path_t { /*! \endcond */
-                /**
-                 * @brief reserves you can buy in exchange for `reserve` below
-                 */
-                set<symbol_code> reserves;
-                
-                /**
-                 * @brief the reserve you can sell to buy `reserves` above
-                 */
-                symbol_code reserve;
-
-                /*! \cond DOCS_EXCLUDE */
-                uint64_t primary_key() const { return reserve.raw(); }
-                /*! \endcond */
-
-            }; /** @}*/
-        
-        /** 
          * @defgroup Converters_Table Converters Table
          * @brief This table stores the key information about all converters in this contract
          * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
@@ -323,7 +300,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         typedef eosio::multi_index<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
-        typedef eosio::multi_index<"paths"_n, path_t> paths;
         typedef eosio::multi_index<"accounts"_n, account_t,         
                         indexed_by<"bycnvrt"_n, 
                             const_mem_fun <account_t, uint128_t, 

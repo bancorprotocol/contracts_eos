@@ -25,7 +25,6 @@ _Bancor MultiConverter._ [More...](#detailed-description)
 | module | [**Converters Table**](group___converters___table.md) <br>_This table stores the key information about all converters in this contract._  |
 | module | [**Reserves Table**](group___multi_converter___reserves___table.md) <br>_This table stores the reserve balances and related information for the reserves of every converter in this contract._  |
 | module | [**Settings Table**](group___multi_converter___settings___table.md) <br>_This table stores the global settings affecting all the converters in this contract._  |
-| module | [**Paths Table**](group___paths___table.md) <br>_This table stores the aggregate set of (output) reserves which can be purchased in exchange for a given (input) reserve._  |
 
 
 

@@ -24,7 +24,6 @@
       * [Converters Table](gitbook/docs/group___converters___table.md)
       * [Reserves Table](gitbook/docs/group___multi_converter___reserves___table.md)
       * [Settings Table](gitbook/docs/group___multi_converter___settings___table.md)
-      * [Paths Table](gitbook/docs/group___paths___table.md)
   * [Class List](gitbook/docs/annotated.md)
     * [namespace eosio](gitbook/docs/namespaceeosio.md)
     * [struct memo_x_transfer](gitbook/docs/structmemo__x__transfer.md)
