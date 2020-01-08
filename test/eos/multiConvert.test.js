@@ -317,7 +317,7 @@ describe('Test: multiConverter', () => {
             assert.equal((userRelayBefore - userRelayAfter).toFixed(4), '1000.0000', 'smart token balance after is incorrect - BNTEOS')
         })
         it('ensures that converters balances sum is equal to the multiConverter\'s total BNT balance [Load Test]', async function () {
-            this.timeout(10000)
+            this.timeout(30000)
             const bntTxs = []
             const multiTxs = []
             for (let i = 0; i < 5; i++) {

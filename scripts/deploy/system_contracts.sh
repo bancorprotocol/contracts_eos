@@ -1,15 +1,14 @@
 #!/bin/bash
-source ./scripts/deploy/common.conf
+source ./scripts/deploy/config/common.conf
 
-function cleos() { command cleos --verbose --url=${NODEOS_LOCATION} --wallet-url=$WALLET_URL "$@"; echo $@; }
+function cleos() { command cleos --verbose --url=${NODEOS_ENDPOINT} --wallet-url=${WALLET_URL} "$@"; echo "cleos --verbose --url=${NODEOS_ENDPOINT} --wallet-url=${WALLET_URL} $@"; }
 on_exit(){
   echo -e "${CYAN}cleaning up temporary keosd process & artifacts${NC}";
   kill -9 $TEMP_KEOSD_PID &> /dev/null
   rm -r $WALLET_DIR
 }
-trap my_trap INT
-trap my_trap SIGINT
-
+trap on_exit INT
+trap on_exit SIGINT
 
 # start temp keosd
 rm -rf $WALLET_DIR
@@ -35,7 +34,6 @@ cleos wallet import --private-key 5Hroi8WiRg3by7ap3cmnTpUoqbAbHgz3hGnGQNBYFChswP
 cleos wallet import --private-key 5JbMN6pH5LLRT16HBKDhtFeKZqe7BEtLBpbBk5D7xSZZqngrV8o
 cleos wallet import --private-key 5JUoVWoLLV3Sj7jUKmfE8Qdt7Eo7dUd4PGZ2snZ81xqgnZzGKdC
 cleos wallet import --private-key 5Ju1ree2memrtnq8bdbhNwuowehZwZvEujVUxDhBqmyTYRvctaF
-
 
 # Create system accounts
 echo -e "${CYAN}-----------------------SYSTEM ACCOUNTS-----------------------${NC}"
@@ -109,3 +107,7 @@ cleos wallet import --private-key 5J3JRDhf4JNhzzjEZAsQEgtVuqvsPPdZv4Tm6SjMRx1ZqT
 cleos system newaccount eosio eosio.wrap EOS7LpGN1Qz5AbCJmsHzhG7sWEGd9mwhTXWmrYXqxhTknY2fvHQ1A --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 cleos push action eosio setpriv '["eosio.wrap", 1]' -p eosio
 cleos set contract eosio.wrap $EOSIO_CONTRACTS_ROOT/eosio.wrap/
+
+
+on_exit
+echo -e "${GREEN}--> Done${NC}"
