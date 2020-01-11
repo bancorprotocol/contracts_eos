@@ -474,12 +474,6 @@ describe('Test: multiConverter', () => {
                 ERRORS.PERMISSIONS
             )
         })
-        it("trying to delete BNT reserve without permission - should throw", async () => { 
-            await expectError(
-                delreserve('BNT', user2, multiConverter, 'TKNA'), 
-                "missing authority of bnttestuser1"
-            )
-        })
         it("trying to delete BNT reserve when it's not empty - should throw", async () => { 
             await expectError(
                 delreserve('BNT', user1, multiConverter, 'TKNA'), 

@@ -80,7 +80,7 @@
                     "type": "symbol_code"
                 },
                 {
-                    "name": "currency",
+                    "name": "reserve",
                     "type": "symbol_code"
                 }
             ]

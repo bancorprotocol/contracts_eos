@@ -184,14 +184,10 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
     check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
 }
 
-ACTION MultiConverter::delreserve(symbol_code converter, symbol_code currency) {
-    converters converters_table(get_self(), converter.raw());
-    const auto& cnvrt = converters_table.get(converter.raw(), "converter does not exist");
-    require_auth(cnvrt.owner);
-
+ACTION MultiConverter::delreserve(symbol_code converter, symbol_code reserve) {
     reserves reserves_table(get_self(), converter.raw());
-    const auto& rsrv = reserves_table.get(currency.raw(), "reserve not found");
-    check(!rsrv.balance.amount, "may delete only empty reserves");
+    const auto& rsrv = reserves_table.get(reserve.raw(), "reserve not found");
+    check(rsrv.balance.amount == 0, "may delete only empty reserves");
 
     reserves_table.erase(rsrv);
 }
