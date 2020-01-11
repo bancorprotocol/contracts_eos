@@ -103,7 +103,7 @@ ACTION setmaxfee (
 **Parameters:**
 
 
-* `max_affiliate_fee` - what network owner determines to be the maximum 
+* max\_affiliate\_fee - what network owner determines to be the maximum 
 
 
 

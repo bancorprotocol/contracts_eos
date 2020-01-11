@@ -80,8 +80,8 @@ This action is the opposite for open, it closes the account `owner` for token `s
 **Parameters:**
 
 
-* `owner` - the owner account to execute the close action for, 
-* `symbol` - the symbol of the token to execute the close action for. 
+* owner - the owner account to execute the close action for, 
+* symbol - the symbol of the token to execute the close action for. 
 
 
 
@@ -117,8 +117,8 @@ Allows `issuer` account to create a token in supply of `maximum_supply`. If vali
 **Parameters:**
 
 
-* `issuer` - the account that creates the token, 
-* `maximum_supply` - the maximum supply set for the token created. 
+* issuer - the account that creates the token, 
+* maximum\_supply - the maximum supply set for the token created. 
 
 
 
@@ -169,9 +169,9 @@ This action issues to `to` account a `quantity` of tokens.
 **Parameters:**
 
 
-* `to` - the account to issue tokens to, it must be the same as the issuer, 
-* `quantity` - the amount of tokens to be issued, 
-* `memo` - the memo string that accompanies the token issue transaction. 
+* to - the account to issue tokens to, it must be the same as the issuer, 
+* quantity - the amount of tokens to be issued, 
+* memo - the memo string that accompanies the token issue transaction. 
 
 
 
@@ -194,9 +194,9 @@ Allows `ram_payer` to create an account `owner` with zero balance for token `sym
 **Parameters:**
 
 
-* `owner` - the account to be created, 
-* `symbol` - the token to be payed with by `ram_payer`, 
-* `ram_payer` - the account that supports the cost of this action. 
+* owner - the account to be created, 
+* symbol - the token to be payed with by `ram_payer`, 
+* ram\_payer - the account that supports the cost of this action. 
 
 
 
@@ -218,8 +218,8 @@ The opposite for create action, if all validations succeed, it debits the statst
 **Parameters:**
 
 
-* `quantity` - the quantity of tokens to retire, 
-* `memo` - the memo string to accompany the transaction. 
+* quantity - the quantity of tokens to retire, 
+* memo - the memo string to accompany the transaction. 
 
 
 
@@ -243,10 +243,10 @@ Allows `from` account to transfer to `to` account the `quantity` tokens. One acc
 **Parameters:**
 
 
-* `from` - the account to transfer from, 
-* `to` - the account to be transferred to, 
-* `quantity` - the quantity of tokens to be transferred, 
-* `memo` - the memo string to accompany the transaction. 
+* from - the account to transfer from, 
+* to - the account to be transferred to, 
+* quantity - the quantity of tokens to be transferred, 
+* memo - the memo string to accompany the transaction. 
 
 
 
@@ -271,11 +271,11 @@ ACTION transferbyid (
 **Parameters:**
 
 
-* `from` - sender of the amount should match target 
-* `to` - receiver of the amount 
-* `amount_account` - scope (target) of the transfer 
-* `amount_id` - id of the intended transfer, containing amount 
-* `memo` - memo for the transfer 
+* from - sender of the amount should match target 
+* to - receiver of the amount 
+* amount\_account - scope (target) of the transfer 
+* amount\_id - id of the intended transfer, containing amount 
+* memo - memo for the transfer 
 
 
 
@@ -300,9 +300,9 @@ Get the balance for a token `sym_code` created by `token_contract_account` accou
 **Parameters:**
 
 
-* `token_contract_account` - the token creator account, 
-* `owner` - the account for which the token balance is returned, 
-* `sym` - the token for which the balance is returned. 
+* token\_contract\_account - the token creator account, 
+* owner - the account for which the token balance is returned, 
+* sym - the token for which the balance is returned. 
 
 
 
@@ -324,8 +324,8 @@ Gets the supply for token `sym_code`, created by `token_contract_account` accoun
 **Parameters:**
 
 
-* `token_contract_account` - the account to get the supply for, 
-* `sym` - the symbol to get the supply for. 
+* token\_contract\_account - the account to get the supply for, 
+* sym - the symbol to get the supply for. 
 
 
 

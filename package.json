@@ -7,7 +7,8 @@
     "doxygen": "0.3.2",
     "eosjs": "^20.0.0",
     "long": "^4.0.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "npm": "^6.13.6"
   },
   "devDependencies": {
     "mocha": "^6.1.4"

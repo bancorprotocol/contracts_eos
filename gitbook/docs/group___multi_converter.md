@@ -88,7 +88,7 @@ ACTION close (
 **Parameters:**
 
 
-* `converter_currency_code` - the currency code of the currency governed by the converter 
+* converter\_currency\_code - the currency code of the currency governed by the converter 
 
 
 
@@ -111,9 +111,9 @@ ACTION create (
 **Parameters:**
 
 
-* `owner` - the converter creator 
-* `initial_supply` - initial supply of the smart token governed by the converter 
-* `maximum_supply` - maximum supply of the smart token governed by the converter 
+* owner - the converter creator 
+* initial\_supply - initial supply of the smart token governed by the converter 
+* maximum\_supply - maximum supply of the smart token governed by the converter 
 
 
 
@@ -135,8 +135,8 @@ ACTION delreserve (
 **Parameters:**
 
 
-* `converter` - the currency code of the smart token governed by the converter 
-* `currency` - reserve token currency code 
+* converter - the currency code of the smart token governed by the converter 
+* currency - reserve token currency code 
 
 
 
@@ -158,8 +158,8 @@ ACTION enablestake (
 **Parameters:**
 
 
-* `currency` - the currency symbol governed by the converter 
-* `enabled` - true if staking/voting for this symbol are enabled 
+* currency - the currency symbol governed by the converter 
+* enabled - true if staking/voting for this symbol are enabled 
 
 
 
@@ -181,8 +181,8 @@ i.e. if the caller increases the supply by 10%, it will cost an amount equal to 
 **Parameters:**
 
 
-* `sender` - sender of the quantity 
-* `quantity` - amount to increase the supply by (in the smart token) 
+* sender - sender of the quantity 
+* quantity - amount to increase the supply by (in the smart token) 
 
 
 
@@ -208,10 +208,10 @@ void on_transfer (
 **Parameters:**
 
 
-  * `from` - the sender of the transfer 
-  * `to` - the receiver of the transfer 
-  * `quantity` - the quantity for the transfer 
-  * `memo` - the memo for the transfer 
+  * from - the sender of the transfer 
+  * to - the receiver of the transfer 
+  * quantity - the quantity for the transfer 
+  * memo - the memo for the transfer 
 
 
 
@@ -234,7 +234,7 @@ ACTION setmaxfee (
 **Parameters:**
 
 
-* `maxfee` - maximum fee for all converters in this multi-converter 
+* maxfee - maximum fee for all converters in this multi-converter 
 
 
 
@@ -255,7 +255,7 @@ ACTION setmultitokn (
 **Parameters:**
 
 
-* `multi_token` - may only set multi-token contract once 
+* multi\_token - may only set multi-token contract once 
 
 
 
@@ -279,10 +279,10 @@ can also be used to update an existing reserve, can only be called by the contra
 **Parameters:**
 
 
-* `converter_currency_code` - the currency code of the currency governed by the converter 
-* `currency` - reserve token currency symbol 
-* `contract` - reserve token contract name 
-* `ratio` - reserve ratio, percentage, 0-1000000 
+* converter\_currency\_code - the currency code of the currency governed by the converter 
+* currency - reserve token currency symbol 
+* contract - reserve token contract name 
+* ratio - reserve ratio, percentage, 0-1000000 
 
 
 
@@ -303,7 +303,7 @@ ACTION setstaking (
 **Parameters:**
 
 
-* `staking` - name of staking/voting contract 
+* staking - name of staking/voting contract 
 
 
 
@@ -325,8 +325,8 @@ ACTION updatefee (
 **Parameters:**
 
 
-* `currency` - the currency symbol governed by the converter 
-* `fee` - the new fee % for this converter, must be lower than the maximum fee, 0-1000000 
+* currency - the currency symbol governed by the converter 
+* fee - the new fee % for this converter, must be lower than the maximum fee, 0-1000000 
 
 
 
@@ -348,8 +348,8 @@ ACTION updateowner (
 **Parameters:**
 
 
-* `currency` - the currency symbol governed by the converter 
-* `new_owner` - converter's new owner 
+* currency - the currency symbol governed by the converter 
+* new\_owner - converter's new owner 
 
 
 
@@ -372,9 +372,9 @@ ACTION withdraw (
 **Parameters:**
 
 
-* `sender` - sender of the quantity 
-* `quantity` - amount to decrease the supply by (in the smart token) 
-* `converter_currency_code` - the currency code of the currency governed by the converter 
+* sender - sender of the quantity 
+* quantity - amount to decrease the supply by (in the smart token) 
+* converter\_currency\_code - the currency code of the currency governed by the converter 
 
 
 
