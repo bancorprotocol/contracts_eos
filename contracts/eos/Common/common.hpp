@@ -35,7 +35,6 @@ struct memo_structure {
     string receiver_memo;
 };
 
-#define BANCOR_X "bancorxoneos"_n
 #define BANCOR_NETWORK "thisisbancor"_n
 #define BNT_TOKEN "bntbntbntbnt"_n
 

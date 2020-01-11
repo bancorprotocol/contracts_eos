@@ -19,7 +19,7 @@
     "deploy": "./scripts/eos/deploy.sh",
     "compile": "./scripts/eos/compile.sh",
     "docify": "node ./scripts/eos/docify.js",
-    "test": "mocha --bail ./test/eos/converter.test.js ./test/eos/network.test.js ./test/eos/multiConvert.test.js ./test/eos/bancor-x.test.js",
+    "test": "mocha -t 4000 --bail ./test/eos/converter.test.js ./test/eos/network.test.js ./test/eos/multiConvert.test.js ./test/eos/bancor-x.test.js",
     "start": "npm run start-nodeos && npm run deploy",
     "restart": "npm run kill && npm run start && npm run test",
     "cstart": "npm run compile && npm run restart",

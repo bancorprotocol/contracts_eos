@@ -8,6 +8,7 @@
       * [Reserves Table](gitbook/docs/group___converter___reserves___table.md)
       * [Settings Table](gitbook/docs/group___converter___settings___table.md)
     * [BancorNetwork](gitbook/docs/group___bancor_network.md)
+      * [Settings Table](gitbook/docs/group___network___settings___table.md)
     * [Token](gitbook/docs/group___bancor_token.md)
       * [Currency Stats Table](gitbook/docs/group___currency___stats___table.md)
       * [Accounts Table](gitbook/docs/group___token___accounts___table.md)
