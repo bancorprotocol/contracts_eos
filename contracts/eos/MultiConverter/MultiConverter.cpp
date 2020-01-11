@@ -402,8 +402,6 @@ std::tuple<asset, double> MultiConverter::calculate_return(extended_asset from_t
     symbol from_symbol = from_token.quantity.symbol;
     symbol to_symbol = to_token.get_symbol();
 
-    double from_amount = from_token.quantity.amount / pow(10, from_symbol.precision());
-
     bool incoming_smart_token = from_symbol == converter.currency;    
     bool outgoing_smart_token = to_symbol == converter.currency;
         
@@ -422,22 +420,20 @@ std::tuple<asset, double> MultiConverter::calculate_return(extended_asset from_t
     }
     bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.ratio == to_reserve.ratio;
 
-    double smart_tokens = from_amount;
-    double to_return = 0;
+    double current_hop_amount = from_token.quantity.amount / pow(10, from_symbol.precision());
     if (quick_conversion) { // Reserve --> Reserve
-        to_return = quick_convert(current_from_balance, from_amount, current_to_balance);   
+        current_hop_amount = quick_convert(current_from_balance, current_hop_amount, current_to_balance);   
     }
     else {
         if (!incoming_smart_token) { // Reserve --> Smart
-            smart_tokens = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, input_reserve.ratio);
-            current_smart_supply += smart_tokens;
-            to_return = smart_tokens;
+            current_hop_amount = calculate_purchase_return(current_from_balance, current_hop_amount, current_smart_supply, input_reserve.ratio);
+            current_smart_supply += current_hop_amount;
         }
         if (!outgoing_smart_token) { // Smart --> Reserve
-            to_return = calculate_sale_return(current_to_balance, smart_tokens, current_smart_supply, to_reserve.ratio);
+            current_hop_amount = calculate_sale_return(current_to_balance, current_hop_amount, current_smart_supply, to_reserve.ratio);
         }
     }
-    
+    double to_return = current_hop_amount;
     uint8_t magnitude = incoming_smart_token || outgoing_smart_token ? 1 : 2;
     double fee = calculate_fee(to_return, converter.fee, magnitude);
     to_return -= fee;
