@@ -420,26 +420,28 @@ std::tuple<asset, double> MultiConverter::calculate_return(extended_asset from_t
     }
     bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.ratio == to_reserve.ratio;
 
-    double current_hop_amount = from_token.quantity.amount / pow(10, from_symbol.precision());
+    double from_amount = from_token.quantity.amount / pow(10, from_symbol.precision());
+    double to_amount;
     if (quick_conversion) { // Reserve --> Reserve
-        current_hop_amount = quick_convert(current_from_balance, current_hop_amount, current_to_balance);   
+        to_amount = quick_convert(current_from_balance, from_amount, current_to_balance);   
     }
     else {
         if (!incoming_smart_token) { // Reserve --> Smart
-            current_hop_amount = calculate_purchase_return(current_from_balance, current_hop_amount, current_smart_supply, input_reserve.ratio);
-            current_smart_supply += current_hop_amount;
+            to_amount = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, input_reserve.ratio);
+            current_smart_supply += to_amount;
+            from_amount = to_amount;
         }
         if (!outgoing_smart_token) { // Smart --> Reserve
-            current_hop_amount = calculate_sale_return(current_to_balance, current_hop_amount, current_smart_supply, to_reserve.ratio);
+            to_amount = calculate_sale_return(current_to_balance, from_amount, current_smart_supply, to_reserve.ratio);
         }
     }
-    double to_return = current_hop_amount;
+
     uint8_t magnitude = incoming_smart_token || outgoing_smart_token ? 1 : 2;
-    double fee = calculate_fee(to_return, converter.fee, magnitude);
-    to_return -= fee;
+    double fee = calculate_fee(to_amount, converter.fee, magnitude);
+    to_amount -= fee;
     
     return std::tuple(
-        asset(to_return * pow(10, to_symbol.precision()), to_symbol),
+        asset(to_amount * pow(10, to_symbol.precision()), to_symbol),
         to_fixed(fee, to_symbol.precision())
     );
 }
