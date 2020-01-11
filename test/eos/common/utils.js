@@ -240,6 +240,8 @@ const snooze = ms => new Promise(resolve => setTimeout(resolve, ms))
 const randomAmount = ({ min=0, max=100, decimals=8 }) => {
     return (Math.random() * (max - min) + min).toFixed(decimals)
 }
+
+// Reserve --> Smart
 const calculatePurchaseReturn = (supply, balance, ratio, amount, fee = 0) => {
     supply = Decimal(supply);
     balance = Decimal(balance);
@@ -253,6 +255,8 @@ const calculatePurchaseReturn = (supply, balance, ratio, amount, fee = 0) => {
     )
     return deductFee(newAmount, fee, 1);
 }
+
+// Smart --> Reserve
 const calculateSaleReturn = (supply, balance, ratio, amount, fee = 0) => {
     supply = Decimal(supply)
     balance = Decimal(balance)
@@ -267,7 +271,22 @@ const calculateSaleReturn = (supply, balance, ratio, amount, fee = 0) => {
     )
     return deductFee(newAmount, fee, 1)
 }
+
+// Reserve --> Reserve
+const calculateQuickConvertReturn = (fromTokenReserveBalance, amount, toTokenReserveBalance, fee = 0) => {
+    fromTokenReserveBalance = Decimal(fromTokenReserveBalance);
+    amount = Decimal(amount);
+    toTokenReserveBalance = Decimal(toTokenReserveBalance);
+    fee = Decimal(fee);
+
+    const newAmount = amount.div(fromTokenReserveBalance.add(amount)).mul(toTokenReserveBalance);
+
+    return deductFee(newAmount, fee, 2);
+}
+
 const deductFee = (amount, fee, magnitude) => {
+    if (fee.equals(0)) return amount;
+
     return amount.mul(
         ONE.minus(fee.div(MAX_FEE)).pow(magnitude)
     )
@@ -276,16 +295,16 @@ const extractEvents = async (conversionTx) => {
     if (conversionTx instanceof Promise)
         conversionTx = await expectNoError(conversionTx);
     
-    const rawEvents = conversionTx
-        .processed.action_traces[0].inline_traces[2].inline_traces[1].console
-        .split("\n")
-        .filter(Boolean)
-        .map(JSON.parse)
+    const rawEvents = getConsoleOutputRecursively(conversionTx.processed.action_traces[0])
     
-    return {
-        priceData: rawEvents.filter(({ etype }) => etype === 'price_data'),
-        conversion: rawEvents.find(({ etype }) => etype === 'conversion')
-    }
+    return rawEvents.reduce((acc, o) => (acc[o.etype] ? { ...acc, [o.etype]: [...acc[o.etype], o] } : { ...acc, [o.etype]: [o] } ), {})
+}
+
+function getConsoleOutputRecursively(obj) {
+    if (!obj.hasOwnProperty('inline_traces') || !(obj.inline_traces instanceof Array) || obj.inline_traces.length === 0)
+        return obj.console ? obj.console.split('\n').filter(Boolean).map(JSON.parse) : []
+
+    return obj.inline_traces.map(getConsoleOutputRecursively).flat();
 }
 
 
@@ -315,6 +334,7 @@ module.exports = {
     getTableBoundsForSymbol,
     calculatePurchaseReturn,
     calculateSaleReturn,
+    calculateQuickConvertReturn,
     extractEvents,
     getTableRows
 }

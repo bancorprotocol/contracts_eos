@@ -29,7 +29,6 @@ _This table stores the reserve balances and related information for the reserves
 |  asset | [**balance**](group___multi_converter___reserves___table.md#variable-balance)  <br>_amount in the reserve_  |
 |  name | [**contract**](group___multi_converter___reserves___table.md#variable-contract)  <br>_name of the account storing the token contract for this reserve's token_  |
 |  uint64\_t | [**ratio**](group___multi_converter___reserves___table.md#variable-ratio)  <br>_reserve ratio relative to the other reserves_  |
-|  bool | [**sale\_enabled**](group___multi_converter___reserves___table.md#variable-sale-enabled)  <br>_toggle boolean to enable/disable conversions through this reserve_  |
 
 
 
@@ -75,15 +74,6 @@ name contract;
 
 ```cpp
 uint64_t ratio;
-```
-
-
-
-### <a href="#variable-sale-enabled" id="variable-sale-enabled">variable sale\_enabled </a>
-
-
-```cpp
-bool sale_enabled;
 ```
 
 

@@ -8,7 +8,7 @@ const nodeResult = spawnSync("node", nodeArgs, {stdio: ["inherit", "inherit", "p
 if (nodeResult.stderr.length > 0)
     throw new Error(nodeResult.stderr);
 
-const pythonResult = spawnSync("python", pythonArgs, {stdio: ["inherit", "inherit", "pipe"]});
+const pythonResult = spawnSync("python3", pythonArgs, {stdio: ["inherit", "inherit", "pipe"]});
 if (pythonResult.stderr.length > 0)
     throw new Error(pythonResult.stderr);
 

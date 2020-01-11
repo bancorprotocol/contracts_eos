@@ -8,6 +8,7 @@ Here is a list of all modules:
   * [**Reserves Table**](group___converter___reserves___table.md) _This table stores stats on the reserves of the converter, the actual balance is owned by converter account within the accounts._   
   * [**Settings Table**](group___converter___settings___table.md) _This table stores stats on the settings of the converter._   
 * [**BancorNetwork**](group___bancor_network.md) _The BancorNetwork contract is the main entry point for Bancor token conversions._   
+  * [**Settings Table**](group___network___settings___table.md) _This table stores the settings for the entire Bancor network._   
 * [**Token**](group___bancor_token.md) _BNT Token contract._   
   * [**Currency Stats Table**](group___currency___stats___table.md) _This table stores stats on the supply of the token governed by this contract._   
   * [**Accounts Table**](group___token___accounts___table.md) _This table stores balances for every holder of this token._   

@@ -37,16 +37,14 @@ _Bancor MultiConverter._ [More...](#detailed-description)
 | Type | Name |
 | ---: | :--- |
 |  ACTION | [**close**](group___multi_converter.md#function-close) (symbol\_code converter\_currency\_code) <br>_deletes a converter with empty reserves_  |
-|  ACTION | [**create**](group___multi_converter.md#function-create) (name owner, asset initial\_supply, asset maximum\_supply) <br>_initializes a new converter_  |
+|  ACTION | [**create**](group___multi_converter.md#function-create) (name owner, symbol\_code token\_code, double initial\_supply) <br>_initializes a new converter_  |
 |  ACTION | [**delreserve**](group___multi_converter.md#function-delreserve) (symbol\_code converter, symbol\_code currency) <br>_deletes an empty reserve in the converter_  |
-|  ACTION | [**enablecnvrt**](group___multi_converter.md#function-enablecnvrt) (symbol\_code currency, bool enabled) <br>_flag indicating if conversions are enabled, false if not_  |
 |  ACTION | [**enablestake**](group___multi_converter.md#function-enablestake) (symbol\_code currency, bool enabled) <br>_flag indicating if the smart token can be staked, false if not_  |
 |  ACTION | [**fund**](group___multi_converter.md#function-fund) (name sender, asset quantity) <br>_buys smart tokens with all connector tokens using the same percentage_  |
 |  void | [**on\_transfer**](group___multi_converter.md#function-on-transfer) (name from, name to, asset quantity, string memo) <br>_transfer intercepts with standard transfer args_  |
-|  ACTION | [**setenabled**](group___multi_converter.md#function-setenabled) (bool enabled) <br>_modify enabled in this multi-converter's settings_  |
 |  ACTION | [**setmaxfee**](group___multi_converter.md#function-setmaxfee) (uint64\_t maxfee) <br>_modify maxfee in this multi-converter's settings_  |
 |  ACTION | [**setmultitokn**](group___multi_converter.md#function-setmultitokn) (name multi\_token) <br>_creates the multi-converter settings, can only be called by multi-converter owner_  |
-|  ACTION | [**setreserve**](group___multi_converter.md#function-setreserve) (symbol\_code converter\_currency\_code, symbol currency, name contract, bool sale\_enabled, uint64\_t ratio) <br>_initializes a new reserve in the converter_  |
+|  ACTION | [**setreserve**](group___multi_converter.md#function-setreserve) (symbol\_code converter\_currency\_code, symbol currency, name contract, uint64\_t ratio) <br>_initializes a new reserve in the converter_  |
 |  ACTION | [**setstaking**](group___multi_converter.md#function-setstaking) (name staking) <br>_may only set staking/voting contract for this multi-converter once_  |
 |  ACTION | [**updatefee**](group___multi_converter.md#function-updatefee) (symbol\_code currency, uint64\_t fee) <br>_updates the converter fee_  |
 |  ACTION | [**updateowner**](group___multi_converter.md#function-updateowner) (symbol\_code currency, name new\_owner) <br>_change converter's owner_  |
@@ -90,7 +88,7 @@ ACTION close (
 **Parameters:**
 
 
-* `converter_currency_code` - the currency code of the currency governed by the converter 
+* converter\_currency\_code - the currency code of the currency governed by the converter 
 
 
 
@@ -102,8 +100,8 @@ ACTION close (
 ```cpp
 ACTION create (
     name owner,
-    asset initial_supply,
-    asset maximum_supply
+    symbol_code token_code,
+    double initial_supply
 ) 
 ```
 
@@ -113,9 +111,9 @@ ACTION create (
 **Parameters:**
 
 
-* `owner` - the converter creator 
-* `initial_supply` - initial supply of the smart token governed by the converter 
-* `maximum_supply` - maximum supply of the smart token governed by the converter 
+* owner - the converter creator 
+* initial\_supply - initial supply of the smart token governed by the converter 
+* maximum\_supply - maximum supply of the smart token governed by the converter 
 
 
 
@@ -137,31 +135,8 @@ ACTION delreserve (
 **Parameters:**
 
 
-* `converter` - the currency code of the smart token governed by the converter 
-* `currency` - reserve token currency code 
-
-
-
-        
-
-### <a href="#function-enablecnvrt" id="function-enablecnvrt">function enablecnvrt </a>
-
-
-```cpp
-ACTION enablecnvrt (
-    symbol_code currency,
-    bool enabled
-) 
-```
-
-
-
-
-**Parameters:**
-
-
-* `currency` - the currency symbol governed by the converter 
-* `enabled` - true if conversions for this symbol are enabled 
+* converter - the currency code of the smart token governed by the converter 
+* currency - reserve token currency code 
 
 
 
@@ -183,8 +158,8 @@ ACTION enablestake (
 **Parameters:**
 
 
-* `currency` - the currency symbol governed by the converter 
-* `enabled` - true if staking/voting for this symbol are enabled 
+* currency - the currency symbol governed by the converter 
+* enabled - true if staking/voting for this symbol are enabled 
 
 
 
@@ -201,13 +176,13 @@ ACTION fund (
 ```
 
 
-i.e. if the caller increases the supply by 10%, it will cost an amount equal to 10% of each connector token balance can only be called if the total ratio is exactly 100% and while conversions are enabled 
+i.e. if the caller increases the supply by 10%, it will cost an amount equal to 10% of each connector token balance can only be called if the total ratio is exactly 100% 
 
 **Parameters:**
 
 
-* `sender` - sender of the quantity 
-* `quantity` - amount to increase the supply by (in the smart token) 
+* sender - sender of the quantity 
+* quantity - amount to increase the supply by (in the smart token) 
 
 
 
@@ -226,40 +201,19 @@ void on_transfer (
 ```
 
 
-`memo` containing a keyword following a semicolon at the end of the conversion path indicates special kind of transfer which otherwise would be interpreted as a standard conversion:
+`memo` containing a keyword following a semicolon at the end of the conversion path indicates special kind of transfer:
 * e.g. transferring smart tokens with keyword "liquidate", or
 * transferring reserve tokens with keyword "fund" 
 
 **Parameters:**
 
 
-  * `from` - the sender of the transfer 
-  * `to` - the receiver of the transfer 
-  * `quantity` - the quantity for the transfer 
-  * `memo` - the memo for the transfer 
+  * from - the sender of the transfer 
+  * to - the receiver of the transfer 
+  * quantity - the quantity for the transfer 
+  * memo - the memo for the transfer 
 
 
-
-
-
-        
-
-### <a href="#function-setenabled" id="function-setenabled">function setenabled </a>
-
-
-```cpp
-ACTION setenabled (
-    bool enabled
-) 
-```
-
-
-
-
-**Parameters:**
-
-
-* `enabled` - false will override individual enabled flags for all converters 
 
 
 
@@ -280,7 +234,7 @@ ACTION setmaxfee (
 **Parameters:**
 
 
-* `maxfee` - maximum fee for all converters in this multi-converter 
+* maxfee - maximum fee for all converters in this multi-converter 
 
 
 
@@ -301,7 +255,7 @@ ACTION setmultitokn (
 **Parameters:**
 
 
-* `multi_token` - may only set multi-token contract once 
+* multi\_token - may only set multi-token contract once 
 
 
 
@@ -315,7 +269,6 @@ ACTION setreserve (
     symbol_code converter_currency_code,
     symbol currency,
     name contract,
-    bool sale_enabled,
     uint64_t ratio
 ) 
 ```
@@ -326,11 +279,10 @@ can also be used to update an existing reserve, can only be called by the contra
 **Parameters:**
 
 
-* `converter_currency_code` - the currency code of the currency governed by the converter 
-* `currency` - reserve token currency symbol 
-* `contract` - reserve token contract name 
-* `sale_enabled` - true if selling is enabled with the reserve, false if not 
-* `ratio` - reserve ratio, percentage, 0-1000000 
+* converter\_currency\_code - the currency code of the currency governed by the converter 
+* currency - reserve token currency symbol 
+* contract - reserve token contract name 
+* ratio - reserve ratio, percentage, 0-1000000 
 
 
 
@@ -351,7 +303,7 @@ ACTION setstaking (
 **Parameters:**
 
 
-* `staking` - name of staking/voting contract 
+* staking - name of staking/voting contract 
 
 
 
@@ -373,8 +325,8 @@ ACTION updatefee (
 **Parameters:**
 
 
-* `currency` - the currency symbol governed by the converter 
-* `fee` - the new fee % for this converter, must be lower than the maximum fee, 0-1000000 
+* currency - the currency symbol governed by the converter 
+* fee - the new fee % for this converter, must be lower than the maximum fee, 0-1000000 
 
 
 
@@ -396,8 +348,8 @@ ACTION updateowner (
 **Parameters:**
 
 
-* `currency` - the currency symbol governed by the converter 
-* `new_owner` - converter's new owner 
+* currency - the currency symbol governed by the converter 
+* new\_owner - converter's new owner 
 
 
 
@@ -420,9 +372,9 @@ ACTION withdraw (
 **Parameters:**
 
 
-* `sender` - sender of the quantity 
-* `quantity` - amount to decrease the supply by (in the smart token) 
-* `converter_currency_code` - the currency code of the currency governed by the converter 
+* sender - sender of the quantity 
+* quantity - amount to decrease the supply by (in the smart token) 
+* converter\_currency\_code - the currency code of the currency governed by the converter 
 
 
 
