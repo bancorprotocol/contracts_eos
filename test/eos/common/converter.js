@@ -328,7 +328,7 @@ const delConverter = async function(converter_currency_code, owner) {
     const result = await api.transact({ 
         actions: [{
             account: multiConverter,
-            name: 'close',
+            name: 'delconverter',
             authorization: [{
                 actor: owner,
                 permission: 'active',

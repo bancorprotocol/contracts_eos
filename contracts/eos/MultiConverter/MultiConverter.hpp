@@ -202,7 +202,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @brief deletes a converter with empty reserves
          * @param converter_currency_code - the currency code of the currency governed by the converter
          */
-        ACTION close(symbol_code converter_currency_code);
+        ACTION delconverter(symbol_code converter_currency_code);
 
         /**
          * @brief creates the multi-converter settings, can only be called by multi-converter owner

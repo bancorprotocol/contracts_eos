@@ -22,16 +22,6 @@
             ]
         },
         {
-            "name": "close",
-            "base": "",
-            "fields": [
-                {
-                    "name": "converter_currency_code",
-                    "type": "symbol_code"
-                }
-            ]
-        },
-        {
             "name": "converter_t",
             "base": "",
             "fields": [
@@ -68,6 +58,16 @@
                 {
                     "name": "initial_supply",
                     "type": "float64"
+                }
+            ]
+        },
+        {
+            "name": "delconverter",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_currency_code",
+                    "type": "symbol_code"
                 }
             ]
         },
@@ -250,13 +250,13 @@
     ],
     "actions": [
         {
-            "name": "close",
-            "type": "close",
+            "name": "create",
+            "type": "create",
             "ricardian_contract": ""
         },
         {
-            "name": "create",
-            "type": "create",
+            "name": "delconverter",
+            "type": "delconverter",
             "ricardian_contract": ""
         },
         {

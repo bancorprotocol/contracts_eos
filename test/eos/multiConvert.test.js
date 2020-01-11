@@ -492,12 +492,6 @@ describe('Test: multiConverter', () => {
                 "delete reserves first"
             )
         })
-        it("trying to delete TKNA converter without permission - should throw", async () => { 
-            await expectError(
-                delConverter('TKNA', user2), 
-                "missing authority of bnttestuser1"
-            )
-        })
         it("shouldn't throw error when changing converter owner with permission", async () => {
             const actor = user2
             await expectNoError(
