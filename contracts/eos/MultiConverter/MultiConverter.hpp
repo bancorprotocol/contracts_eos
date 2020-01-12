@@ -202,7 +202,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @brief deletes a converter with empty reserves
          * @param converter_currency_code - the currency code of the currency governed by the converter
          */
-        ACTION close(symbol_code converter_currency_code);
+        ACTION delconverter(symbol_code converter_currency_code);
 
         /**
          * @brief creates the multi-converter settings, can only be called by multi-converter owner
@@ -262,7 +262,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @param converter - the currency code of the smart token governed by the converter
          * @param currency - reserve token currency code
          */
-        ACTION delreserve(symbol_code converter, symbol_code currency);
+        ACTION delreserve(symbol_code converter, symbol_code reserve);
 
         /**
          * @brief called by liquidity providers withdrawing "temporary balances" before `fund`ing them into the reserve

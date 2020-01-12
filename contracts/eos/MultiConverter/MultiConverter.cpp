@@ -184,27 +184,20 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
     check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
 }
 
-ACTION MultiConverter::delreserve(symbol_code converter, symbol_code currency) {
-    converters converters_table(get_self(), converter.raw());
-    const auto& cnvrt = converters_table.get(converter.raw(), "converter does not exist");
-    require_auth(cnvrt.owner);
-
+ACTION MultiConverter::delreserve(symbol_code converter, symbol_code reserve) {
     reserves reserves_table(get_self(), converter.raw());
-    const auto& rsrv = reserves_table.get(currency.raw(), "reserve not found");
-    check(!rsrv.balance.amount, "may delete only empty reserves");
+    const auto& rsrv = reserves_table.get(reserve.raw(), "reserve not found");
+    check(rsrv.balance.amount == 0, "may delete only empty reserves");
 
     reserves_table.erase(rsrv);
 }
 
-ACTION MultiConverter::close(symbol_code converter_currency_code) {
+ACTION MultiConverter::delconverter(symbol_code converter_currency_code) {
     converters converters_table(get_self(), converter_currency_code.raw());
     reserves reserves_table(get_self(), converter_currency_code.raw());
-
-    const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
-    require_auth(converter.owner);
-
     check(reserves_table.begin() == reserves_table.end(), "delete reserves first");
     
+    const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     converters_table.erase(converter);
 }
 
@@ -562,7 +555,7 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
 
     if (code == receiver)
         switch (action) {
-            EOSIO_DISPATCH_HELPER(MultiConverter, (create)(close)
+            EOSIO_DISPATCH_HELPER(MultiConverter, (create)(delconverter)
             (setmultitokn)(setstaking)(setmaxfee)
             (updateowner)(updatefee)(enablestake)
             (setreserve)(delreserve)(withdraw)(fund)) 
