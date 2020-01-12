@@ -307,7 +307,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
 
         // Action wrappers
         using create_action = action_wrapper<"create"_n, &MultiConverter::create>;
-        using close_action = action_wrapper<"close"_n, &MultiConverter::close>;
+        using close_action = action_wrapper<"delconverter"_n, &MultiConverter::delconverter>;
         using setmultitokn_action = action_wrapper<"setmultitokn"_n, &MultiConverter::setmultitokn>;
         using setstaking_action = action_wrapper<"setstaking"_n, &MultiConverter::setstaking>;
         using setmaxfee_action = action_wrapper<"setmaxfee"_n, &MultiConverter::setmaxfee>;
