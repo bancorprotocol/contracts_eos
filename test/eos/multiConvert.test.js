@@ -882,6 +882,18 @@ describe('Test: multiConverter', () => {
 
         })
 
+        it('[liquidate] make sure that liquidating the entire pool token supply completely empties the reserves', async () => {
+            const converterCurrencySymbol = 'BNTEOS';
+            const totalSupply = (await get(multiToken, converterCurrencySymbol)).rows[0].supply
+            await expectNoError( 
+                transfer(multiToken, totalSupply, multiConverter, user1, 'liquidate')
+            )
+            for (const reserveSymbol of ['BNT', 'EOS']) {
+                const { balance } = (await getReserve(reserveSymbol, multiConverter, converterCurrencySymbol)).rows[0]
+                assert.equal(Number(balance.split(' ')[0]), 0, 'reserve is not empty');
+            }
+        });
+
     })
 
     describe('Input validations', async () => {
