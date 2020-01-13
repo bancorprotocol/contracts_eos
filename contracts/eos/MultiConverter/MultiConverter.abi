@@ -166,6 +166,16 @@
             ]
         },
         {
+            "name": "setnetwork",
+            "base": "",
+            "fields": [
+                {
+                    "name": "network",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "setreserve",
             "base": "",
             "fields": [
@@ -207,6 +217,10 @@
                 },
                 {
                     "name": "multi_token",
+                    "type": "name"
+                },
+                {
+                    "name": "network",
                     "type": "name"
                 },
                 {
@@ -296,6 +310,11 @@
         {
             "name": "setmultitokn",
             "type": "setmultitokn",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setnetwork",
+            "type": "setnetwork",
             "ricardian_contract": ""
         },
         {

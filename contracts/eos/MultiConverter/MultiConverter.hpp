@@ -82,6 +82,11 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
                 name multi_token;
                 
                 /**
+                 * @brief account name of the bancor network contract
+                 */
+                name network;
+                
+                /**
                  * @brief account name of contract for voting and staking
                  */
                 name staking;
@@ -246,6 +251,12 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @param maxfee - maximum fee for all converters in this multi-converter
          */
         ACTION setmaxfee(uint64_t maxfee);
+
+        /**
+         * @brief sets the bancor network contract account
+         * @param network - bancor network contract account
+         */
+        ACTION setnetwork(name network);
         
         // the 4 actions below updates the converter settings, can only be called by the converter owner after creation
 

@@ -14,12 +14,26 @@
             ]
         },
         {
+            "name": "setnettoken",
+            "base": "",
+            "fields": [
+                {
+                    "name": "network_token",
+                    "type": "name"
+                }
+            ]
+        },
+        {
             "name": "settings_t",
             "base": "",
             "fields": [
                 {
                     "name": "max_fee",
                     "type": "uint64"
+                },
+                {
+                    "name": "network_token",
+                    "type": "name"
                 }
             ]
         }
@@ -28,6 +42,11 @@
         {
             "name": "setmaxfee",
             "type": "setmaxfee",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setnettoken",
+            "type": "setnettoken",
             "ricardian_contract": ""
         }
     ],

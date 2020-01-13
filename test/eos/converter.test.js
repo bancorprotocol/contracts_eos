@@ -22,7 +22,6 @@ const {
 const { 
     init,
     update,
-    setMaxfee,
     setreserve,
     delreserve,
     getReserve,
@@ -37,9 +36,6 @@ describe('Test: BancorConverter', () => {
     const bntStaking = 'stakebnt2eos'
     describe('setup token contracts and issue tokens', function () {
         it('create and issue fakeos token - EOS', async function () {
-            await expectNoError(
-                setMaxfee('thisisbancor', 30000)
-            )
             await expectNoError( 
                 create('fakeos', 'fakeos', 'EOS', false) 
             )
@@ -99,7 +95,7 @@ describe('Test: BancorConverter', () => {
                 transfer('bbb', '100.00000000 BBB', user2) 
             )  
         })
-        it('create and issue BNT token', async function () {
+        it.skip('create and issue BNT token', async function () {
             await expectNoError( 
                 create('bancorxoneos', 'bntbntbntbnt', 'BNT') 
             )

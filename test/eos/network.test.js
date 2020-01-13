@@ -17,9 +17,15 @@ const {
     transfer
 } = require('./common/token')
 
+const { 
+    getReserve
+} = require('./common/converter')
+
 const { ERRORS } = require('./common/errors')
 const user1 = 'bnttestuser1'
 const user2 = 'bnttestuser2'
+const multiConverter = 'multiconvert'
+const multiToken = 'multi4tokens'
 
 describe('Test: BancorNetwork', () => {
     it('1 hop conversion - sell bnt to buy eos', async function () {
@@ -29,11 +35,11 @@ describe('Test: BancorNetwork', () => {
         const amountStr = '2.00000000'
 
         //relay starting balance of bnt
-        var result = await getBalance('bnt2eoscnvrt','bntbntbntbnt','BNT')
+        let result = await getReserve('BNT', multiConverter, 'BNTEOS')
         assert.equal(result.rows.length, 1)    
         const initialReserveBalanceFrom = parseFloat(result.rows[0].balance.split(' ')[0])
         //relay starting balance of eos
-        result = await getBalance('bnt2eoscnvrt','eosio.token','EOS')
+        result = await getReserve('EOS', multiConverter, 'BNTEOS')
         assert.equal(result.rows.length, 1)    
         const initialReserveBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
         
@@ -64,9 +70,9 @@ describe('Test: BancorNetwork', () => {
         const expectedReserveBalanceFrom = initialReserveBalanceFrom + amount
         const expectedReserveBalanceTo = initialReserveBalanceTo - convertReturn
 
-        result = await getBalance('bnt2eoscnvrt','bntbntbntbnt','BNT')
+        result = await getReserve('BNT', multiConverter, 'BNTEOS')
         const currentReserveBalanceFrom = parseFloat(result.rows[0].balance.split(' ')[0])
-        result = await getBalance('bnt2eoscnvrt','eosio.token','EOS')
+        result = await getReserve('EOS', multiConverter, 'BNTEOS')
         const currentReserveBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
         
         result = initialReserveBalanceTo - currentReserveBalanceTo
@@ -96,7 +102,7 @@ describe('Test: BancorNetwork', () => {
         assert.isAtMost(currentUserBalanceFrom, expectedUserBalanceFrom, "unexpected user_balance - bnt")
         assert.isAtLeast(currentUserBalanceTo, expectedUserBalanceTo, "unexpected user_balance - eos")
 
-        result = await get('bnt2eosrelay', 'BNTEOS')
+        result = await get(multiToken, 'BNTEOS')
         const expectedSmartSupply = parseFloat(result.rows[0].supply.split(' ')[0])
         assert.equal(expectedSmartSupply, parseFloat(toTokenPriceDataEvent.smart_supply), 'unexpected smart supply')
     })
@@ -196,7 +202,7 @@ describe('Test: BancorNetwork', () => {
     it('[PriceDataEvents: reserve --> smart] 1 hop conversion', async function() {
         const amount = '1.00000000'
             
-        var res = await getBalance('bnt2eoscnvrt','bntbntbntbnt','BNT');
+        var res = await getReserve('BNT', multiConverter, 'BNTEOS');
         const initialFromTokenReserveBalance = parseFloat(res.rows[0].balance.split(' ')[0])
 
         res = await expectNoError(
@@ -212,14 +218,14 @@ describe('Test: BancorNetwork', () => {
         const expectedFromTokenReserveBalance = parseFloat(amount) + initialFromTokenReserveBalance;
         assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance, "unexpected reserve_balance");
     
-        res = await get('bnt2eosrelay', 'BNTEOS');
+        res = await get(multiToken, 'BNTEOS');
         const expectedSmartSupply = parseFloat(res.rows[0].supply.split(' ')[0])
         assert.equal(expectedSmartSupply, parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
     });
     it('[PriceDataEvents: smart --> reserve] 1 hop conversion (do it in reverse)', async function() {
         const amount = '0.01000000'
             
-        var res = await getBalance('bnt2eoscnvrt','bntbntbntbnt','BNT');
+        var res = await getReserve('BNT', multiConverter, 'BNTEOS');
         const initialFromTokenReserveBalance = parseFloat(res.rows[0].balance.split(' ')[0])
 
         res = await expectNoError(
@@ -236,7 +242,7 @@ describe('Test: BancorNetwork', () => {
         const expectedFromTokenReserveBalance = initialFromTokenReserveBalance - parseFloat(convertEvent.return);
         assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance.toFixed(8), "unexpected reserve_balance");
     
-        res = await get('bnt2eosrelay', 'BNTEOS');
+        res = await get(multiToken, 'BNTEOS');
         const expectedSmartSupply = parseFloat(res.rows[0].supply.split(' ')[0])
         assert.equal(expectedSmartSupply, parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
     });
@@ -286,14 +292,14 @@ describe('Test: BancorNetwork', () => {
     it("ensures it's not possible to abuse RAM by planting a non-converter account as part of the conversion path", async () => {
         const fakeConverter = (await createAccountOnChain()).accountName;
         await expectError(
-            convertTwice('1.0000', 'eosio.token', 'EOS', 'FAKETKN', 'bnt2eoscnvrt', fakeConverter), 
+            convertTwice('1.0000', 'eosio.token', 'EOS', 'FAKETKN', multiConverter, fakeConverter), 
             ERRORS.MUST_HAVE_TOKEN_ENTRY
         )
     })
     it("ensures an error is thrown when a conversion destination account has no token balance entry", async () => {
         const accountWithNoBalanceEntry = (await createAccountOnChain()).accountName;
         await expectError(
-            convertBNT('1.00000000', 'EOS', 'bnt2eoscnvrt', user1, accountWithNoBalanceEntry), 
+            convertBNT('1.00000000', 'EOS', multiConverter, user1, accountWithNoBalanceEntry), 
             ERRORS.MUST_HAVE_TOKEN_ENTRY
         )
     })

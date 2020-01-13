@@ -73,9 +73,6 @@ describe('Test: multiConverter', () => {
             const BinitSupply = '1000.0000'
             const Bsymbol = 'TKNB'
 
-            const CinitSupply = '99000.00000000'
-            const Csymbol = 'BNTEOS'
-
             const DinitSupply = '99000.00000000'
             const Dsymbol = 'RELAY'
 
@@ -118,13 +115,6 @@ describe('Test: multiConverter', () => {
             )
 
             await expectNoError(
-                setreserve(true, bntToken, 'BNT', multiConverter, 'BNTEOS', user1, Cratio) 
-            )
-            await expectNoError(
-                setreserve(false, 'eosio.token', 'EOS', multiConverter, 'BNTEOS', user1, Cratio) 
-            )
-
-            await expectNoError(
                 setreserve(true, bntToken, 'BNT', multiConverter, 'RELAY', user1, Dratio) 
             )
             await expectNoError(
@@ -152,12 +142,6 @@ describe('Test: multiConverter', () => {
             await expectNoError( 
                 transfer(bntToken, '1000.00000000 BNT', multiConverter, user2, 'fund;TKNB') 
             )
-            await expectNoError( 
-                transfer(bntToken, '990.00000000 BNT', multiConverter, user1, 'fund;BNTEOS') 
-            )
-            await expectNoError( 
-                transfer('eosio.token', '990.0000 EOS', multiConverter, user1, 'fund;BNTEOS') 
-            )
 
             await expectNoError( 
                 transfer(bntToken, '999.00000000 BNT', multiConverter, user1, 'fund;RELAY') 
@@ -173,13 +157,13 @@ describe('Test: multiConverter', () => {
                 transfer('eosio.token', '990.0000 EOS', multiConverter, user1, 'fund;RELAYB') 
             )
             
-            result = await getReserve('BNT', multiConverter, 'BNTEOS')
+            result = await getReserve('BNT', multiConverter, 'RELAY')
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].balance, '990.00000000 BNT', "withdrawal invalid - BNTEOS")
+            assert.equal(result.rows[0].balance, '990.00000000 BNT', "withdrawal invalid - RELAY")
 
-            result = await getReserve('EOS', multiConverter, 'BNTEOS')
+            result = await getReserve('EOS', multiConverter, 'RELAY')
             assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].balance, '990.0000 EOS', "funded amount invalid - BNTEOS")
+            assert.equal(result.rows[0].balance, '990.0000 EOS', "funded amount invalid - RELAY")
         })
         it("enable staking", async () => {
             await expectNoError(
@@ -194,7 +178,7 @@ describe('Test: multiConverter', () => {
             )
         })
         it('ensures that fund and withdraw are working properly (pre-launch)', async () => {
-            bntReserveBefore = '990.00000000 BNT'
+            bntReserveBefore = '99.00000000 BNT'
             var result = await await getBalance(user1, bntToken, 'BNT')
             var bntUserBefore = result.rows[0].balance.split(' ')[0]
             await expectNoError(
@@ -226,7 +210,7 @@ describe('Test: multiConverter', () => {
             var bntUserAfter = result.rows[0].balance.split(' ')[0]
             assert.equal((parseFloat(bntUserBefore) - parseFloat(bntUserAfter)).toFixed(8), '10.00000001', 'BNT balance didnt go down appropriately - BNTEOS')
            
-            eosReserveBefore = '990.0000 EOS'
+            eosReserveBefore = '99.0000 EOS'
             await expectNoError( 
                 transfer('eosio.token', '10.0001 EOS', multiConverter, user1, 'fund;BNTEOS') 
             )
@@ -307,11 +291,11 @@ describe('Test: multiConverter', () => {
 
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
             bntReserveAfter = result.rows[0].balance.split(' ')[0]
-            assert.equal(bntReserveAfter, '990.00000001', 'BNT reserve after is incorrect - BNTEOS')
+            assert.equal(bntReserveAfter, '99.00000001', 'BNT reserve after is incorrect - BNTEOS')
 
             result = await getReserve('EOS', multiConverter, 'BNTEOS')
             eosReserveAfter = result.rows[0].balance.split(' ')[0]
-            assert.equal(eosReserveAfter, '990.0001', 'EOS reserve after is incorrect - BNTEOS')
+            assert.equal(eosReserveAfter, '99.0001', 'EOS reserve after is incorrect - BNTEOS')
 
             result = await getBalance(user1, multiToken, 'BNTEOS')
             let userRelayAfter = result.rows[0].balance.split(' ')[0]
@@ -428,7 +412,6 @@ describe('Test: multiConverter', () => {
             const user2beforeBNT = result.rows[ 0].balance.split(' ')[0]
 
             const res = await expectNoError(
-                convert(bntToken, '1.00000000 BNT',)
                 convertBNT('1.00000000', 'EOS', undefined, user1, user1, user2, 29000),
             )
             const events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
@@ -829,10 +812,10 @@ describe('Test: multiConverter', () => {
             // Reserves are as expected
             result = await getReserve('BNT', multiConverter, 'BNTEOS')
             var balance = result.rows[0].balance
-            assert.equal(balance, '990.00000001 BNT', 'BNT reserve balance not as expected')
+            assert.equal(balance, '99.00000001 BNT', 'BNT reserve balance not as expected')
             result = await getReserve('EOS', multiConverter, 'BNTEOS')
             balance = result.rows[0].balance
-            assert.equal(balance, '990.0001 EOS', "EOS reserve balance not as expected")
+            assert.equal(balance, '99.0001 EOS', "EOS reserve balance not as expected")
 
             await expectNoError( 
                 transfer(bntToken, '10.00000000 BNT', multiConverter, user1, 'fund;BNTEOS') 

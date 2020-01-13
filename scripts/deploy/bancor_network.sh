@@ -1,6 +1,6 @@
 #!/bin/bash
 source ./scripts/deploy/config/common.conf
-source ./scripts/deploy/config/bancor_network_constants.conf
+eval "$(jq -r 'to_entries | .[] | .key + "=\"" + .value + "\""' < ./config/contract_names.json)"
 
 MODE="local"
 while getopts ":u:w:m:" opt; do
@@ -83,9 +83,6 @@ ensureaccount $BANCOR_NETWORK_ACCOUNT $MASTER_PUB_KEY
 ensureaccount $BNT_TOKEN_ACCOUNT $MASTER_PUB_KEY
 ensureaccount $TX_REROUTER_ACCOUNT $MASTER_PUB_KEY
 
-ensureaccount $BNTEOS_CONVERTER_ACCOUNT $MASTER_PUB_KEY
-ensureaccount $BNTEOS_TOKEN_ACCOUNT $MASTER_PUB_KEY
-
 ensureaccount $MULTI_CONVERTER_ACCOUNT $MASTER_PUB_KEY
 ensureaccount $MULTI_TOKEN_ACCOUNT $MASTER_PUB_KEY
 ensureaccount $MULTI_STAKING_ACCOUNT $MASTER_PUB_KEY
@@ -100,8 +97,6 @@ cleos set contract $BANCOR_NETWORK_ACCOUNT $MY_CONTRACTS_BUILD/BancorNetwork
 cleos set contract $BANCOR_X_ACCOUNT $MY_CONTRACTS_BUILD/BancorX
 cleos set contract $BNT_TOKEN_ACCOUNT $MY_CONTRACTS_BUILD/Token
 
-cleos set contract $BNTEOS_CONVERTER_ACCOUNT $MY_CONTRACTS_BUILD/BancorConverter
-cleos set contract $BNTEOS_TOKEN_ACCOUNT $EOSIO_CONTRACTS_ROOT/eosio.token/ 
 cleos set contract $MULTI_CONVERTER_ACCOUNT $MY_CONTRACTS_BUILD/MultiConverter
 cleos set contract $MULTI_TOKEN_ACCOUNT $EOSIO_CONTRACTS_ROOT/eosio.token/
 
@@ -112,9 +107,6 @@ cleos set account permission $TX_REROUTER_ACCOUNT active '{ "threshold": 1, "key
 cleos set account permission $BANCOR_NETWORK_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$BANCOR_NETWORK_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $BANCOR_NETWORK_ACCOUNT
 cleos set account permission $BANCOR_X_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$BANCOR_X_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $BANCOR_X_ACCOUNT
 cleos set account permission $BNT_TOKEN_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$BNT_TOKEN_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $BNT_TOKEN_ACCOUNT
-
-cleos set account permission $BNTEOS_CONVERTER_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$BNTEOS_CONVERTER_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $BNTEOS_CONVERTER_ACCOUNT
-cleos set account permission $BNTEOS_TOKEN_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$BNTEOS_TOKEN_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $BNTEOS_TOKEN_ACCOUNT
 
 cleos set account permission $MULTI_CONVERTER_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$MULTI_CONVERTER_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $MULTI_CONVERTER_ACCOUNT
 cleos set account permission $MULTI_TOKEN_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$MULTI_TOKEN_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $MULTI_TOKEN_ACCOUNT
@@ -135,35 +127,36 @@ if (($ROWS==0)) ; then # BancorX
 fi
 
 ROWS=$(cleos get table $MULTI_CONVERTER_ACCOUNT $MULTI_CONVERTER_ACCOUNT settings | jq .rows | jq length)
-if (($ROWS==0)) && [[ $MODE == "remote" ]] ; then # MultiConverter
-  cleos push action $MULTI_CONVERTER_ACCOUNT setmultitokn '["'$MULTI_TOKEN_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT
-  cleos push action $MULTI_CONVERTER_ACCOUNT setstaking '["'$MULTI_STAKING_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT
-  cleos push action $MULTI_CONVERTER_ACCOUNT setmaxfee '["30000"]' -p $MULTI_CONVERTER_ACCOUNT
+if (($ROWS==0)) ; then # MultiConverter
+  if [[ $MODE == "remote" ]] ; then
+    cleos push action $MULTI_CONVERTER_ACCOUNT setmultitokn '["'$MULTI_TOKEN_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT
+    cleos push action $MULTI_CONVERTER_ACCOUNT setstaking '["'$MULTI_STAKING_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT
+    cleos push action $MULTI_CONVERTER_ACCOUNT setmaxfee '["30000"]' -p $MULTI_CONVERTER_ACCOUNT  
+  fi
+  cleos push action $MULTI_CONVERTER_ACCOUNT setnetwork '["'$BANCOR_NETWORK_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT
 fi
 
 ROWS=$(cleos get table $BNT_TOKEN_ACCOUNT BNT stat | jq .rows | jq length)
-if (($ROWS==0)) && [[ $MODE == "remote" ]] ; then # BNT Token & Converter
+if (($ROWS==0)) ; then # BNT Token & Converter
+  # if [[ $MODE == "remote" ]] ; then
   cleos push action $BNT_TOKEN_ACCOUNT create '["'$BANCOR_X_ACCOUNT'", "250000000.00000000 BNT"]' -p $BNT_TOKEN_ACCOUNT
-  cleos push action $BNTEOS_TOKEN_ACCOUNT create '["'$BNTEOS_CONVERTER_ACCOUNT'", "250000000.00000000 BNTEOS"]' -p $BNTEOS_TOKEN_ACCOUNT
-  
-  cleos push action $BNTEOS_CONVERTER_ACCOUNT init '["'$BNTEOS_TOKEN_ACCOUNT'", "0.00000000 BNTEOS", "1", "1", "'$BANCOR_NETWORK_ACCOUNT'", "0", "30000", "0"]' -p $BNTEOS_CONVERTER_ACCOUNT
-  
-  cleos push action $BNTEOS_CONVERTER_ACCOUNT setreserve '["'$BNT_TOKEN_ACCOUNT'", "8,BNT", "500000", "1"]' -p $BNTEOS_CONVERTER_ACCOUNT
-  cleos push action $BNTEOS_CONVERTER_ACCOUNT setreserve '["eosio.token", "4,EOS", "500000", "1"]' -p $BNTEOS_CONVERTER_ACCOUNT
-  
-  cleos push action $BNTEOS_TOKEN_ACCOUNT issue '[ "'$BNTEOS_CONVERTER_ACCOUNT'", "2030.00000000 BNTEOS", ""]' -p $BNTEOS_CONVERTER_ACCOUNT
-  cleos push action $BNTEOS_TOKEN_ACCOUNT transfer '["'$BNTEOS_CONVERTER_ACCOUNT'", '"$MASTER_ACCOUNT"', "2030.00000000 BNTEOS", ""]' -p $BNTEOS_CONVERTER_ACCOUNT
+  # fi
+  cleos push action $MULTI_CONVERTER_ACCOUNT create '["'$MASTER_ACCOUNT'", "BNTEOS", "9900.00000000"]' -p $MASTER_ACCOUNT
 
+  cleos push action $MULTI_CONVERTER_ACCOUNT setreserve '["BNTEOS", "8,BNT", "'$BNT_TOKEN_ACCOUNT'", "500000"]' -p $MASTER_ACCOUNT
+  cleos push action $MULTI_CONVERTER_ACCOUNT setreserve '["BNTEOS", "4,EOS", "eosio.token", "500000"]' -p $MASTER_ACCOUNT
+  
   cleos push action $BNT_TOKEN_ACCOUNT issue '[ "'$BANCOR_X_ACCOUNT'", "10000.00000000 BNT", ""]' -p $BANCOR_X_ACCOUNT
   cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$BANCOR_X_ACCOUNT'", '"$MASTER_ACCOUNT"', "10000.00000000 BNT", ""]' -p $BANCOR_X_ACCOUNT
 
-  cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$BNTEOS_CONVERTER_ACCOUNT'", "1000.00000000 BNT", "setup"]' -p $MASTER_ACCOUNT
-  cleos push action eosio.token transfer '["'$MASTER_ACCOUNT'", "'$BNTEOS_CONVERTER_ACCOUNT'", "1000.0000 EOS", "setup"]' -p $MASTER_ACCOUNT
+  cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$MULTI_CONVERTER_ACCOUNT'", "99.00000000 BNT", "fund;BNTEOS"]' -p $MASTER_ACCOUNT
+  cleos push action eosio.token transfer '["'$MASTER_ACCOUNT'", "'$MULTI_CONVERTER_ACCOUNT'", "99.0000 EOS", "fund;BNTEOS"]' -p $MASTER_ACCOUNT
 fi
 
 ROWS=$(cleos get table $BANCOR_NETWORK_ACCOUNT $BANCOR_NETWORK_ACCOUNT settings | jq .rows | jq length)
-if (($ROWS==0)) && [[ $MODE == "remote" ]] ; then # BancorNetwork
+if (($ROWS==0)) ; then # BancorNetwork
   cleos push action $BANCOR_NETWORK_ACCOUNT setmaxfee '["30000"]' -p $BANCOR_NETWORK_ACCOUNT
+  cleos push action $BANCOR_NETWORK_ACCOUNT setnettoken '["'$BNT_TOKEN_ACCOUNT'"]' -p $BANCOR_NETWORK_ACCOUNT
 fi
 
 on_exit

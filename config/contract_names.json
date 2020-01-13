@@ -1,0 +1,12 @@
+{
+    "BANCOR_NETWORK_ACCOUNT":"thisisbancor",
+    "BNT_TOKEN_ACCOUNT":"bntbntbntbnt",
+    "MULTI_STAKING_ACCOUNT":"multistaking",
+    "MULTI_CONVERTER_ACCOUNT":"multiconvert",
+    "MULTI_TOKEN_ACCOUNT":"multi4tokens",
+    "TX_REROUTER_ACCOUNT":"bntrerouter1",
+    "BANCOR_X_ACCOUNT":"bancorxoneos",
+    "REPORTER_1_ACCOUNT":"bntreporter1",
+    "REPORTER_2_ACCOUNT":"bntreporter2",
+    "REPORTER_3_ACCOUNT":"bntreporter3"
+}

@@ -221,8 +221,12 @@ const convert = async function (
     quantity,
     conversionPath,
     minReturn = (['EOS', 'SYS'].includes(amount.split(' ')[1]) ? '0.0001' : '0.00000001'),
-    to = from
+    to = from,
+    affiliate = null, affiliateFee = null
     ) {
+        let memo = `1,${conversionPath.join(' ')},${minReturn},${to}`;
+
+        // if (affiliate)
         return api.transact({ 
             actions: [{
                 account: tokenContract,
@@ -235,7 +239,7 @@ const convert = async function (
                     from,
                     to: networkContract,
                     quantity,
-                    memo: `1,${conversionPath.join(' ')},${minReturn},${to}`
+                    memo
                 }
             }]
         }, 

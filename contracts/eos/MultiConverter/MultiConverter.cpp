@@ -86,12 +86,37 @@ ACTION MultiConverter::setmultitokn(name multi_token) {
 
     settings settings_table(get_self(), get_self().value);
     auto st = settings_table.find("settings"_n.value);
-
-    check(st == settings_table.end(), "can only call setmultitokn once");
     
-    settings_table.emplace(get_self(), [&](auto& s) {
-        s.multi_token = multi_token;
-    });
+    if (st == settings_table.end()) {
+        settings_table.emplace(get_self(), [&](auto& s) {
+            s.multi_token = multi_token;
+        });
+    }
+    else {
+        check(!is_account(st->multi_token), "can only call setmultitokn once");
+        settings_table.modify(st, same_payer, [&](auto& s) {
+            s.multi_token = multi_token;        
+        });
+    }
+}
+
+ACTION MultiConverter::setnetwork(name network) {   
+    require_auth(get_self());
+    check(is_account(network), "network account doesn't exist");
+
+    settings settings_table(get_self(), get_self().value);
+    auto st = settings_table.find("settings"_n.value);
+
+    if (st == settings_table.end()) {
+        settings_table.emplace(get_self(), [&](auto& s) {
+            s.network = network;
+        });
+    }
+    else {
+        settings_table.modify(st, same_payer, [&](auto& s) {
+            s.network = network;        
+        });
+    }
 }
 
 ACTION MultiConverter::enablestake(symbol_code currency, bool enabled) {
@@ -356,6 +381,10 @@ void MultiConverter::mod_reserve_balance(symbol converter_currency, asset value)
 }
 
 void MultiConverter::convert(name from, asset quantity, string memo, name code) {
+    settings settings_table(get_self(), get_self().value);
+    const auto& settings = settings_table.get("settings"_n.value, "settings do not exist");
+    check(from == settings.network, "converter can only receive from network contract");
+
     memo_structure memo_object = parse_memo(memo);
     check(memo_object.path.size() > 1, "invalid memo format");
     check(memo_object.converters[0].account == get_self(), "wrong converter");
@@ -363,9 +392,6 @@ void MultiConverter::convert(name from, asset quantity, string memo, name code) 
     symbol_code from_path_currency = quantity.symbol.code();
     symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
-    settings settings_table(get_self(), get_self().value);
-    const auto& settings = settings_table.get("settings"_n.value, "settings do not exist");
-    
     symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
     converters converters_table(get_self(), converter_currency_code.raw());
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
@@ -482,10 +508,13 @@ void MultiConverter::apply_conversion(memo_structure memo_object, extended_asset
         mod_reserve_balance(converter_currency, -to_return.quantity); // subtract from reserve
         
     check(to_return.quantity.amount > 0, "below min return");
+
+    settings settings_table(get_self(), get_self().value);
+    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     action(
         permission_level{ get_self(), "active"_n },
         to_return.contract, "transfer"_n,
-        make_tuple(get_self(), BANCOR_NETWORK, to_return.quantity, new_memo)
+        make_tuple(get_self(), st.network, to_return.quantity, new_memo)
     ).send();
 }
 
@@ -558,7 +587,6 @@ void MultiConverter::on_transfer(name from, name to, asset quantity, string memo
         liquidate(from, quantity);
     
     else {
-        check(from == BANCOR_NETWORK, "converter can only receive from network contract");
         convert(from, quantity, memo, get_first_receiver()); 
     }
 }
@@ -570,7 +598,7 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
     if (code == receiver)
         switch (action) {
             EOSIO_DISPATCH_HELPER(MultiConverter, (create)(close)
-            (setmultitokn)(setstaking)(setmaxfee)
+            (setmultitokn)(setstaking)(setmaxfee)(setnetwork)
             (updateowner)(updatefee)(enablestake)
             (setreserve)(delreserve)(withdraw)(fund)) 
         }    
