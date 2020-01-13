@@ -477,7 +477,7 @@ describe('Test: multiConverter', () => {
         it("trying to delete BNT reserve when it's not empty - should throw", async () => { 
             await expectError(
                 delreserve('BNT', user1, multiConverter, 'TKNA'), 
-                "may delete only empty reserves"
+                "a reserve can only be deleted if it's converter is inactive"
             )
         })
         it("trying to delete TKNA converter when reserves not empty - should throw", async () => { 
@@ -869,6 +869,18 @@ describe('Test: multiConverter', () => {
             assert.equal(balance, new Decimal(Number(userBntBefore2.rows[0].quantity.split(' ')[0])).minus(6.57945001).toString(), 'BNT balance invalid')
 
         })
+
+        it('[liquidate] make sure that liquidating the entire pool token supply completely empties the reserves', async () => {
+            const converterCurrencySymbol = 'BNTEOS';
+            const totalSupply = (await get(multiToken, converterCurrencySymbol)).rows[0].supply
+            await expectNoError( 
+                transfer(multiToken, totalSupply, multiConverter, user1, 'liquidate')
+            )
+            for (const reserveSymbol of ['BNT', 'EOS']) {
+                const { balance } = (await getReserve(reserveSymbol, multiConverter, converterCurrencySymbol)).rows[0]
+                assert.equal(Number(balance.split(' ')[0]), 0, 'reserve is not empty');
+            }
+        });
 
     })
 
