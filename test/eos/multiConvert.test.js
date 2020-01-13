@@ -477,7 +477,7 @@ describe('Test: multiConverter', () => {
         it("trying to delete BNT reserve when it's not empty - should throw", async () => { 
             await expectError(
                 delreserve('BNT', user1, multiConverter, 'TKNA'), 
-                "may delete only empty reserves"
+                "a reserve can only be deleted if it's converter is inactive"
             )
         })
         it("trying to delete TKNA converter when reserves not empty - should throw", async () => { 

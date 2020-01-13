@@ -185,9 +185,9 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
 }
 
 ACTION MultiConverter::delreserve(symbol_code converter, symbol_code reserve) {
+    check(!is_converter_active(converter),  "a reserve can only be deleted if it's converter is inactive");
     reserves reserves_table(get_self(), converter.raw());
     const auto& rsrv = reserves_table.get(reserve.raw(), "reserve not found");
-    check(rsrv.balance.amount == 0, "may delete only empty reserves");
 
     reserves_table.erase(rsrv);
 }
@@ -320,7 +320,7 @@ void MultiConverter::mod_balances(name sender, asset quantity, symbol_code conve
             make_tuple(get_self(), sender, -quantity, string("withdrawal"))
         ).send();
     
-    if (is_converter_active(converter))
+    if (is_converter_active(converter_currency_code))
         mod_account_balance(sender, converter_currency_code, quantity);
     else {
         check(sender == converter.owner, "only converter owner may fund/withdraw prior to activation");
@@ -475,8 +475,8 @@ void MultiConverter::apply_conversion(memo_structure memo_object, extended_asset
     ).send();
 }
 
-bool MultiConverter::is_converter_active(const converter_t& converter) {
-    reserves reserves_table(get_self(), converter.currency.code().raw());
+bool MultiConverter::is_converter_active(symbol_code converter) {
+    reserves reserves_table(get_self(), converter.raw());
 
     for (auto& reserve : reserves_table) {
         if (reserve.balance.amount == 0)

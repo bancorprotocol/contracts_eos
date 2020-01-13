@@ -312,7 +312,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
         const reserve_t& get_reserve(symbol_code symbl, symbol_code converter_currency);
-        bool is_converter_active(const converter_t& converter);
+        bool is_converter_active(symbol_code converter);
 
         void mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change = 0);
         void mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity);
