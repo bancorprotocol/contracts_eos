@@ -17,6 +17,7 @@ const {
     get,
     transfer,
     getBalance,
+    convert,
     convertBNT,
     convertEOS,
     convertMulti,
@@ -427,6 +428,7 @@ describe('Test: multiConverter', () => {
             const user2beforeBNT = result.rows[ 0].balance.split(' ')[0]
 
             const res = await expectNoError(
+                convert(bntToken, '1.00000000 BNT',)
                 convertBNT('1.00000000', 'EOS', undefined, user1, user1, user2, 29000),
             )
             const events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n");
