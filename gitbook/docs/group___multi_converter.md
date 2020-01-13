@@ -36,9 +36,9 @@ _Bancor MultiConverter._ [More...](#detailed-description)
 
 | Type | Name |
 | ---: | :--- |
-|  ACTION | [**close**](group___multi_converter.md#function-close) (symbol\_code converter\_currency\_code) <br>_deletes a converter with empty reserves_  |
 |  ACTION | [**create**](group___multi_converter.md#function-create) (name owner, symbol\_code token\_code, double initial\_supply) <br>_initializes a new converter_  |
-|  ACTION | [**delreserve**](group___multi_converter.md#function-delreserve) (symbol\_code converter, symbol\_code currency) <br>_deletes an empty reserve in the converter_  |
+|  ACTION | [**delconverter**](group___multi_converter.md#function-delconverter) (symbol\_code converter\_currency\_code) <br>_deletes a converter with empty reserves_  |
+|  ACTION | [**delreserve**](group___multi_converter.md#function-delreserve) (symbol\_code converter, symbol\_code reserve) <br>_deletes an empty reserve in the converter_  |
 |  ACTION | [**enablestake**](group___multi_converter.md#function-enablestake) (symbol\_code currency, bool enabled) <br>_flag indicating if the smart token can be staked, false if not_  |
 |  ACTION | [**fund**](group___multi_converter.md#function-fund) (name sender, asset quantity) <br>_buys smart tokens with all connector tokens using the same percentage_  |
 |  void | [**on\_transfer**](group___multi_converter.md#function-on-transfer) (name from, name to, asset quantity, string memo) <br>_transfer intercepts with standard transfer args_  |
@@ -73,27 +73,6 @@ The Bancor converter allows conversions between a smart token and tokens that ar
 ## Public Functions Documentation
 
 
-### <a href="#function-close" id="function-close">function close </a>
-
-
-```cpp
-ACTION close (
-    symbol_code converter_currency_code
-) 
-```
-
-
-
-
-**Parameters:**
-
-
-* converter\_currency\_code - the currency code of the currency governed by the converter 
-
-
-
-        
-
 ### <a href="#function-create" id="function-create">function create </a>
 
 
@@ -111,9 +90,30 @@ ACTION create (
 **Parameters:**
 
 
-* owner - the converter creator 
-* initial\_supply - initial supply of the smart token governed by the converter 
-* maximum\_supply - maximum supply of the smart token governed by the converter 
+* `owner` - the converter creator 
+* `initial_supply` - initial supply of the smart token governed by the converter 
+* `maximum_supply` - maximum supply of the smart token governed by the converter 
+
+
+
+        
+
+### <a href="#function-delconverter" id="function-delconverter">function delconverter </a>
+
+
+```cpp
+ACTION delconverter (
+    symbol_code converter_currency_code
+) 
+```
+
+
+
+
+**Parameters:**
+
+
+* `converter_currency_code` - the currency code of the currency governed by the converter 
 
 
 
@@ -125,7 +125,7 @@ ACTION create (
 ```cpp
 ACTION delreserve (
     symbol_code converter,
-    symbol_code currency
+    symbol_code reserve
 ) 
 ```
 
@@ -135,8 +135,8 @@ ACTION delreserve (
 **Parameters:**
 
 
-* converter - the currency code of the smart token governed by the converter 
-* currency - reserve token currency code 
+* `converter` - the currency code of the smart token governed by the converter 
+* `currency` - reserve token currency code 
 
 
 
@@ -158,8 +158,8 @@ ACTION enablestake (
 **Parameters:**
 
 
-* currency - the currency symbol governed by the converter 
-* enabled - true if staking/voting for this symbol are enabled 
+* `currency` - the currency symbol governed by the converter 
+* `enabled` - true if staking/voting for this symbol are enabled 
 
 
 
@@ -181,8 +181,8 @@ i.e. if the caller increases the supply by 10%, it will cost an amount equal to 
 **Parameters:**
 
 
-* sender - sender of the quantity 
-* quantity - amount to increase the supply by (in the smart token) 
+* `sender` - sender of the quantity 
+* `quantity` - amount to increase the supply by (in the smart token) 
 
 
 
@@ -208,10 +208,10 @@ void on_transfer (
 **Parameters:**
 
 
-  * from - the sender of the transfer 
-  * to - the receiver of the transfer 
-  * quantity - the quantity for the transfer 
-  * memo - the memo for the transfer 
+  * `from` - the sender of the transfer 
+  * `to` - the receiver of the transfer 
+  * `quantity` - the quantity for the transfer 
+  * `memo` - the memo for the transfer 
 
 
 
@@ -234,7 +234,7 @@ ACTION setmaxfee (
 **Parameters:**
 
 
-* maxfee - maximum fee for all converters in this multi-converter 
+* `maxfee` - maximum fee for all converters in this multi-converter 
 
 
 
@@ -255,7 +255,7 @@ ACTION setmultitokn (
 **Parameters:**
 
 
-* multi\_token - may only set multi-token contract once 
+* `multi_token` - may only set multi-token contract once 
 
 
 
@@ -279,10 +279,10 @@ can also be used to update an existing reserve, can only be called by the contra
 **Parameters:**
 
 
-* converter\_currency\_code - the currency code of the currency governed by the converter 
-* currency - reserve token currency symbol 
-* contract - reserve token contract name 
-* ratio - reserve ratio, percentage, 0-1000000 
+* `converter_currency_code` - the currency code of the currency governed by the converter 
+* `currency` - reserve token currency symbol 
+* `contract` - reserve token contract name 
+* `ratio` - reserve ratio, percentage, 0-1000000 
 
 
 
@@ -303,7 +303,7 @@ ACTION setstaking (
 **Parameters:**
 
 
-* staking - name of staking/voting contract 
+* `staking` - name of staking/voting contract 
 
 
 
@@ -325,8 +325,8 @@ ACTION updatefee (
 **Parameters:**
 
 
-* currency - the currency symbol governed by the converter 
-* fee - the new fee % for this converter, must be lower than the maximum fee, 0-1000000 
+* `currency` - the currency symbol governed by the converter 
+* `fee` - the new fee % for this converter, must be lower than the maximum fee, 0-1000000 
 
 
 
@@ -348,8 +348,8 @@ ACTION updateowner (
 **Parameters:**
 
 
-* currency - the currency symbol governed by the converter 
-* new\_owner - converter's new owner 
+* `currency` - the currency symbol governed by the converter 
+* `new_owner` - converter's new owner 
 
 
 
@@ -372,9 +372,9 @@ ACTION withdraw (
 **Parameters:**
 
 
-* sender - sender of the quantity 
-* quantity - amount to decrease the supply by (in the smart token) 
-* converter\_currency\_code - the currency code of the currency governed by the converter 
+* `sender` - sender of the quantity 
+* `quantity` - amount to decrease the supply by (in the smart token) 
+* `converter_currency_code` - the currency code of the currency governed by the converter 
 
 
 

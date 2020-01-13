@@ -72,7 +72,7 @@ ACTION enablerrt (
 **Parameters:**
 
 
-* enable - true to enable rerouting xtransfers, false to disable it 
+* `enable` - true to enable rerouting xtransfers, false to disable it 
 
 
 
@@ -95,9 +95,9 @@ allows an account to change xtransfer transaction details if the original transa
 **Parameters:**
 
 
-* tx\_id - unique transaction id 
-* blockchain - target blockchain 
-* target - target account/address 
+* `tx_id` - unique transaction id 
+* `blockchain` - target blockchain 
+* `target` - target account/address 
 
 
 
