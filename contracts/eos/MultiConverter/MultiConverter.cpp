@@ -184,27 +184,20 @@ ACTION MultiConverter::setreserve(symbol_code converter_currency_code, symbol cu
     check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
 }
 
-ACTION MultiConverter::delreserve(symbol_code converter, symbol_code currency) {
-    converters converters_table(get_self(), converter.raw());
-    const auto& cnvrt = converters_table.get(converter.raw(), "converter does not exist");
-    require_auth(cnvrt.owner);
-
+ACTION MultiConverter::delreserve(symbol_code converter, symbol_code reserve) {
+    check(!is_converter_active(converter),  "a reserve can only be deleted if it's converter is inactive");
     reserves reserves_table(get_self(), converter.raw());
-    const auto& rsrv = reserves_table.get(currency.raw(), "reserve not found");
-    check(!rsrv.balance.amount, "may delete only empty reserves");
+    const auto& rsrv = reserves_table.get(reserve.raw(), "reserve not found");
 
     reserves_table.erase(rsrv);
 }
 
-ACTION MultiConverter::close(symbol_code converter_currency_code) {
+ACTION MultiConverter::delconverter(symbol_code converter_currency_code) {
     converters converters_table(get_self(), converter_currency_code.raw());
     reserves reserves_table(get_self(), converter_currency_code.raw());
-
-    const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
-    require_auth(converter.owner);
-
     check(reserves_table.begin() == reserves_table.end(), "delete reserves first");
     
+    const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     converters_table.erase(converter);
 }
 
@@ -262,9 +255,15 @@ void MultiConverter::liquidate(name sender, asset quantity) {
 
     for (auto& reserve : reserves_table) {
         total_ratio += reserve.ratio;
-        asset reserve_amount = asset(reserve.balance.amount * percent, reserve.balance.symbol);
+
+        asset reserve_amount;
+        if (smart_amount == current_smart_supply)
+            reserve_amount = reserve.balance;
+        else
+            reserve_amount = asset(reserve.balance.amount * percent, reserve.balance.symbol);
         
         check(reserve_amount.amount > 0, "cannot liquidate amounts less than or equal to 0");
+        
         mod_reserve_balance(quantity.symbol, -reserve_amount);
         action(
             permission_level{ get_self(), "active"_n },
@@ -327,7 +326,7 @@ void MultiConverter::mod_balances(name sender, asset quantity, symbol_code conve
             make_tuple(get_self(), sender, -quantity, string("withdrawal"))
         ).send();
     
-    if (is_converter_active(converter))
+    if (is_converter_active(converter_currency_code))
         mod_account_balance(sender, converter_currency_code, quantity);
     else {
         check(sender == converter.owner, "only converter owner may fund/withdraw prior to activation");
@@ -482,8 +481,8 @@ void MultiConverter::apply_conversion(memo_structure memo_object, extended_asset
     ).send();
 }
 
-bool MultiConverter::is_converter_active(const converter_t& converter) {
-    reserves reserves_table(get_self(), converter.currency.code().raw());
+bool MultiConverter::is_converter_active(symbol_code converter) {
+    reserves reserves_table(get_self(), converter.raw());
 
     for (auto& reserve : reserves_table) {
         if (reserve.balance.amount == 0)
@@ -562,7 +561,7 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
 
     if (code == receiver)
         switch (action) {
-            EOSIO_DISPATCH_HELPER(MultiConverter, (create)(close)
+            EOSIO_DISPATCH_HELPER(MultiConverter, (create)(delconverter)
             (setmultitokn)(setstaking)(setmaxfee)
             (updateowner)(updatefee)(enablestake)
             (setreserve)(delreserve)(withdraw)(fund)) 

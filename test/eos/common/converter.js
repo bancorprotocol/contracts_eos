@@ -105,7 +105,7 @@ const init = async function (converter = bntConverter, actor = converter, relay 
         throw(err)
     }
 }
-const delreserve = async function(currency = 'BNT', actor = bntConverter, converter = bntConverter, converterScope = null) {
+const delreserve = async function(reserve = 'BNT', actor = bntConverter, converter = bntConverter, converterScope = null) {
     try {
         const result = await api.transact({ 
             actions: [{
@@ -116,7 +116,7 @@ const delreserve = async function(currency = 'BNT', actor = bntConverter, conver
                     permission: 'active',
                 }],
                 data: {
-                    ...(converterScope ? { converter: converterScope, currency } : { currency })
+                    ...(converterScope ? { converter: converterScope, reserve } : { currency: reserve })
                 }
             }]
         }, 
@@ -328,7 +328,7 @@ const delConverter = async function(converter_currency_code, owner) {
     const result = await api.transact({ 
         actions: [{
             account: multiConverter,
-            name: 'close',
+            name: 'delconverter',
             authorization: [{
                 actor: owner,
                 permission: 'active',

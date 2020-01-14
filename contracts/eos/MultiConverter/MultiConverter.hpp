@@ -202,7 +202,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @brief deletes a converter with empty reserves
          * @param converter_currency_code - the currency code of the currency governed by the converter
          */
-        ACTION close(symbol_code converter_currency_code);
+        ACTION delconverter(symbol_code converter_currency_code);
 
         /**
          * @brief creates the multi-converter settings, can only be called by multi-converter owner
@@ -262,7 +262,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          * @param converter - the currency code of the smart token governed by the converter
          * @param currency - reserve token currency code
          */
-        ACTION delreserve(symbol_code converter, symbol_code currency);
+        ACTION delreserve(symbol_code converter, symbol_code reserve);
 
         /**
          * @brief called by liquidity providers withdrawing "temporary balances" before `fund`ing them into the reserve
@@ -294,7 +294,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          */
         //[[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
-        //using transfer_action = action_wrapper<name("transfer"), &MultiConverter::on_transfer>;
         
         /*! \cond DOCS_EXCLUDE */
         typedef eosio::multi_index<"settings"_n, settings_t> settings;
@@ -306,13 +305,26 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
                             &account_t::by_cnvrt >>> accounts;
         /*! \endcond */ 
 
+        // Action wrappers
+        using create_action = action_wrapper<"create"_n, &MultiConverter::create>;
+        using close_action = action_wrapper<"delconverter"_n, &MultiConverter::delconverter>;
+        using setmultitokn_action = action_wrapper<"setmultitokn"_n, &MultiConverter::setmultitokn>;
+        using setstaking_action = action_wrapper<"setstaking"_n, &MultiConverter::setstaking>;
+        using setmaxfee_action = action_wrapper<"setmaxfee"_n, &MultiConverter::setmaxfee>;
+        using updateowner_action = action_wrapper<"updateowner"_n, &MultiConverter::updateowner>;
+        using updatefee_action = action_wrapper<"updatefee"_n, &MultiConverter::updatefee>;
+        using enablestake_action = action_wrapper<"enablestake"_n, &MultiConverter::enablestake>;
+        using setreserve_action = action_wrapper<"setreserve"_n, &MultiConverter::setreserve>;
+        using delreserve_action = action_wrapper<"delreserve"_n, &MultiConverter::delreserve>;
+        using withdraw_action = action_wrapper<"withdraw"_n, &MultiConverter::withdraw>;
+        using fund_action = action_wrapper<"fund"_n, &MultiConverter::fund>;
     private: 
         void convert(name from, asset quantity, string memo, name code);
         std::tuple<asset, double> calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token);
         void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
         const reserve_t& get_reserve(symbol_code symbl, symbol_code converter_currency);
-        bool is_converter_active(const converter_t& converter);
+        bool is_converter_active(symbol_code converter);
 
         void mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change = 0);
         void mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity);
