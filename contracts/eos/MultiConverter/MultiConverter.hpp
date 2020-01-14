@@ -294,7 +294,6 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
          */
         //[[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
-        //using transfer_action = action_wrapper<name("transfer"), &MultiConverter::on_transfer>;
         
         /*! \cond DOCS_EXCLUDE */
         typedef eosio::multi_index<"settings"_n, settings_t> settings;
@@ -306,6 +305,19 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
                             &account_t::by_cnvrt >>> accounts;
         /*! \endcond */ 
 
+        // Action wrappers
+        using create_action = action_wrapper<"create"_n, &MultiConverter::create>;
+        using close_action = action_wrapper<"delconverter"_n, &MultiConverter::delconverter>;
+        using setmultitokn_action = action_wrapper<"setmultitokn"_n, &MultiConverter::setmultitokn>;
+        using setstaking_action = action_wrapper<"setstaking"_n, &MultiConverter::setstaking>;
+        using setmaxfee_action = action_wrapper<"setmaxfee"_n, &MultiConverter::setmaxfee>;
+        using updateowner_action = action_wrapper<"updateowner"_n, &MultiConverter::updateowner>;
+        using updatefee_action = action_wrapper<"updatefee"_n, &MultiConverter::updatefee>;
+        using enablestake_action = action_wrapper<"enablestake"_n, &MultiConverter::enablestake>;
+        using setreserve_action = action_wrapper<"setreserve"_n, &MultiConverter::setreserve>;
+        using delreserve_action = action_wrapper<"delreserve"_n, &MultiConverter::delreserve>;
+        using withdraw_action = action_wrapper<"withdraw"_n, &MultiConverter::withdraw>;
+        using fund_action = action_wrapper<"fund"_n, &MultiConverter::fund>;
     private: 
         void convert(name from, asset quantity, string memo, name code);
         std::tuple<asset, double> calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token);
