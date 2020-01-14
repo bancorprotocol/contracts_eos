@@ -53,7 +53,7 @@ const multiConverter = 'multiconvert'
 
 describe('Test: multiConverter', () => {
     describe('Converters Balances Management', async function() {
-        it('set up multiConverter', async function () {
+        it.skip('set up multiConverter', async function () {
             await expectNoError( 
                 setMultitoken(multiConverter) 
             )
@@ -90,9 +90,6 @@ describe('Test: multiConverter', () => {
                 createConverter(user2, Bsymbol, BinitSupply) 
             )
             await expectNoError(
-                createConverter(user1, Csymbol, CinitSupply) 
-            )
-            await expectNoError(
                 createConverter(user1, Dsymbol, DinitSupply) 
             )
             await expectNoError(
@@ -102,7 +99,6 @@ describe('Test: multiConverter', () => {
         it('setup reserves', async function() {
             const Aratio = 100000
             const Bratio = 300000
-            const Cratio = 500000
             const Dratio = 500000
             const Eratio = 500000
 
@@ -140,7 +136,7 @@ describe('Test: multiConverter', () => {
                 transfer(bntToken, '1000.00000000 BNT', multiConverter, user1, 'fund;TKNA') 
             )
             await expectNoError( 
-                transfer(bntToken, '1000.00000000 BNT', multiConverter, user2, 'fund;TKNB') 
+                transfer(bntToken, '1000.00000000 BNT', multiConverter, user1, 'fund;TKNB') 
             )
 
             await expectNoError( 

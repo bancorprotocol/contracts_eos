@@ -6,7 +6,7 @@ const networkToken = 'bntbntbntbnt';
 const networkTokenSymbol = "BNT";
 
 const sysConverter = 'bnt2syscnvrt';
-const bntConverter = 'bnt2eoscnvrt';
+const bntConverter = 'multiconvert';
 const multiConverter = 'multiconvert';
 const multiTokens = 'multi4tokens';
 const bntRelay = 'bnt2eosrelay';
@@ -185,10 +185,10 @@ const convertBNT = async function (amount, toSymbol = bntRelaySymbol, relay = bn
                                    from = user, to = from, affiliate = null, 
                                    affiliateFee = null, min = '0.00000001') {
     try {
-        memo = `1,${relay} ${toSymbol},${min},${to}`
+        let memo = `1,${relay}:BNTEOS ${toSymbol},${min},${to}`
 
         if (affiliate)
-            memo = `1,${relay} ${toSymbol},${min},${to},${affiliate},${affiliateFee}`
+            memo += `,${affiliate},${affiliateFee}`
 
         const result = await api.transact({ 
             actions: [{
@@ -264,7 +264,7 @@ const convertTwice = async function (amount, token, relaySymbol = bntRelaySymbol
                     from: from,
                     to: networkContract,
                     quantity: `${amount} ${relaySymbol}`,
-                    memo: `1,${relay} ${networkTokenSymbol} ${relay2} ${relay2symbol},${min},${to}`
+                    memo: `1,${relay}:BNTEOS ${networkTokenSymbol} ${relay2} ${relay2symbol},${min},${to}`
                 }
             }]
         }, 

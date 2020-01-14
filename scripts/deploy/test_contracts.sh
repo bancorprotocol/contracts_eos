@@ -73,5 +73,10 @@ cleos set account permission bnt2aaarelay active '{ "threshold": 1, "keys": [{ "
 cleos set account permission bnt2bbbcnvrt active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2bbbcnvrt","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2bbbcnvrt
 cleos set account permission bnt2bbbrelay active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2bbbrelay","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2bbbrelay
 
+# 5) send test tokens
+cleos push action eosio.token transfer '["eosio", "bnttestuser1", "100000.0000 EOS", ""]' -p eosio
+cleos push action eosio.token transfer '["eosio", "bnttestuser2", "100000.0000 EOS", ""]' -p eosio
+
+
 on_exit
 echo -e "${GREEN}--> Done${NC}"

@@ -5,7 +5,8 @@ var assert = chai.assert
 const {  
     expectError, 
     expectNoError,
-    createAccountOnChain
+    createAccountOnChain,
+    extractEvents
 } = require('./common/utils')
 
 const { 
@@ -27,7 +28,7 @@ const user2 = 'bnttestuser2'
 const multiConverter = 'multiconvert'
 const multiToken = 'multi4tokens'
 
-describe('Test: BancorNetwork', () => {
+describe.skip('Test: BancorNetwork', () => {
     it('1 hop conversion - sell bnt to buy eos', async function () {
         const amount = 2.00000000
         const tolerance = 0.000001
@@ -53,14 +54,17 @@ describe('Test: BancorNetwork', () => {
         const initialUserBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
         
         //perform the conversion
-        const res = await expectNoError(
+        const events = await extractEvents(
             convertBNT(amountStr, 'EOS')
         )
-        const events = res.processed.action_traces[0].inline_traces[2].inline_traces[1].console.split("\n")
+            
+        console.error('uvuvuv')
+        console.error(events)
 
-        const convertEvent = JSON.parse(events[0])
-        const fromTokenPriceDataEvent = JSON.parse(events[1])
-        const toTokenPriceDataEvent = JSON.parse(events[2])
+
+        const convertEvent = events.conversion[0]
+        const fromTokenPriceDataEvent = events.price_data[0]
+        const toTokenPriceDataEvent = events.price_data[2]
         
         assert.equal(convertEvent.conversion_fee, 0, "unexpected conversion fee, from event")
         assert.equal(toTokenPriceDataEvent.reserve_ratio, 0.5, "unexpected reserve ratio, from event toToken")
@@ -130,7 +134,7 @@ describe('Test: BancorNetwork', () => {
         var result = await getBalance('bnt2syscnvrt', 'fakeos', 'SYS')
         assert.equal(result.rows.length, 1)    
         const initialReserveBalanceTo = parseFloat(result.rows[0].balance.split(' ')[0])
-
+        
         // perform conversion
         const res = await expectNoError(
             convertTwice(amountStr, 'eosio.token', 'EOS', 'SYS')

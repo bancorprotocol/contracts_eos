@@ -128,11 +128,11 @@ fi
 
 ROWS=$(cleos get table $MULTI_CONVERTER_ACCOUNT $MULTI_CONVERTER_ACCOUNT settings | jq .rows | jq length)
 if (($ROWS==0)) ; then # MultiConverter
-  if [[ $MODE == "remote" ]] ; then
+  # if [[ $MODE == "remote" ]] ; then
     cleos push action $MULTI_CONVERTER_ACCOUNT setmultitokn '["'$MULTI_TOKEN_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT
     cleos push action $MULTI_CONVERTER_ACCOUNT setstaking '["'$MULTI_STAKING_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT
     cleos push action $MULTI_CONVERTER_ACCOUNT setmaxfee '["30000"]' -p $MULTI_CONVERTER_ACCOUNT  
-  fi
+  # fi
   cleos push action $MULTI_CONVERTER_ACCOUNT setnetwork '["'$BANCOR_NETWORK_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT
 fi
 

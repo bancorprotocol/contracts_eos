@@ -30,7 +30,7 @@ const {
 
 const { ERRORS } = require('./common/errors')
 
-describe('Test: BancorConverter', () => {
+describe.skip('Test: BancorConverter', () => {
     const user1 = 'bnttestuser1'
     const user2 = 'bnttestuser2'
     const bntStaking = 'stakebnt2eos'
@@ -95,7 +95,7 @@ describe('Test: BancorConverter', () => {
                 transfer('bbb', '100.00000000 BBB', user2) 
             )  
         })
-        it.skip('create and issue BNT token', async function () {
+        it('create and issue BNT token', async function () {
             await expectNoError( 
                 create('bancorxoneos', 'bntbntbntbnt', 'BNT') 
             )
