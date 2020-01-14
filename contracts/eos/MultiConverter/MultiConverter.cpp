@@ -258,6 +258,9 @@ void MultiConverter::liquidate(name sender, asset quantity) {
         asset reserve_amount = asset(reserve.balance.amount * percent, reserve.balance.symbol);
         
         check(reserve_amount.amount > 0, "cannot liquidate amounts less than or equal to 0");
+        if (smart_amount == current_smart_supply)
+            check(reserve_amount == reserve.balance, "the entire reserve balance should be liquidated when the entire pool token supply is liquidated");
+        
         mod_reserve_balance(quantity.symbol, -reserve_amount);
         action(
             permission_level{ get_self(), "active"_n },
