@@ -9,7 +9,7 @@ const sysConverter = 'bnt2syscnvrt';
 const bntConverter = 'multiconvert';
 const multiConverter = 'multiconvert';
 const multiTokens = 'multi4tokens';
-const bntRelay = 'bnt2eosrelay';
+const bntRelay = 'multi4tokens';
 const bntRelaySymbol = 'BNTEOS';
 const sysRelaySymbol = 'BNTSYS';
 
@@ -29,7 +29,7 @@ const get = async function (token, symbol) {
 }
 const create = async function (issuer, token, symbol, precise=true) {
     try {
-        var precision = '250000000.00000000'
+        let precision = '250000000.00000000'
         if (!precise)
             precision = '250000000.0000'
         const result = await api.transact({ 
@@ -124,8 +124,13 @@ const getBalance = async function (user, token, symbol) {
 }
 const convertMulti = async function(amount, symbol, targetSymbol, 
                                     converter = multiConverter, 
-                                    from = user, min = '0.00000001') {
+                                    from = user, min = '0.00000001',
+                                    affiliate = null, affiliateFee = null) {
     try {
+        let memo = `1,${converter}:${symbol} ${targetSymbol},${min},${from}`
+        if (affiliate)
+            memo += `,${affiliate},${affiliateFee}`
+        
         const result = await api.transact({ 
             actions: [{
                 account: multiTokens,
@@ -138,7 +143,7 @@ const convertMulti = async function(amount, symbol, targetSymbol,
                     from: from,
                     to: networkContract,
                     quantity: `${amount} ${symbol}`,
-                    memo: `1,${converter}:${symbol} ${targetSymbol},${min},${from}`
+                    memo
                 }
             }]
         }, 
@@ -281,16 +286,16 @@ const convertEOS = async function (amount, fake=false, relay = bntConverter, rel
                                    from = user, to = user, affiliate = null, affiliateFee = null, min = null) { // buy BNTEOS with EOS
     try {
         
-        var minReturn = '0.00000001'; 
+        let minReturn = '0.00000001'; 
         if (min) minReturn = min
-        var account = 'eosio.token'
-        var memo = `1,${relay} ${relaySymbol},${minReturn},${to}`
+        let account = 'eosio.token'
+        let memo = `1,${relay} ${relaySymbol},${minReturn},${to}`
 
         if (fake)
             account = 'fakeos'
 
         if (affiliate)
-            memo = `1,${relay} ${relaySymbol},${minReturn},${to},${affiliate},${affiliateFee}`
+            memo += `,${affiliate},${affiliateFee}`
     
         const result = await api.transact({ 
             actions: [{

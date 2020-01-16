@@ -1,6 +1,6 @@
 
 const chai = require('chai')
-var assert = chai.assert
+let assert = chai.assert
 
 const {  
     expectError, 
@@ -45,7 +45,7 @@ describe.skip('Test: BancorConverter', () => {
             const result = await get('fakeos', 'EOS')
             assert.equal(result.rows.length, 1)
             //
-            var expected = '250000000.0000 EOS'
+            let expected = '250000000.0000 EOS'
             assert.equal(result.rows[0].max_supply, expected, "max_supply not set correctly - fakeos EOS")
             //
             expected = '10100.0000 EOS'
@@ -61,7 +61,7 @@ describe.skip('Test: BancorConverter', () => {
             const result = await get('fakeos', 'SYS')
             assert.equal(result.rows.length, 1)
             //
-            var expected = '250000000.0000 SYS'
+            let expected = '250000000.0000 SYS'
             assert.equal(result.rows[0].max_supply, expected, "max_supply not set correctly - fakeos SYS")    
             //
             expected = '10100.0000 SYS'
@@ -105,7 +105,7 @@ describe.skip('Test: BancorConverter', () => {
             const result = await get('bntbntbntbnt', 'BNT')
             assert.equal(result.rows.length, 1)
             //
-            var expected = '250000000.00000000 BNT'
+            let expected = '250000000.00000000 BNT'
             assert.equal(result.rows[0].max_supply, expected, "max_supply not set correctly - bnt")
             //
             expected = '442000.00000000 BNT'
@@ -121,7 +121,7 @@ describe.skip('Test: BancorConverter', () => {
             const result = await get('bnt2eosrelay', 'BNTEOS')
             assert.equal(result.rows.length, 1)
             //
-            var expected = '250000000.00000000 BNTEOS'
+            let expected = '250000000.00000000 BNTEOS'
             assert.equal(result.rows[0].max_supply, expected, "max_supply not set correctly - bnteos")    
             //
             expected = '20300.00000000 BNTEOS'
@@ -137,7 +137,7 @@ describe.skip('Test: BancorConverter', () => {
             const result = await get('bnt2eosrelay', 'RELAY')
             assert.equal(result.rows.length, 1)
             //
-            var expected = '250000000.00000000 RELAY'
+            let expected = '250000000.00000000 RELAY'
             assert.equal(result.rows[0].max_supply, expected, "max_supply not set correctly - RELAY")    
             //
             expected = '20300.00000000 RELAY'
@@ -153,7 +153,7 @@ describe.skip('Test: BancorConverter', () => {
             const result = await get('bnt2eosrelay', 'RELAYB')
             assert.equal(result.rows.length, 1)
             //
-            var expected = '250000000.00000000 RELAYB'
+            let expected = '250000000.00000000 RELAYB'
             assert.equal(result.rows[0].max_supply, expected, "max_supply not set correctly - RELAYB")    
             //
             expected = '20300.00000000 RELAYB'
@@ -169,7 +169,7 @@ describe.skip('Test: BancorConverter', () => {
             const result = await get('bnt2sysrelay', 'BNTSYS')
             assert.equal(result.rows.length, 1)
             //
-            var expected = '250000000.00000000 BNTSYS'
+            let expected = '250000000.00000000 BNTSYS'
             assert.equal(result.rows[0].max_supply, expected, "max_supply not set correctly - bntsys")
             //
             expected = '20100.00000000 BNTSYS'
@@ -295,14 +295,14 @@ describe.skip('Test: BancorConverter', () => {
             await expectNoError( 
                 transfer('fakeos', '100.0000 EOS', user1, 'fakeos') 
             )
-            var result = await getBalance(user1, 'fakeos', 'EOS')
+            let result = await getBalance(user1, 'fakeos', 'EOS')
             assert.equal(result.rows.length, 1)    
             assert.equal(result.rows[0].balance, '100.0000 EOS', "wrong initial balance - user1's fakeos EOS")
             //
             await expectNoError( 
                 transfer('fakeos', '100.0000 SYS', user1, 'fakeos') 
             )
-            var result = await getBalance(user1, 'fakeos', 'SYS')
+            result = await getBalance(user1, 'fakeos', 'SYS')
             assert.equal(result.rows.length, 1)    
             assert.equal(result.rows[0].balance, '100.0000 SYS', "wrong initial balance - user1's fakeos SYS")
             //
@@ -317,7 +317,7 @@ describe.skip('Test: BancorConverter', () => {
             await expectNoError( 
                 transfer('bntbntbntbnt','21000.00000000 BNT', user1, 'bancorxoneos') 
             )
-            var result = await getBalance(user1, 'bntbntbntbnt', 'BNT')
+            let result = await getBalance(user1, 'bntbntbntbnt', 'BNT')
             assert.equal(result.rows.length, 1)            
             assert.equal(result.rows[0].balance, '21000.00000000 BNT', "wrong initial balance - bnt")
             await expectNoError( 
@@ -349,7 +349,7 @@ describe.skip('Test: BancorConverter', () => {
             await expectNoError( //issue BNTEOS to user1
                 transfer('bnt2eosrelay',  '100.00000000 BNTEOS', user1, 'bnt2eoscnvrt') 
             )
-            var result = await getBalance(user1, 'bnt2eosrelay', 'BNTEOS')
+            let result = await getBalance(user1, 'bnt2eosrelay', 'BNTEOS')
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '100.00000000 BNTEOS', "wrong initial balance - bnteos")
             //
@@ -359,7 +359,7 @@ describe.skip('Test: BancorConverter', () => {
             await expectNoError( //issue BNTSYS to user2
                 transfer(token='bnt2sysrelay', '100.00000000 BNTSYS', user1, 'bnt2syscnvrt') 
             )
-            var result = await getBalance(user1, 'bnt2sysrelay', 'BNTSYS')
+            result = await getBalance(user1, 'bnt2sysrelay', 'BNTSYS')
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].balance, '100.00000000 BNTSYS', "wrong initial balance - bntsys")
         })

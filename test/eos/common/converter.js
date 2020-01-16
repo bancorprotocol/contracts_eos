@@ -199,7 +199,7 @@ const setreserve = async function(precise = true, token = networkToken,
                                   converterScope = null, 
                                   actor = converter, 
                                   ratio = 500000) {
-    var precision = 8
+    let precision = 8
     if (!precise)
         precision = 4
     try {

@@ -32,8 +32,8 @@ cleos wallet import --private-key "$MASTER_PRV_KEY"
 
 cleos system newaccount eosio bntreporter4 $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 
-cleos system newaccount eosio bnttestuser1 $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
-cleos system newaccount eosio bnttestuser2 $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio $MASTER_ACCOUNT $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
+cleos system newaccount eosio $TEST_ACCOUNT $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 5000 --transfer
 cleos system newaccount eosio fakeos $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
 
 cleos system newaccount eosio bnt2syscnvrt $MASTER_PUB_KEY --stake-cpu "50 EOS" --stake-net "10 EOS" --buy-ram-kbytes 50000 --transfer
@@ -74,8 +74,8 @@ cleos set account permission bnt2bbbcnvrt active '{ "threshold": 1, "keys": [{ "
 cleos set account permission bnt2bbbrelay active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"bnt2bbbrelay","permission":"eosio.code" }, "weight":1 }] }' owner -p bnt2bbbrelay
 
 # 5) send test tokens
-cleos push action eosio.token transfer '["eosio", "bnttestuser1", "100000.0000 EOS", ""]' -p eosio
-cleos push action eosio.token transfer '["eosio", "bnttestuser2", "100000.0000 EOS", ""]' -p eosio
+cleos push action eosio.token transfer '["eosio", "'$MASTER_ACCOUNT'", "100000.0000 EOS", ""]' -p eosio
+cleos push action eosio.token transfer '["eosio", "'$TEST_ACCOUNT'", "100000.0000 EOS", ""]' -p eosio
 
 
 on_exit

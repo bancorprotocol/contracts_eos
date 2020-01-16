@@ -151,6 +151,8 @@ if (($ROWS==0)) ; then # BNT Token & Converter
 
   cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$MULTI_CONVERTER_ACCOUNT'", "99.00000000 BNT", "fund;BNTEOS"]' -p $MASTER_ACCOUNT
   cleos push action eosio.token transfer '["'$MASTER_ACCOUNT'", "'$MULTI_CONVERTER_ACCOUNT'", "99.0000 EOS", "fund;BNTEOS"]' -p $MASTER_ACCOUNT
+
+  cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$TEST_ACCOUNT'", "3000.00000000 BNT", ""]' -p $MASTER_ACCOUNT
 fi
 
 ROWS=$(cleos get table $BANCOR_NETWORK_ACCOUNT $BANCOR_NETWORK_ACCOUNT settings | jq .rows | jq length)

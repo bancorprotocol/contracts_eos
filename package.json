@@ -16,7 +16,7 @@
     "postinstall": "doxygen --download",
     "start-nodeos": "./scripts/start_nodeos.sh",
     "kill": "./scripts/kill_nodeos.sh",
-    "deploy:local": "./scripts/deploy/system_contracts.sh && ./scripts/deploy/test_contracts.sh && ./scripts/deploy/bancor_network.sh",
+    "deploy:local": "./scripts/deploy/system_contracts.sh && ./scripts/deploy/test_contracts.sh && ./scripts/deploy/bancor_network.sh -m local",
     "deploy:remote": "./scripts/deploy/bancor_network.sh -m remote",
     "compile": "./scripts/compile.sh",
     "docify": "node ./scripts/docify.js",
