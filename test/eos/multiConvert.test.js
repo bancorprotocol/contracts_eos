@@ -803,66 +803,6 @@ describe('Test: multiConverter', () => {
                 updateFee(user1, 'RELAYB', 0)
             )
         })
-
-        it("funding: accept more deposits", async() => {
-            // Reserves are as expected
-            result = await getReserve('BNT', multiConverter, 'BNTEOS')
-            let balance = result.rows[0].balance
-            assert.equal(balance, '99.00000001 BNT', 'BNT reserve balance not as expected')
-            result = await getReserve('EOS', multiConverter, 'BNTEOS')
-            balance = result.rows[0].balance
-            assert.equal(balance, '99.0001 EOS', "EOS reserve balance not as expected")
-
-            await expectNoError( 
-                transfer(bntToken, '10.00000000 BNT', multiConverter, user1, 'fund;BNTEOS') 
-            )
-            await expectNoError( 
-                transfer('eosio.token', '10.0000 EOS', multiConverter, user1, 'fund;BNTEOS') 
-            )
-
-            result = await getAccount(user1, 'BNTEOS', 'EOS')
-            balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, '10.0000', 'EOS account balance invalid')
-
-            result = await getAccount(user1, 'BNTEOS', 'BNT')
-            balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, '10.00000000', 'BNT account balance invalid')
-        })
-
-        it("funding: charges as expected", async() => {
-
-
-            const [userEosBefore, userBntBefore] = await Promise.all([getAccount(user1, 'BNTEOS', 'EOS'), getAccount(user1, 'BNTEOS', 'BNT')])
-
-            await expectNoError(
-                fund(user1, '148.5000 BNTEOS')
-            )
-
-            result = await getAccount(user1, 'BNTEOS', 'EOS')
-            let balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, Number(userEosBefore.rows[0].quantity.split(' ')[0]) - 1.4851, 'EOS balance invalid')
-            
-            result = await getAccount(user1, 'BNTEOS', 'BNT')
-            balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, Number(userBntBefore.rows[0].quantity.split(' ')[0]) - 1.48500001, 'BNT balance invalid')
-
-
-            const [userEosBefore2, userBntBefore2] = await Promise.all([getAccount(user1, 'BNTEOS', 'EOS'), getAccount(user1, 'BNTEOS', 'BNT')])
-
-            await expectNoError(
-                fund(user1, '657.9450 BNTEOS')
-            )
-
-            result = await getAccount(user1, 'BNTEOS', 'EOS')
-            balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, new Decimal(Number(userEosBefore2.rows[0].quantity.split(' ')[0])).minus(6.5795).toString(), 'EOS balance invalid')
-            
-            result = await getAccount(user1, 'BNTEOS', 'BNT')
-            balance = result.rows[0].quantity.split(' ')[0]
-            assert.equal(balance, new Decimal(Number(userBntBefore2.rows[0].quantity.split(' ')[0])).minus(6.57945001).toString(), 'BNT balance invalid')
-
-        })
-
     })
 
     describe('Input validations', async () => {
@@ -876,7 +816,7 @@ describe('Test: multiConverter', () => {
                 "symbol mismatch"
             )
         });
-        it('[liquidate] ensures assets with invalid precision are rejected', async () => {
+        it.skip('[liquidate] ensures assets with invalid precision are rejected', async () => {
             await expectError( 
                 transfer('bnt2eosrelay',  '1.00000000 BNTEOS', multiConverter ,user1, 'liquidate'),
                 'bad origin for this transfer'
