@@ -279,6 +279,7 @@ ACTION MultiConverter::withdraw(name sender, asset quantity, symbol_code convert
 
 double MultiConverter::calculate_liquidate_return(double liquidation_amount, double supply, double reserve_balance, double total_ratio) {
     check(supply > 0, "supply must be greater than zero");
+    check(reserve_balance > 0, "reserve_balance must be greater than zero");
     check(liquidation_amount <= supply, "liquidation_amount must be less than or equal to the supply");
     check(total_ratio > 1 && total_ratio <= MAX_RATIO * 2, "total_ratio not in range");
     
@@ -296,13 +297,11 @@ double MultiConverter::calculate_liquidate_return(double liquidation_amount, dou
 
 double MultiConverter::calculate_fund_cost(double funding_amount, double supply, double reserve_balance, double total_ratio) {
     check(supply > 0, "supply must be greater than zero");
+    check(reserve_balance > 0, "reserve_balance must be greater than zero");
     check(total_ratio > 1 && total_ratio <= MAX_RATIO * 2, "total_ratio not in range");
     
     if (funding_amount == 0)
         return 0;
-
-    if (funding_amount == supply)
-        return reserve_balance;
     
     if (total_ratio == MAX_RATIO)
         return reserve_balance * funding_amount / supply;
