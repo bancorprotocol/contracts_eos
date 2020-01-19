@@ -28,7 +28,7 @@ const user2 = 'bnttestuser2'
 const multiConverter = 'multiconvert'
 const multiToken = 'multi4tokens'
 
-describe.skip('Test: BancorNetwork', () => {
+describe('Test: BancorNetwork', () => {
     it('1 hop conversion - sell bnt to buy eos', async function () {
         const amount = 2.00000000
         const tolerance = 0.000001
@@ -57,18 +57,14 @@ describe.skip('Test: BancorNetwork', () => {
         const events = await extractEvents(
             convertBNT(amountStr, 'EOS')
         )
-            
-        console.error('uvuvuv')
-        console.error(events)
-
 
         const convertEvent = events.conversion[0]
         const fromTokenPriceDataEvent = events.price_data[0]
         const toTokenPriceDataEvent = events.price_data[2]
-        
+        console.log(events.price_data)
         assert.equal(convertEvent.conversion_fee, 0, "unexpected conversion fee, from event")
-        assert.equal(toTokenPriceDataEvent.reserve_ratio, 0.5, "unexpected reserve ratio, from event toToken")
-        assert.equal(fromTokenPriceDataEvent.reserve_ratio, 0.5, "unexpected reserve ratio, from event fromToken")
+        assert.equal(toTokenPriceDataEvent.reserve_ratio, 500000, "unexpected reserve ratio, from event toToken")
+        assert.equal(fromTokenPriceDataEvent.reserve_ratio, 500000, "unexpected reserve ratio, from event fromToken")
         
         //expectation 
         const expectedReserveBalanceFrom = initialReserveBalanceFrom + amount

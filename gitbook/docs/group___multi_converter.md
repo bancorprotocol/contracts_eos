@@ -25,7 +25,6 @@ _Bancor MultiConverter._ [More...](#detailed-description)
 | module | [**Converters Table**](group___converters___table.md) <br>_This table stores the key information about all converters in this contract._  |
 | module | [**Reserves Table**](group___multi_converter___reserves___table.md) <br>_This table stores the reserve balances and related information for the reserves of every converter in this contract._  |
 | module | [**Settings Table**](group___multi_converter___settings___table.md) <br>_This table stores the global settings affecting all the converters in this contract._  |
-| module | [**Paths Table**](group___paths___table.md) <br>_This table stores the aggregate set of (output) reserves which can be purchased in exchange for a given (input) reserve._  |
 
 
 
@@ -37,9 +36,9 @@ _Bancor MultiConverter._ [More...](#detailed-description)
 
 | Type | Name |
 | ---: | :--- |
-|  ACTION | [**close**](group___multi_converter.md#function-close) (symbol\_code converter\_currency\_code) <br>_deletes a converter with empty reserves_  |
 |  ACTION | [**create**](group___multi_converter.md#function-create) (name owner, symbol\_code token\_code, double initial\_supply) <br>_initializes a new converter_  |
-|  ACTION | [**delreserve**](group___multi_converter.md#function-delreserve) (symbol\_code converter, symbol\_code currency) <br>_deletes an empty reserve in the converter_  |
+|  ACTION | [**delconverter**](group___multi_converter.md#function-delconverter) (symbol\_code converter\_currency\_code) <br>_deletes a converter with empty reserves_  |
+|  ACTION | [**delreserve**](group___multi_converter.md#function-delreserve) (symbol\_code converter, symbol\_code reserve) <br>_deletes an empty reserve in the converter_  |
 |  ACTION | [**enablestake**](group___multi_converter.md#function-enablestake) (symbol\_code currency, bool enabled) <br>_flag indicating if the smart token can be staked, false if not_  |
 |  ACTION | [**fund**](group___multi_converter.md#function-fund) (name sender, asset quantity) <br>_buys smart tokens with all connector tokens using the same percentage_  |
 |  void | [**on\_transfer**](group___multi_converter.md#function-on-transfer) (name from, name to, asset quantity, string memo) <br>_transfer intercepts with standard transfer args_  |
@@ -74,27 +73,6 @@ The Bancor converter allows conversions between a smart token and tokens that ar
 ## Public Functions Documentation
 
 
-### <a href="#function-close" id="function-close">function close </a>
-
-
-```cpp
-ACTION close (
-    symbol_code converter_currency_code
-) 
-```
-
-
-
-
-**Parameters:**
-
-
-* `converter_currency_code` - the currency code of the currency governed by the converter 
-
-
-
-        
-
 ### <a href="#function-create" id="function-create">function create </a>
 
 
@@ -120,13 +98,34 @@ ACTION create (
 
         
 
+### <a href="#function-delconverter" id="function-delconverter">function delconverter </a>
+
+
+```cpp
+ACTION delconverter (
+    symbol_code converter_currency_code
+) 
+```
+
+
+
+
+**Parameters:**
+
+
+* `converter_currency_code` - the currency code of the currency governed by the converter 
+
+
+
+        
+
 ### <a href="#function-delreserve" id="function-delreserve">function delreserve </a>
 
 
 ```cpp
 ACTION delreserve (
     symbol_code converter,
-    symbol_code currency
+    symbol_code reserve
 ) 
 ```
 
