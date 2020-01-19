@@ -352,7 +352,7 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         } 
         constexpr static double MAX_RATIO = 1000000.0;
         constexpr static double MAX_FEE = 1000000.0;
-        constexpr static double MAX_INITIAL_MAXIMUM_SUPPLY_RATIO = 0.7;
+        constexpr static double MAX_INITIAL_MAXIMUM_SUPPLY_RATIO = 0.1;
 
         constexpr static double DEFAULT_MAX_SUPPLY = 10000000000.0000;
         constexpr static uint8_t DEFAULT_TOKEN_PRECISION = 4;
