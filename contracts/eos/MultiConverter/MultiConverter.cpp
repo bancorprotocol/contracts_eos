@@ -290,7 +290,7 @@ double MultiConverter::calculate_liquidate_return(double liquidation_amount, dou
             return reserve_balance;
     
     if (total_ratio == MAX_RATIO)
-        return (liquidation_amount * reserve_balance / supply); 
+        return liquidation_amount * reserve_balance / supply; 
 
     return reserve_balance * (1.0 - pow(((supply - liquidation_amount) / supply), (MAX_RATIO / total_ratio)));
 }
