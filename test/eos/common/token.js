@@ -173,7 +173,7 @@ const convertRelay = async function (amount, from = user, converter = bntConvert
                     from: from,
                     to: networkContract,
                     quantity: `${amount} ${relaySymbol}`,
-                    memo: `1,${converter} ${toSymbol},${minReturn},${from}`
+                    memo: `1,${converter}:${relaySymbol} ${toSymbol},${minReturn},${from}`
                 }
             }]
         }, 

@@ -371,7 +371,7 @@ void MultiConverter::mod_reserve_balance(symbol converter_currency, asset value,
     reserves_table.modify(reserve, same_payer, [&](auto& r) {
         r.balance += value;
     });
-    int64_t reserve_balance = reserve.balance.amount;
+    double reserve_balance = reserve.balance.amount;
     check(reserve_balance >= 0, "insufficient amount in reserve");
     reserve_balance /= pow(10, reserve.balance.symbol.precision()); 
     EMIT_PRICE_DATA_EVENT(converter_currency.code(), current_smart_supply, 
