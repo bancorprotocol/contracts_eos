@@ -241,6 +241,31 @@ const randomAmount = ({ min=0, max=100, decimals=8 }) => {
     return (Math.random() * (max - min) + min).toFixed(decimals)
 }
 
+
+const calculateFundCost = (fundingAmount, supply, reserveBalance, totalRatio) => {
+    supply = Decimal(supply);
+    fundingAmount = Decimal(fundingAmount);
+    reserveBalance = Decimal(reserveBalance);
+    totalRatio = Decimal(totalRatio);
+    
+    return reserveBalance.mul(
+        supply.add(fundingAmount).div(supply).pow(MAX_RATIO.div(totalRatio)).sub(ONE)
+    );
+}
+
+const calculateLiquidateReturn = (liquidationAmount, supply, reserveBalance, totalRatio) => {
+    supply = Decimal(supply);
+    liquidationAmount = Decimal(liquidationAmount);
+    reserveBalance = Decimal(reserveBalance);
+    totalRatio = Decimal(totalRatio);
+    
+    return reserveBalance.mul(
+        ONE.sub(
+            supply.sub(liquidationAmount).div(supply).pow(MAX_RATIO.div(totalRatio))
+        )
+    );
+}
+
 // Reserve --> Smart
 const calculatePurchaseReturn = (supply, balance, ratio, amount, fee = 0) => {
     supply = Decimal(supply);
@@ -321,6 +346,14 @@ async function getTableRows(code, scope, table, key=null, limit=50, reverse=fals
     });
 };
 
+function toFixedRoundUp(num, precision) {
+    return (+(Math.ceil(+(num + 'e' + precision)) + 'e' + -precision)).toFixed(precision);
+}
+
+function toFixedRoundDown(num, precision) {
+    return (+(Math.floor(+(num + 'e' + precision)) + 'e' + -precision)).toFixed(precision);
+}
+
 
 module.exports = {
     api, rpc,
@@ -335,6 +368,10 @@ module.exports = {
     calculatePurchaseReturn,
     calculateSaleReturn,
     calculateQuickConvertReturn,
+    calculateFundCost,
+    calculateLiquidateReturn,
     extractEvents,
-    getTableRows
+    getTableRows,
+    toFixedRoundUp,
+    toFixedRoundDown
 }

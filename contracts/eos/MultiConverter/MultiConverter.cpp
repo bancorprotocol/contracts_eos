@@ -215,18 +215,16 @@ ACTION MultiConverter::fund(name sender, asset quantity) {
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
     double total_ratio = 0.0;
-    double smart_amount = quantity.amount;
-    double current_smart_supply = supply.amount;
-    double percent = smart_amount / current_smart_supply;
-
-    for (auto& reserve : reserves_table) {
+    for (const auto& reserve : reserves_table)
         total_ratio += reserve.ratio;
-        asset reserve_amount = asset(reserve.balance.amount * percent + 1, reserve.balance.symbol);
-
+        
+    for (auto& reserve : reserves_table) {
+        double amount = calculate_fund_cost(quantity.amount, supply.amount, reserve.balance.amount, total_ratio);
+        asset reserve_amount = asset(ceil(amount), reserve.balance.symbol);
+        
         mod_account_balance(sender, quantity.symbol.code(), -reserve_amount);
         mod_reserve_balance(quantity.symbol, reserve_amount);
     }
-    check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
 
     action( // issue new smart tokens to the issuer
         permission_level{ get_self(), "active"_n },
@@ -249,20 +247,14 @@ void MultiConverter::liquidate(name sender, asset quantity) {
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
     
     double total_ratio = 0.0;
-    double smart_amount = quantity.amount;
-    double current_smart_supply = supply.amount;
-    double percent = smart_amount / current_smart_supply;
-
-    for (auto& reserve : reserves_table) {
+    for (const auto& reserve : reserves_table)
         total_ratio += reserve.ratio;
 
-        asset reserve_amount;
-        if (smart_amount == current_smart_supply)
-            reserve_amount = reserve.balance;
-        else
-            reserve_amount = asset(reserve.balance.amount * percent, reserve.balance.symbol);
+    for (const auto& reserve : reserves_table) {
+        double amount = calculate_liquidate_return(quantity.amount, supply.amount, reserve.balance.amount, total_ratio);
+        check(amount > 0, "cannot liquidate amounts less than or equal to 0");
         
-        check(reserve_amount.amount > 0, "cannot liquidate amounts less than or equal to 0");
+        asset reserve_amount = asset(amount, reserve.balance.symbol);
         
         mod_reserve_balance(quantity.symbol, -reserve_amount);
         action(
@@ -271,7 +263,7 @@ void MultiConverter::liquidate(name sender, asset quantity) {
             make_tuple(get_self(), sender, reserve_amount, string("liquidation"))
         ).send();   
     }
-    check(total_ratio == MAX_RATIO, "total ratio must add up to 100%");
+    
     action( // remove smart tokens from circulation
         permission_level{ get_self(), "active"_n },
         st.multi_token, "retire"_n,
@@ -283,6 +275,39 @@ ACTION MultiConverter::withdraw(name sender, asset quantity, symbol_code convert
     require_auth(sender);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
     mod_balances(sender, -quantity, converter_currency_code, get_self());
+}
+
+double MultiConverter::calculate_liquidate_return(double liquidation_amount, double supply, double reserve_balance, double total_ratio) {
+    check(supply > 0, "supply must be greater than zero");
+    check(liquidation_amount <= supply, "liquidation_amount must be less than or equal to the supply");
+    check(total_ratio > 1 && total_ratio <= MAX_RATIO * 2, "total_ratio not in range");
+    
+    if (liquidation_amount == 0)
+            return 0;
+
+    if (liquidation_amount == supply)
+            return reserve_balance;
+    
+    if (total_ratio == MAX_RATIO)
+        return (liquidation_amount * reserve_balance / supply); 
+
+    return reserve_balance * (1.0 - pow(((supply - liquidation_amount) / supply), (MAX_RATIO / total_ratio)));
+}
+
+double MultiConverter::calculate_fund_cost(double funding_amount, double supply, double reserve_balance, double total_ratio) {
+    check(supply > 0, "supply must be greater than zero");
+    check(total_ratio > 1 && total_ratio <= MAX_RATIO * 2, "total_ratio not in range");
+    
+    if (funding_amount == 0)
+        return 0;
+
+    if (funding_amount == supply)
+        return reserve_balance;
+    
+    if (total_ratio == MAX_RATIO)
+        return reserve_balance * funding_amount / supply;
+
+    return reserve_balance * (pow(((supply + funding_amount) / supply), (MAX_RATIO / total_ratio)) - 1.0);
 }
 
 void MultiConverter::mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity) {
