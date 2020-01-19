@@ -13,6 +13,9 @@ const ONE = new Decimal(1)
 const MAX_RATIO = new Decimal(1000000)
 const MAX_FEE = new Decimal(1000000)
 
+const ROUND_UP = 0;
+const ROUND_DOWN = 1;
+
 // Keys associated with all test-related accounts
 const EOS = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3" //eosio
 const eos = "5JUoVWoLLV3Sj7jUKmfE8Qdt7Eo7dUd4PGZ2snZ81xqgnZzGKdC" //eosio.token 
@@ -241,6 +244,31 @@ const randomAmount = ({ min=0, max=100, decimals=8 }) => {
     return (Math.random() * (max - min) + min).toFixed(decimals)
 }
 
+
+const calculateFundCost = (fundingAmount, supply, reserveBalance, totalRatio) => {
+    supply = Decimal(supply);
+    fundingAmount = Decimal(fundingAmount);
+    reserveBalance = Decimal(reserveBalance);
+    totalRatio = Decimal(totalRatio);
+    
+    return reserveBalance.mul(
+        supply.add(fundingAmount).div(supply).pow(MAX_RATIO.div(totalRatio)).sub(ONE)
+    );
+}
+
+const calculateLiquidateReturn = (liquidationAmount, supply, reserveBalance, totalRatio) => {
+    supply = Decimal(supply);
+    liquidationAmount = Decimal(liquidationAmount);
+    reserveBalance = Decimal(reserveBalance);
+    totalRatio = Decimal(totalRatio);
+    
+    return reserveBalance.mul(
+        ONE.sub(
+            supply.sub(liquidationAmount).div(supply).pow(MAX_RATIO.div(totalRatio))
+        )
+    );
+}
+
 // Reserve --> Smart
 const calculatePurchaseReturn = (supply, balance, ratio, amount, fee = 0) => {
     supply = Decimal(supply);
@@ -321,6 +349,14 @@ async function getTableRows(code, scope, table, key=null, limit=50, reverse=fals
     });
 };
 
+function toFixedRoundUp(num, precision) {
+    return Decimal(num).toFixed(precision, ROUND_UP);
+}
+
+function toFixedRoundDown(num, precision) {
+    return Decimal(num).toFixed(precision, ROUND_DOWN);
+}
+
 
 module.exports = {
     api, rpc,
@@ -335,6 +371,10 @@ module.exports = {
     calculatePurchaseReturn,
     calculateSaleReturn,
     calculateQuickConvertReturn,
+    calculateFundCost,
+    calculateLiquidateReturn,
     extractEvents,
-    getTableRows
+    getTableRows,
+    toFixedRoundUp,
+    toFixedRoundDown
 }
