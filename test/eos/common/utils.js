@@ -13,6 +13,9 @@ const ONE = new Decimal(1)
 const MAX_RATIO = new Decimal(1000000)
 const MAX_FEE = new Decimal(1000000)
 
+const ROUND_UP = 0;
+const ROUND_DOWN = 1;
+
 // Keys associated with all test-related accounts
 const EOS = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3" //eosio
 const eos = "5JUoVWoLLV3Sj7jUKmfE8Qdt7Eo7dUd4PGZ2snZ81xqgnZzGKdC" //eosio.token 
@@ -347,11 +350,11 @@ async function getTableRows(code, scope, table, key=null, limit=50, reverse=fals
 };
 
 function toFixedRoundUp(num, precision) {
-    return (+(Math.ceil(+(num + 'e' + precision)) + 'e' + -precision)).toFixed(precision);
+    return Decimal(num).toFixed(precision, ROUND_UP);
 }
 
 function toFixedRoundDown(num, precision) {
-    return (+(Math.floor(+(num + 'e' + precision)) + 'e' + -precision)).toFixed(precision);
+    return Decimal(num).toFixed(precision, ROUND_DOWN);
 }
 
 
