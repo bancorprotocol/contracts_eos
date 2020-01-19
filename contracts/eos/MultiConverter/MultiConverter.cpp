@@ -284,10 +284,10 @@ double MultiConverter::calculate_liquidate_return(double liquidation_amount, dou
     check(total_ratio > 1 && total_ratio <= MAX_RATIO * 2, "total_ratio not in range");
     
     if (liquidation_amount == 0)
-            return 0;
+        return 0;
 
     if (liquidation_amount == supply)
-            return reserve_balance;
+        return reserve_balance;
     
     if (total_ratio == MAX_RATIO)
         return liquidation_amount * reserve_balance / supply; 
