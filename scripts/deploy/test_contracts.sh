@@ -1,5 +1,7 @@
 #!/bin/bash
 source ./scripts/deploy/config/common.conf
+# Read data from accountNames.json
+eval "$(jq -r 'to_entries | .[] | .key + "=\"" + .value + "\""' < ./config/accountNames.json)"
 
 function cleos() { command cleos --verbose --url=${NODEOS_ENDPOINT} --wallet-url=${WALLET_URL} "$@"; echo $@; }
 on_exit(){
@@ -76,6 +78,9 @@ cleos set account permission bnt2bbbrelay active '{ "threshold": 1, "keys": [{ "
 # 5) send test tokens
 cleos push action eosio.token transfer '["eosio", "'$MASTER_ACCOUNT'", "100000.0000 EOS", ""]' -p eosio
 cleos push action eosio.token transfer '["eosio", "'$TEST_ACCOUNT'", "100000.0000 EOS", ""]' -p eosio
+
+cleos push action eosio.token transfer '["eosio", "'$MASTER_ACCOUNT'", "100000.0000 SYS", ""]' -p eosio
+cleos push action eosio.token transfer '["eosio", "'$TEST_ACCOUNT'", "100000.0000 SYS", ""]' -p eosio
 
 
 on_exit

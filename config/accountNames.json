@@ -8,5 +8,7 @@
     "BANCOR_X_ACCOUNT":"bancorxoneos",
     "REPORTER_1_ACCOUNT":"bntreporter1",
     "REPORTER_2_ACCOUNT":"bntreporter2",
-    "REPORTER_3_ACCOUNT":"bntreporter3"
+    "REPORTER_3_ACCOUNT":"bntreporter3",
+    "MASTER_ACCOUNT": "bnttestuser1",
+    "TEST_ACCOUNT": "bnttestuser2"
 }

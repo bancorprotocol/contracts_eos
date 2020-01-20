@@ -1,19 +1,22 @@
 
 const { api, rpc } = require('./utils');
 
-const networkContract = 'thisisbancor';
-const networkToken = 'bntbntbntbnt';
-const networkTokenSymbol = "BNT";
 
+const config = require('../../../config/accountNames.json')
+
+const networkContract = config.BANCOR_NETWORK_ACCOUNT;
+const networkToken = config.BNT_TOKEN_ACCOUNT;
+
+const user = config.MASTER_ACCOUNT;
+const multiConverter = config.MULTI_CONVERTER_ACCOUNT
+const multiToken = config.MULTI_TOKEN_ACCOUNT
+const bntConverter = multiConverter;
+const bntRelay = multiToken;
 const sysConverter = 'bnt2syscnvrt';
-const bntConverter = 'multiconvert';
-const multiConverter = 'multiconvert';
-const multiTokens = 'multi4tokens';
-const bntRelay = 'multi4tokens';
 const bntRelaySymbol = 'BNTEOS';
 const sysRelaySymbol = 'BNTSYS';
+const networkTokenSymbol = "BNT";
 
-const user = 'bnttestuser1';
 
 const get = async function (token, symbol) {
     try {
@@ -133,7 +136,7 @@ const convertMulti = async function(amount, symbol, targetSymbol,
         
         const result = await api.transact({ 
             actions: [{
-                account: multiTokens,
+                account: multiToken,
                 name: "transfer",
                 authorization: [{
                     actor: from,
@@ -219,39 +222,6 @@ const convertBNT = async function (amount, toSymbol = bntRelaySymbol, relay = bn
     } catch (err) {
         throw(err)
     }
-}
-const convert = async function (
-    tokenContract,
-    from,
-    quantity,
-    conversionPath,
-    minReturn = (['EOS', 'SYS'].includes(amount.split(' ')[1]) ? '0.0001' : '0.00000001'),
-    to = from,
-    affiliate = null, affiliateFee = null
-    ) {
-        let memo = `1,${conversionPath.join(' ')},${minReturn},${to}`;
-
-        // if (affiliate)
-        return api.transact({ 
-            actions: [{
-                account: tokenContract,
-                name: "transfer",
-                authorization: [{
-                    actor: from,
-                    permission: 'active',
-                }],
-                data: {
-                    from,
-                    to: networkContract,
-                    quantity,
-                    memo
-                }
-            }]
-        }, 
-        {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        })
 }
 const convertTwice = async function (amount, token, relaySymbol = bntRelaySymbol, relay2symbol = sysRelaySymbol,
                                      relay = bntConverter, relay2 = sysConverter,
@@ -354,7 +324,7 @@ const convertSYS = async function (amount, token = 'fakeos', relay = bntConverte
 module.exports = {
     get, issue, create,
     transfer, getBalance, 
-    convertTwice, convertBNT, convert,
+    convertTwice, convertBNT,
     convertEOS, convertSYS, 
     convertRelay, convertMulti
 }

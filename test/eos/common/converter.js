@@ -1,17 +1,18 @@
-
+const config = require('../../../config/accountNames.json')
 const { api, rpc, getTableBoundsForSymbol } = require('./utils')
 
-const networkContract = 'thisisbancor'
-const networkToken = 'bntbntbntbnt'
-const networkTokenSymbol = "BNT"
+const networkContract = config.BANCOR_NETWORK_ACCOUNT
+const networkToken = config.BNT_TOKEN_ACCOUNT
 
-const multiConverter = 'multiconvert'
-const multiToken = 'multi4tokens'
-const multiStaking = 'multistaking'
-const bntConverter = 'bnt2eoscnvrt'
+
+const multiConverter = config.MULTI_CONVERTER_ACCOUNT
+const multiToken = config.MULTI_TOKEN_ACCOUNT
+const multiStaking = config.MULTI_STAKING_ACCOUNT
+const bntConverter = multiConverter
+const bntRelay = multiToken
 const bntStaking = 'stakebnt2eos'
-const bntRelay = 'bnt2eosrelay'
 const bntRelaySymbol = 'BNTEOS'
+const networkTokenSymbol = "BNT"
 
 const getSettings = async function (converter = bntConverter) {
     try {

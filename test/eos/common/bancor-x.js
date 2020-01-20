@@ -1,8 +1,9 @@
 const { api } = require('./utils');
+const config = require('../../../config/accountNames.json')
 
 const networkTokenSymbol = "BNT";
-const user = 'bnttestuser1';
-const bancorXContract = 'bancorxoneos';
+const user = config.MASTER_ACCOUNT;
+const bancorXContract = config.BANCOR_X_ACCOUNT;
 
 
 async function enablext(enable) {

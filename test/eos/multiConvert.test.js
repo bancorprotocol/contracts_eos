@@ -1,8 +1,8 @@
-
 const Decimal = require('decimal.js')
 const chai = require('chai')
 const assert = chai.assert
 
+const config = require('../../config/accountNames.json')
 const {
     expectError,
     expectNoError,
@@ -17,9 +17,8 @@ const {
     get,
     transfer,
     getBalance,
-    convert,
     convertBNT,
-    convertEOS,
+    convertRelay,
     convertMulti,
     convertTwice
 } = require('./common/token')
@@ -34,7 +33,6 @@ const {
     delreserve,
     getReserve,
     getSettings,
-    setStaking,
     enableStake,
     updateOwner,
     updateFee,
@@ -45,33 +43,24 @@ const {
 
 const { ERRORS } = require('./common/errors')
 
-const user1 = 'bnttestuser1'
-const user2 = 'bnttestuser2'
-const bntToken = 'bntbntbntbnt'
-const multiToken = 'multi4tokens'
-const multiConverter = 'multiconvert'
+const bancorNetwork = config.BANCOR_NETWORK_ACCOUNT
+const bntToken = config.BNT_TOKEN_ACCOUNT
+const user1 = config.MASTER_ACCOUNT
+const user2 = config.TEST_ACCOUNT
+const multiToken = config.MULTI_TOKEN_ACCOUNT
+const multiConverter = config.MULTI_CONVERTER_ACCOUNT
 
 describe('Test: multiConverter', () => {
     describe('Converters Balances Management', async function() {
-        it.skip('set up multiConverter', async function () {
-            await expectNoError( 
-                setMultitoken(multiConverter) 
-            )
-            result = await getSettings(multiConverter)
-            assert.equal(result.rows.length, 1)
-            await expectNoError(
-                setStaking(multiConverter)
-            )
-            await expectNoError(
-                setMaxfee(multiConverter, 30000)
-            )
-        })
         it('setup converters', async function() {
             const AinitSupply = '1000.0000'
             const Asymbol = 'TKNA'
             
             const BinitSupply = '1000.0000'
             const Bsymbol = 'TKNB'
+
+            const CinitSupply = '99000.00000000'
+            const Csymbol = 'BNTSYS'
 
             const DinitSupply = '99000.00000000'
             const Dsymbol = 'RELAY'
@@ -90,6 +79,9 @@ describe('Test: multiConverter', () => {
                 createConverter(user2, Bsymbol, BinitSupply) 
             )
             await expectNoError(
+                createConverter(user1, Csymbol, CinitSupply) 
+            )
+            await expectNoError(
                 createConverter(user1, Dsymbol, DinitSupply) 
             )
             await expectNoError(
@@ -99,6 +91,7 @@ describe('Test: multiConverter', () => {
         it('setup reserves', async function() {
             const Aratio = 100000
             const Bratio = 300000
+            const Cratio = 500000
             const Dratio = 500000
             const Eratio = 500000
 
@@ -108,6 +101,13 @@ describe('Test: multiConverter', () => {
 
             await expectNoError(
                 setreserve(true, bntToken, 'BNT', multiConverter, 'TKNB', user2, Bratio) 
+            )
+
+            await expectNoError(
+                setreserve(true, bntToken, 'BNT', multiConverter, 'BNTSYS', user1, Cratio) 
+            )
+            await expectNoError(
+                setreserve(false, 'eosio.token', 'SYS', multiConverter, 'BNTSYS', user1, Cratio) 
             )
 
             await expectNoError(
@@ -137,6 +137,13 @@ describe('Test: multiConverter', () => {
             )
             await expectNoError( 
                 transfer(bntToken, '1000.00000000 BNT', multiConverter, user2, 'fund;TKNB') 
+            )
+
+            await expectNoError( 
+                transfer(bntToken, '999.00000000 BNT', multiConverter, user1, 'fund;BNTSYS') 
+            )
+            await expectNoError( 
+                transfer('eosio.token', '990.0000 SYS', multiConverter, user1, 'fund;BNTSYS') 
             )
 
             await expectNoError( 
@@ -303,26 +310,26 @@ describe('Test: multiConverter', () => {
             const multiTxs = []
             for (let i = 0; i < 5; i++) {
                 bntTxs.push(
-                    transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, 'thisisbancor', user1, 
-                                     `1,${multiConverter}:TKNA TKNA,0.0001,${user1}`
-                            ),
-                    transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, 'thisisbancor', user2, 
-                                     `1,${multiConverter}:TKNB TKNB,0.0001,${user2}`
-                            ),
+                    transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, bancorNetwork, user1, 
+                        `1,${multiConverter}:TKNA TKNA,0.0001,${user1}`
+                    ),
+                    transfer(bntToken, `${randomAmount({min: 8, max: 12, decimals: 8 })} BNT`, bancorNetwork, user2, 
+                        `1,${multiConverter}:TKNB TKNB,0.0001,${user2}`
+                    )
                 )
                 multiTxs.push(
-                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNA`, 'thisisbancor', user1, 
-                                       `1,${multiConverter}:TKNA BNT,0.0000000001,${user1}`
-                            ),
-                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNB`, 'thisisbancor', user2, 
-                                       `1,${multiConverter}:TKNB BNT,0.0000000001,${user2}`
-                            ),
-                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNA`, 'thisisbancor', user1, 
-                                       `1,${multiConverter}:TKNA BNT ${multiConverter}:TKNB TKNB,0.0001,${user1}`
-                            ),
-                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNB`, 'thisisbancor', user2, 
-                                       `1,${multiConverter}:TKNB BNT ${multiConverter}:TKNA TKNA,0.0001,${user2}`
-                            )
+                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNA`, bancorNetwork, user1, 
+                        `1,${multiConverter}:TKNA BNT,0.0000000001,${user1}`
+                    ),
+                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNB`, bancorNetwork, user2, 
+                        `1,${multiConverter}:TKNB BNT,0.0000000001,${user2}`
+                    ),
+                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNA`, bancorNetwork, user1, 
+                        `1,${multiConverter}:TKNA BNT ${multiConverter}:TKNB TKNB,0.0001,${user1}`
+                    ),
+                    transfer(multiToken, `${randomAmount({min: 1, max: 8, decimals: 4 })} TKNB`, bancorNetwork, user2, 
+                        `1,${multiConverter}:TKNB BNT ${multiConverter}:TKNA TKNA,0.0001,${user2}`
+                    )
                 )
             }
             await Promise.all(bntTxs)
@@ -331,11 +338,12 @@ describe('Test: multiConverter', () => {
             const TokenAReserveBalance = Number((await getReserve('BNT', multiConverter, 'TKNA')).rows[0].balance.split(' ')[0])
             const TokenBReserveBalance = Number((await getReserve('BNT', multiConverter, 'TKNB')).rows[0].balance.split(' ')[0])
             const BNTEOSReserveBalance = Number((await getReserve('BNT', multiConverter, 'BNTEOS')).rows[0].balance.split(' ')[0])
+            const BNTSYSReserveBalance = Number((await getReserve('BNT', multiConverter, 'BNTSYS')).rows[0].balance.split(' ')[0])
             const RELAYReserveBalance = Number((await getReserve('BNT', multiConverter, 'RELAY')).rows[0].balance.split(' ')[0])
             const RELAYBReserveBalance = Number((await getReserve('BNT', multiConverter, 'RELAYB')).rows[0].balance.split(' ')[0])
             
             const totalBntBalance = (await getBalance(multiConverter, bntToken, 'BNT')).rows[0].balance.split(' ')[0]
-            assert.equal((TokenAReserveBalance + TokenBReserveBalance + BNTEOSReserveBalance + RELAYReserveBalance + RELAYBReserveBalance).toFixed(8), totalBntBalance)
+            assert.equal((TokenAReserveBalance + TokenBReserveBalance + BNTEOSReserveBalance + BNTSYSReserveBalance + RELAYReserveBalance + RELAYBReserveBalance).toFixed(8), totalBntBalance)
         })
     })
     describe('Affiliate Fee', async () => {
@@ -365,23 +373,25 @@ describe('Test: multiConverter', () => {
                 "below min return"
             )
         })
-        it.skip("1 Hop with Affiliate Fee, SingleConverter", async () => {
+        it("1 Hop with Affiliate Fee, SingleConverter", async () => {
+            const fee = 29000;
             let result = await getBalance(user1, bntToken, 'BNT')
             const user1beforeBNT = result.rows[0].balance.split(' ')[0]
 
             result = await getBalance(user2, bntToken, 'BNT')
             const user2beforeBNT = result.rows[0].balance.split(' ')[0]
-
+            deductFee
             const expectedReturnBeforeFee = 1.00019894
             const expectedReturnAfterFee = 0.97119318
 
             const feeAmountPaid = expectedReturnBeforeFee - expectedReturnAfterFee
 
-            const res = await expectNoError(
-                convertMulti('1.0000', 'BNTEOS', 'BNT', multiConverter, user1, '0.90000000', user2, 29000)
+            const { affiliate: [affiliateEvent] } = await extractEvents(
+                convertMulti('1.0000', 'BNTEOS', 'BNT', multiConverter, user1, '0.00000001', user2, fee)
             )
-            const events = res.processed.action_traces[0].inline_traces[2].inline_traces[2].inline_traces[1].console.split("\n")
-
+            console.log('events:')
+            console.log(conversionEvent)
+            console.log(affiliateEvent)
             result = await getBalance(user1, bntToken, 'BNT')
             const user1afterBNT = result.rows[0].balance.split(' ')[0]
 
@@ -394,8 +404,8 @@ describe('Test: multiConverter', () => {
             assert.equal(deltaUser1BNT.toFixed(8), expectedReturnAfterFee.toFixed(8), 'unexpected return on conversion')
             assert.equal(deltaUser2BNT.toFixed(8), feeAmountPaid.toFixed(8), 'unexpected affiliate fee paid')
             
-            const returnEvent = JSON.parse(events[0]).return.split(' ')[0]
-            const feeAmountEvent = JSON.parse(events[0]).affiliate_fee.split(' ')[0]
+            const returnEvent = affiliateEvent.return.split(' ')[0]
+            const feeAmountEvent = affiliateEvent.affiliate_fee.split(' ')[0]
             
             assert.equal(returnEvent, expectedReturnBeforeFee.toFixed(8), 'unexpected return event')
             assert.equal(feeAmountEvent, feeAmountPaid.toFixed(8), 'unexpected affiliate fee event')
@@ -792,6 +802,44 @@ describe('Test: multiConverter', () => {
             )
         })
     })
+    describe('Events', async () => {
+        it('[PriceDataEvents: reserve --> smart] 1 hop conversion', async function() {
+            const amount = randomAmount({min: 1, max: 5, decimals: 8 });
+                
+            let res = await getReserve('BNT', multiConverter, 'BNTEOS');
+            const initialFromTokenReserveBalance = parseFloat(res.rows[0].balance.split(' ')[0])
+    
+            const { price_data: [fromTokenPriceDataEvent] } = await extractEvents(
+                convertBNT(amount)
+            ) //to BNTEOS
+    
+            assert.equal(fromTokenPriceDataEvent.reserve_ratio, 500000, "unexpected reserve_ratio");
+            
+            const expectedFromTokenReserveBalance = parseFloat(amount) + initialFromTokenReserveBalance;
+            assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance, "unexpected reserve_balance");
+        
+            res = await get(multiToken, 'BNTEOS');
+            const expectedSmartSupply = parseFloat(res.rows[0].supply.split(' ')[0])
+            assert.equal(expectedSmartSupply, parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(8), 'unexpected smart supply');
+        });
+        it('[PriceDataEvents: smart --> reserve] 1 hop conversion', async function() {
+            const amount = randomAmount({min: 1, max: 5, decimals: 4 });
+                
+            let res = await getReserve('BNT', multiConverter, 'BNTEOS');
+            const initialFromTokenReserveBalance = parseFloat(res.rows[0].balance.split(' ')[0])
+            const { conversion: [conversionEvent], price_data: [fromTokenPriceDataEvent] } = await extractEvents(
+                convertRelay(amount)
+            )
+    
+            assert.equal(fromTokenPriceDataEvent.reserve_ratio, 500000, "unexpected reserve_ratio");
+            const expectedFromTokenReserveBalance = Decimal(initialFromTokenReserveBalance).sub(conversionEvent.return).toFixed(8);
+            assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance, "unexpected reserve_balance");
+        
+            res = await get(multiToken, 'BNTEOS');
+            const expectedSmartSupply = parseFloat(res.rows[0].supply.split(' ')[0])
+            assert.equal(expectedSmartSupply, parseFloat(fromTokenPriceDataEvent.smart_supply).toFixed(4), 'unexpected smart supply');
+        });
+    });
 
     describe('Input validations', async () => {
         it('[fund] ensures assets with invalid precision are rejected', async () => {
@@ -804,9 +852,9 @@ describe('Test: multiConverter', () => {
                 "symbol mismatch"
             )
         });
-        it.skip('[liquidate] ensures assets with invalid precision are rejected', async () => {
+        it('[liquidate] ensures assets from an unknown contract are rejected', async () => {
             await expectError( 
-                transfer('bnt2eosrelay',  '1.00000000 BNTEOS', multiConverter ,user1, 'liquidate'),
+                transfer('bnt2sysrelay',  '1.00000000 BNTSYS', multiConverter ,user1, 'liquidate'),
                 'bad origin for this transfer'
             )
         });
