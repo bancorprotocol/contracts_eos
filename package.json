@@ -4,7 +4,6 @@
   "dependencies": {
     "chai": "^4.2.0",
     "decimal.js": "^10.2.0",
-    "doxygen": "0.3.2",
     "eosjs": "^20.0.0",
     "long": "^4.0.0",
     "node-fetch": "^2.6.0",
@@ -14,12 +13,10 @@
     "mocha": "^6.1.4"
   },
   "scripts": {
-    "postinstall": "doxygen --download",
     "start-nodeos": "./scripts/eos/start_nodeos.sh",
     "kill": "./scripts/eos/kill_nodeos.sh",
     "deploy": "./scripts/eos/deploy.sh",
     "compile": "./scripts/eos/compile.sh",
-    "docify": "node ./scripts/eos/docify.js",
     "test": "mocha -t 4000 --bail ./test/eos/converter.test.js ./test/eos/network.test.js ./test/eos/multiConvert.test.js ./test/eos/bancor-x.test.js",
     "start": "npm run start-nodeos && npm run deploy",
     "restart": "npm run kill && npm run start && npm run test",
