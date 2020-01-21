@@ -94,12 +94,12 @@ ensureaccount $MULTI_STAKING_ACCOUNT $MASTER_PUB_KEY
 
 echo -e "${CYAN}-----------------------DEPLOYING CONTRACTS-----------------------${NC}"
 
-cleos set contract $TX_REROUTER_ACCOUNT $MY_CONTRACTS_BUILD/XTransferRerouter
-cleos set contract $BANCOR_NETWORK_ACCOUNT $MY_CONTRACTS_BUILD/BancorNetwork
-cleos set contract $BANCOR_X_ACCOUNT $MY_CONTRACTS_BUILD/BancorX
-cleos set contract $BNT_TOKEN_ACCOUNT $MY_CONTRACTS_BUILD/Token
+cleos set contract $TX_REROUTER_ACCOUNT $MY_CONTRACTS_BUILD/eos/XTransferRerouter
+cleos set contract $BANCOR_NETWORK_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorNetwork
+cleos set contract $BANCOR_X_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorX
+cleos set contract $BNT_TOKEN_ACCOUNT $MY_CONTRACTS_BUILD/eos/Token
 
-cleos set contract $MULTI_CONVERTER_ACCOUNT $MY_CONTRACTS_BUILD/MultiConverter
+cleos set contract $MULTI_CONVERTER_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorConverter
 cleos set contract $MULTI_TOKEN_ACCOUNT $EOSIO_CONTRACTS_ROOT/eosio.token/
 
 
@@ -129,7 +129,7 @@ if (($ROWS==0)) ; then # BancorX
 fi
 
 ROWS=$(cleos get table $MULTI_CONVERTER_ACCOUNT $MULTI_CONVERTER_ACCOUNT settings | jq .rows | jq length)
-if (($ROWS==0)) ; then # MultiConverter
+if (($ROWS==0)) ; then # BancorConverter
   # if [[ $MODE == "remote" ]] ; then
     cleos push action $MULTI_CONVERTER_ACCOUNT setmultitokn '["'$MULTI_TOKEN_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT
     cleos push action $MULTI_CONVERTER_ACCOUNT setstaking '["'$MULTI_STAKING_ACCOUNT'"]' -p $MULTI_CONVERTER_ACCOUNT

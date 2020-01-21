@@ -8,9 +8,9 @@ const networkContract = config.BANCOR_NETWORK_ACCOUNT;
 const networkToken = config.BNT_TOKEN_ACCOUNT;
 
 const user = config.MASTER_ACCOUNT;
-const multiConverter = config.MULTI_CONVERTER_ACCOUNT
+const bancorConverter = config.MULTI_CONVERTER_ACCOUNT
 const multiToken = config.MULTI_TOKEN_ACCOUNT
-const bntConverter = multiConverter;
+const bntConverter = bancorConverter;
 const bntRelay = multiToken;
 const sysConverter = 'bnt2syscnvrt';
 const bntRelaySymbol = 'BNTEOS';
@@ -126,7 +126,7 @@ const getBalance = async function (user, token, symbol) {
     }
 }
 const convertMulti = async function(amount, symbol, targetSymbol, 
-                                    converter = multiConverter, 
+                                    converter = bancorConverter, 
                                     from = user, min = '0.00000001',
                                     affiliate = null, affiliateFee = null) {
     try {

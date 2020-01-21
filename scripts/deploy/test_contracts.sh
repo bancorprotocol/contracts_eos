@@ -56,9 +56,9 @@ cleos set contract fakeos $EOSIO_CONTRACTS_ROOT/eosio.token/
 cleos set contract aaa $EOSIO_CONTRACTS_ROOT/eosio.token/
 cleos set contract bbb $EOSIO_CONTRACTS_ROOT/eosio.token/
 
-cleos set contract bnt2syscnvrt $MY_CONTRACTS_BUILD/BancorConverter
-cleos set contract bnt2aaacnvrt $MY_CONTRACTS_BUILD/BancorConverter
-cleos set contract bnt2bbbcnvrt $MY_CONTRACTS_BUILD/BancorConverter
+cleos set contract bnt2syscnvrt $MY_CONTRACTS_BUILD/eos.deprecated/BancorConverter
+cleos set contract bnt2aaacnvrt $MY_CONTRACTS_BUILD/eos.deprecated/BancorConverter
+cleos set contract bnt2bbbcnvrt $MY_CONTRACTS_BUILD/eos.deprecated/BancorConverter
 
 cleos set contract bnt2sysrelay $EOSIO_CONTRACTS_ROOT/eosio.token/ 
 cleos set contract bnt2aaarelay $EOSIO_CONTRACTS_ROOT/eosio.token/ 

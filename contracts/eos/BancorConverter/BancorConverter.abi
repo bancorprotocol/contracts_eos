@@ -4,50 +4,112 @@
     "types": [],
     "structs": [
         {
-            "name": "delreserve",
+            "name": "account_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "symbl",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "converter_t",
             "base": "",
             "fields": [
                 {
                     "name": "currency",
+                    "type": "symbol"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "stake_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "create",
+            "base": "",
+            "fields": [
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "token_code",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "initial_supply",
+                    "type": "float64"
+                }
+            ]
+        },
+        {
+            "name": "delconverter",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_currency_code",
                     "type": "symbol_code"
                 }
             ]
         },
         {
-            "name": "init",
+            "name": "delreserve",
             "base": "",
             "fields": [
                 {
-                    "name": "smart_contract",
-                    "type": "name"
+                    "name": "converter",
+                    "type": "symbol_code"
                 },
                 {
-                    "name": "smart_currency",
-                    "type": "asset"
-                },
+                    "name": "reserve",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "enablestake",
+            "base": "",
+            "fields": [
                 {
-                    "name": "smart_enabled",
-                    "type": "bool"
+                    "name": "currency",
+                    "type": "symbol_code"
                 },
                 {
                     "name": "enabled",
                     "type": "bool"
-                },
+                }
+            ]
+        },
+        {
+            "name": "fund",
+            "base": "",
+            "fields": [
                 {
-                    "name": "network",
+                    "name": "sender",
                     "type": "name"
                 },
                 {
-                    "name": "require_balance",
-                    "type": "bool"
-                },
-                {
-                    "name": "max_fee",
-                    "type": "uint64"
-                },
-                {
-                    "name": "fee",
-                    "type": "uint64"
+                    "name": "quantity",
+                    "type": "asset"
                 }
             ]
         },
@@ -60,16 +122,42 @@
                     "type": "name"
                 },
                 {
-                    "name": "currency",
-                    "type": "asset"
-                },
-                {
                     "name": "ratio",
                     "type": "uint64"
                 },
                 {
-                    "name": "sale_enabled",
-                    "type": "bool"
+                    "name": "balance",
+                    "type": "asset"
+                }
+            ]
+        },
+        {
+            "name": "setmaxfee",
+            "base": "",
+            "fields": [
+                {
+                    "name": "maxfee",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "setmultitokn",
+            "base": "",
+            "fields": [
+                {
+                    "name": "multi_token",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "setnetwork",
+            "base": "",
+            "fields": [
+                {
+                    "name": "network",
+                    "type": "name"
                 }
             ]
         },
@@ -78,20 +166,30 @@
             "base": "",
             "fields": [
                 {
-                    "name": "contract",
-                    "type": "name"
+                    "name": "converter_currency_code",
+                    "type": "symbol_code"
                 },
                 {
                     "name": "currency",
                     "type": "symbol"
                 },
                 {
-                    "name": "ratio",
-                    "type": "uint64"
+                    "name": "contract",
+                    "type": "name"
                 },
                 {
-                    "name": "sale_enabled",
-                    "type": "bool"
+                    "name": "ratio",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "setstaking",
+            "base": "",
+            "fields": [
+                {
+                    "name": "staking",
+                    "type": "name"
                 }
             ]
         },
@@ -100,32 +198,30 @@
             "base": "",
             "fields": [
                 {
-                    "name": "smart_contract",
+                    "name": "max_fee",
+                    "type": "uint64"
+                },
+                {
+                    "name": "multi_token",
                     "type": "name"
-                },
-                {
-                    "name": "smart_currency",
-                    "type": "asset"
-                },
-                {
-                    "name": "smart_enabled",
-                    "type": "bool"
-                },
-                {
-                    "name": "enabled",
-                    "type": "bool"
                 },
                 {
                     "name": "network",
                     "type": "name"
                 },
                 {
-                    "name": "require_balance",
-                    "type": "bool"
-                },
+                    "name": "staking",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "updatefee",
+            "base": "",
+            "fields": [
                 {
-                    "name": "max_fee",
-                    "type": "uint64"
+                    "name": "currency",
+                    "type": "symbol_code"
                 },
                 {
                     "name": "fee",
@@ -134,37 +230,77 @@
             ]
         },
         {
-            "name": "update",
+            "name": "updateowner",
             "base": "",
             "fields": [
                 {
-                    "name": "smart_enabled",
-                    "type": "bool"
+                    "name": "currency",
+                    "type": "symbol_code"
                 },
                 {
-                    "name": "enabled",
-                    "type": "bool"
+                    "name": "new_owner",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "withdraw",
+            "base": "",
+            "fields": [
+                {
+                    "name": "sender",
+                    "type": "name"
                 },
                 {
-                    "name": "require_balance",
-                    "type": "bool"
+                    "name": "quantity",
+                    "type": "asset"
                 },
                 {
-                    "name": "fee",
-                    "type": "uint64"
+                    "name": "converter_currency_code",
+                    "type": "symbol_code"
                 }
             ]
         }
     ],
     "actions": [
         {
+            "name": "create",
+            "type": "create",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "delconverter",
+            "type": "delconverter",
+            "ricardian_contract": ""
+        },
+        {
             "name": "delreserve",
             "type": "delreserve",
             "ricardian_contract": ""
         },
         {
-            "name": "init",
-            "type": "init",
+            "name": "enablestake",
+            "type": "enablestake",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "fund",
+            "type": "fund",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setmaxfee",
+            "type": "setmaxfee",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setmultitokn",
+            "type": "setmultitokn",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setnetwork",
+            "type": "setnetwork",
             "ricardian_contract": ""
         },
         {
@@ -173,12 +309,41 @@
             "ricardian_contract": ""
         },
         {
-            "name": "update",
-            "type": "update",
+            "name": "setstaking",
+            "type": "setstaking",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "updatefee",
+            "type": "updatefee",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "updateowner",
+            "type": "updateowner",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "withdraw",
+            "type": "withdraw",
             "ricardian_contract": ""
         }
     ],
     "tables": [
+        {
+            "name": "accounts",
+            "type": "account_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "converters",
+            "type": "converter_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
         {
             "name": "reserves",
             "type": "reserve_t",

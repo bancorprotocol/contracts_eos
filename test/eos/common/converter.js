@@ -5,10 +5,10 @@ const networkContract = config.BANCOR_NETWORK_ACCOUNT
 const networkToken = config.BNT_TOKEN_ACCOUNT
 
 
-const multiConverter = config.MULTI_CONVERTER_ACCOUNT
+const bancorConverter = config.MULTI_CONVERTER_ACCOUNT
 const multiToken = config.MULTI_TOKEN_ACCOUNT
 const multiStaking = config.MULTI_STAKING_ACCOUNT
-const bntConverter = multiConverter
+const bntConverter = bancorConverter
 const bntRelay = multiToken
 const bntStaking = 'stakebnt2eos'
 const bntRelaySymbol = 'BNTEOS'
@@ -35,7 +35,7 @@ const getAccount = async function (owner, converterSymbol, reserveSymbol) {
     }
     try {
         const result = await rpc.get_table_rows({
-            "code": multiConverter,
+            "code": bancorConverter,
             "scope": owner,
             "key_type" : "i128",
             "table": "accounts",
@@ -64,7 +64,7 @@ const getReserve = async function (symbol, converter = bntConverter, scope = con
 const getConverter = async function (symbol) {
     try {
         const result = await rpc.get_table_rows({
-            "code": multiConverter,
+            "code": bancorConverter,
             "scope": symbol,
             "table": "converters",
             "limit": 1,
@@ -232,7 +232,7 @@ const setreserve = async function(precise = true, token = networkToken,
 const setEnabled = async function(actor, enabled = true) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: "setenabled",
             authorization: [{
                 actor,
@@ -267,7 +267,7 @@ const setMaxfee = async function(actor, maxfee, account = actor) {
 const setStaking = async function(actor, staking = multiStaking) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: "setstaking",
             authorization: [{
                 actor,
@@ -284,7 +284,7 @@ const setStaking = async function(actor, staking = multiStaking) {
 const setMultitoken = async function(actor, token = multiToken) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: "setmultitokn",
             authorization: [{
                 actor,
@@ -298,11 +298,11 @@ const setMultitoken = async function(actor, token = multiToken) {
     })
     return result;
 }
-// Creates a converter (MultiConverter sub-converter)
+// Creates a converter (bancorConverter sub-converter)
 const createConverter = async function(owner, token_code, initial_supply) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: 'create',
             authorization: [{
                 actor: owner,
@@ -324,7 +324,7 @@ const createConverter = async function(owner, token_code, initial_supply) {
 const delConverter = async function(converter_currency_code, owner) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: 'delconverter',
             authorization: [{
                 actor: owner,
@@ -345,7 +345,7 @@ const delConverter = async function(converter_currency_code, owner) {
 const enableConvert = async function(actor, currency, enabled = true) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: "enablecnvrt",
             authorization: [{
                 actor,
@@ -362,7 +362,7 @@ const enableConvert = async function(actor, currency, enabled = true) {
 const enableStake = async function(actor, currency, enabled = true) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: "enablestake",
             authorization: [{
                 actor,
@@ -379,7 +379,7 @@ const enableStake = async function(actor, currency, enabled = true) {
 const updateOwner = async function(actor, currency, new_owner) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: "updateowner",
             authorization: [{
                 actor,
@@ -400,7 +400,7 @@ const updateOwner = async function(actor, currency, new_owner) {
 const updateFee = async function(actor, currency, fee) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: "updatefee",
             authorization: [{
                 actor,
@@ -421,7 +421,7 @@ const updateFee = async function(actor, currency, fee) {
 const withdraw = async function(sender, quantity, converter_currency_code) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: "withdraw",
             authorization: [{
                 actor: sender,
@@ -443,7 +443,7 @@ const withdraw = async function(sender, quantity, converter_currency_code) {
 const fund = async function(sender, quantity) {
     const result = await api.transact({ 
         actions: [{
-            account: multiConverter,
+            account: bancorConverter,
             name: "fund",
             authorization: [{
                 actor: sender,

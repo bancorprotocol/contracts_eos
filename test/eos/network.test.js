@@ -26,34 +26,34 @@ const {
 const { ERRORS } = require('./common/errors')
 const user1 = config.MASTER_ACCOUNT
 const user2 = config.TEST_ACCOUNT
-const multiConverter = config.MULTI_CONVERTER_ACCOUNT
+const bancorConverter = config.MULTI_CONVERTER_ACCOUNT
 const bntToken = config.BNT_TOKEN_ACCOUNT
 
 describe('Test: BancorNetwork', () => {
     describe('Affiliate Fees', async () => {
         it("should throw when passing affiliate account and inappropriate fee", async () => {
             await expectError(
-                convertMulti('1.0000', 'BNTEOS', 'BNT', multiConverter, user1, '0.00000001', user2, 0),
+                convertMulti('1.0000', 'BNTEOS', 'BNT', bancorConverter, user1, '0.00000001', user2, 0),
                 "inappropriate affiliate fee"
             )
             await expectError(
-                convertMulti('1.0000', 'BNTEOS', 'BNT', multiConverter, user1, '0.00000001', user2, -10),
+                convertMulti('1.0000', 'BNTEOS', 'BNT', bancorConverter, user1, '0.00000001', user2, -10),
                "inappropriate affiliate fee"
             )
             await expectError(
-                convertMulti('1.0000', 'BNTEOS', 'BNT', multiConverter, user1, '0.00000001', user2, 9000000),
+                convertMulti('1.0000', 'BNTEOS', 'BNT', bancorConverter, user1, '0.00000001', user2, 9000000),
                 "inappropriate affiliate fee"
             )
         })
         it("should throw when passing affiliate account that is not actually an account", async () => {
             await expectError(
-                convertMulti('1.0000', 'BNTEOS', 'BNT', multiConverter, user1, '0.00000001', "notauser", 3000),
+                convertMulti('1.0000', 'BNTEOS', 'BNT', bancorConverter, user1, '0.00000001', "notauser", 3000),
                 "affiliate is not an account"
             )
         })
         it("should throw when affiliate fee would bring conversion below min return", async () => {
             await expectError(
-                convertMulti('1.0000', 'BNTEOS', 'BNT', multiConverter, user1, '0.9900000', user2, 29000),
+                convertMulti('1.0000', 'BNTEOS', 'BNT', bancorConverter, user1, '0.9900000', user2, 29000),
                 "below min return"
             )
         })
@@ -66,7 +66,7 @@ describe('Test: BancorNetwork', () => {
             const user2beforeBNT = result.rows[0].balance.split(' ')[0]
 
             const { affiliate: [affiliateEvent] } = await extractEvents(
-                convertMulti('1.0000', 'BNTEOS', 'BNT', multiConverter, user1, '0.00000001', user2, fee)
+                convertMulti('1.0000', 'BNTEOS', 'BNT', bancorConverter, user1, '0.00000001', user2, fee)
             )
             const returnedAmountEvent = affiliateEvent.return.split(' ')[0]
             const feeAmountEvent = affiliateEvent.affiliate_fee.split(' ')[0]
@@ -140,14 +140,14 @@ describe('Test: BancorNetwork', () => {
     it("ensures it's not possible to abuse RAM by planting a non-converter account as part of the conversion path", async () => {
         const fakeConverter = (await createAccountOnChain()).accountName;
         await expectError(
-            convertTwice('1.0000', 'eosio.token', 'EOS', 'FAKETKN', multiConverter, fakeConverter), 
+            convertTwice('1.0000', 'eosio.token', 'EOS', 'FAKETKN', bancorConverter, fakeConverter), 
             ERRORS.MUST_HAVE_TOKEN_ENTRY
         )
     })
     it("ensures an error is thrown when a conversion destination account has no token balance entry", async () => {
         const accountWithNoBalanceEntry = (await createAccountOnChain()).accountName;
         await expectError(
-            convert('1.00000000 BNT', bntToken, [`${multiConverter}:BNTEOS`, 'EOS'], user1, accountWithNoBalanceEntry),
+            convert('1.00000000 BNT', bntToken, [`${bancorConverter}:BNTEOS`, 'EOS'], user1, accountWithNoBalanceEntry),
             ERRORS.MUST_HAVE_TOKEN_ENTRY
         )
     })

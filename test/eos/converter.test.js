@@ -27,7 +27,7 @@ const {
 
 const { ERRORS } = require('./common/errors')
 
-describe('Test: BancorConverter', () => {
+describe('Test: BancorConverter (old version)', () => {
     const user1 = config.MASTER_ACCOUNT
     const user2 = config.TEST_ACCOUNT
     const networkTokenContract = config.BNT_TOKEN_ACCOUNT
