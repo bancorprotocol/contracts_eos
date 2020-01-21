@@ -13,4 +13,4 @@ do
     echo -e "${GREEN}Compiling $contract...${NC}"
     eosio-cpp ./contracts/eos/$contract/$contract.cpp -o ./contracts/eos/$contract/$contract.wasm --abigen -I.
 done
-eosio-cpp ./contracts/eos.deprecated/BancorConverter/BancorConverter.cpp -o ./contracts/eos.deprecated/BancorConverter/BancorConverter.wasm --abigen -I.
+eosio-cpp ./contracts/eos.legacy/BancorConverter/BancorConverter.cpp -o ./contracts/eos.legacy/BancorConverter/BancorConverter.wasm --abigen -I.
