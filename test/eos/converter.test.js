@@ -14,7 +14,6 @@ const {
     create,
     transfer,
     getBalance,
-    convertSYS,
     convertEOS
 } = require('./common/token')
 
@@ -273,12 +272,6 @@ describe('Test: BancorConverter', () => {
         it("trying to buy BNTEOS with fakeos - should throw", async () => { 
             await expectError(
                 convertEOS('5.0000', true),
-                ERRORS.MUST_HAVE_TOKEN_ENTRY
-            )
-        })
-        it("trying to buy BNTEOS with SYS - should throw", async () => { 
-            await expectError(
-                convertSYS('5.0000'), 
                 ERRORS.MUST_HAVE_TOKEN_ENTRY
             )
         })

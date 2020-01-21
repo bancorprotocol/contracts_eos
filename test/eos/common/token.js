@@ -290,38 +290,10 @@ const convertEOS = async function (amount, fake=false, relay = bntConverter, rel
         throw(err)
     }
 }
-const convertSYS = async function (amount, token = 'fakeos', relay = bntConverter, 
-                                   relaySymbol = bntRelaySymbol, from = user, to = user) { // buy BNTEOS with SYS
-    try {
-        const minReturn = '0.00000001';
-        const result = await api.transact({ 
-            actions: [{
-                account: token,
-                name: "transfer",
-                authorization: [{
-                    actor: from,
-                    permission: 'active',
-                }],
-                data: {
-                    from: from,
-                    to: networkContract,
-                    quantity: `${amount} SYS`,
-                    memo: `1,${relay} ${relaySymbol},${minReturn},${to}`
-                }
-            }]
-        }, 
-        {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        })
-        return result
-    } catch (err) {
-        throw(err)
-    }
-}
+
 module.exports = {
     get, issue, create,
     transfer, getBalance, 
     convertTwice, convertBNT, convertEOS,
-    convertSYS, convertMulti, convert
+    convertMulti, convert
 }
