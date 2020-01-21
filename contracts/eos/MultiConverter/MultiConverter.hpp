@@ -355,13 +355,15 @@ CONTRACT MultiConverter : public eosio::contract { /*! \endcond */
         double calculate_purchase_return(double balance, double deposit_amount, double supply, int64_t ratio);
         double calculate_sale_return(double balance, double sell_amount, double supply, int64_t ratio);
         double quick_convert(double balance, double in, double toBalance);
+        double calculate_liquidate_return(double liquidation_amount, double supply, double reserve_balance, double total_ratio);
+        double calculate_fund_cost(double funding_amount, double supply, double reserve_balance, double total_ratio);
 
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
            return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
         } 
         constexpr static double MAX_RATIO = 1000000.0;
         constexpr static double MAX_FEE = 1000000.0;
-        constexpr static double MAX_INITIAL_MAXIMUM_SUPPLY_RATIO = 0.7;
+        constexpr static double MAX_INITIAL_MAXIMUM_SUPPLY_RATIO = 0.1;
 
         constexpr static double DEFAULT_MAX_SUPPLY = 10000000000.0000;
         constexpr static uint8_t DEFAULT_TOKEN_PRECISION = 4;

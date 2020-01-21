@@ -159,7 +159,7 @@ describe('Test: BancorConverter', () => {
                 init('bnt2aaacnvrt', undefined, "bnt2aaarelay", "BNTAAA", 1400, true)
             )
             await expectNoError( 
-                init('bnt2bbbcnvrt', undefined, "bnt2bbbrelay", "BNTBBB", 1400, true)
+                init('bnt2bbbcnvrt', undefined, "bnt2bbbrelay", "BNTBBB", 0, true)
             )
         })
         it('set reserves eos and bnt for bnteos relay', async function () {

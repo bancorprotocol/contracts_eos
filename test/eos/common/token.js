@@ -159,69 +159,67 @@ const convertMulti = async function(amount, symbol, targetSymbol,
         throw(err)
     }
 }
-const convertRelay = async function (amount, from = user, converter = bntConverter, 
-                                     relay = bntRelay, relaySymbol = bntRelaySymbol, 
-                                     toSymbol = networkTokenSymbol) { // buy BNT with BNTEOS
-    try {
-        const minReturn = '0.00000010';
-        const result = await api.transact({ 
-            actions: [{
-                account: relay,
-                name: "transfer",
-                authorization: [{
-                    actor: from,
-                    permission: 'active',
-                }],
-                data: {
-                    from: from,
-                    to: networkContract,
-                    quantity: `${amount} ${relaySymbol}`,
-                    memo: `1,${converter}:${relaySymbol} ${toSymbol},${minReturn},${from}`
-                }
-            }]
-        }, 
-        {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        })
-        return result
-    } catch (err) {
-        throw(err)
-    }
-}
-const convertBNT = async function (amount, toSymbol = bntRelaySymbol, relay = bntConverter,
+const convert = async function (quantity, tokenAccount, conversionPath,
                                    from = user, to = from, affiliate = null, 
                                    affiliateFee = null, min = '0.00000001') {
-    try {
-        let memo = `1,${relay}:BNTEOS ${toSymbol},${min},${to}`
+    if (conversionPath instanceof Array)
+        conversionPath = conversionPath.join(' ')
 
-        if (affiliate)
-            memo += `,${affiliate},${affiliateFee}`
+    let memo = `1,${conversionPath},${min},${to}`
+    if (affiliate)
+        memo += `,${affiliate},${affiliateFee}`
+    
+    const result = await api.transact({ 
+        actions: [{
+            account: tokenAccount,
+            name: "transfer",
+            authorization: [{
+                actor: from,
+                permission: 'active',
+            }],
+            data: {
+                from: from,
+                to: networkContract,
+                quantity,
+                memo
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result
+}
+const convertBNT = async function (amount, toSymbol = bntRelaySymbol, relay = `${bntConverter}:BNTEOS`,
+                                   from = user, to = from, affiliate = null, 
+                                   affiliateFee = null, min = '0.00000001') {
+    let memo = `1,${relay} ${toSymbol},${min},${to}`
 
-        const result = await api.transact({ 
-            actions: [{
-                account: networkToken,
-                name: "transfer",
-                authorization: [{
-                    actor: from,
-                    permission: 'active',
-                }],
-                data: {
-                    from: from,
-                    to: networkContract,
-                    quantity: `${amount} ${networkTokenSymbol}`,
-                    memo
-                }
-            }]
-        }, 
-        {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        })
-        return result
-    } catch (err) {
-        throw(err)
-    }
+    if (affiliate)
+        memo += `,${affiliate},${affiliateFee}`
+    
+    const result = await api.transact({ 
+        actions: [{
+            account: networkToken,
+            name: "transfer",
+            authorization: [{
+                actor: from,
+                permission: 'active',
+            }],
+            data: {
+                from: from,
+                to: networkContract,
+                quantity: `${amount} ${networkTokenSymbol}`,
+                memo
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+    return result
 }
 const convertTwice = async function (amount, token, relaySymbol = bntRelaySymbol, relay2symbol = sysRelaySymbol,
                                      relay = bntConverter, relay2 = sysConverter,
@@ -324,7 +322,6 @@ const convertSYS = async function (amount, token = 'fakeos', relay = bntConverte
 module.exports = {
     get, issue, create,
     transfer, getBalance, 
-    convertTwice, convertBNT,
-    convertEOS, convertSYS, 
-    convertRelay, convertMulti
+    convertTwice, convertBNT, convertEOS,
+    convertSYS, convertMulti, convert
 }
