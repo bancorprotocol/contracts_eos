@@ -250,50 +250,10 @@ const convertTwice = async function (amount, token, relaySymbol = bntRelaySymbol
         throw(err)
     }
 }
-const convertEOS = async function (amount, fake=false, relay = bntConverter, relaySymbol = bntRelaySymbol,
-                                   from = user, to = user, affiliate = null, affiliateFee = null, min = null) { // buy BNTEOS with EOS
-    try {
-        
-        let minReturn = '0.00000001'; 
-        if (min) minReturn = min
-        let account = 'eosio.token'
-        let memo = `1,${relay} ${relaySymbol},${minReturn},${to}`
-
-        if (fake)
-            account = 'fakeos'
-
-        if (affiliate)
-            memo += `,${affiliate},${affiliateFee}`
-    
-        const result = await api.transact({ 
-            actions: [{
-                account: account,
-                name: "transfer",
-                authorization: [{
-                    actor: from,
-                    permission: 'active',
-                }],
-                data: {
-                    from,
-                    to: networkContract,
-                    quantity: `${amount} EOS`,
-                    memo
-                }
-            }]
-        }, 
-        {
-            blocksBehind: 3,
-            expireSeconds: 30,
-        })
-        return result
-    } catch (err) {
-        throw(err)
-    }
-}
 
 module.exports = {
     get, issue, create,
     transfer, getBalance, 
-    convertTwice, convertBNT, convertEOS,
+    convertTwice, convertBNT,
     convertMulti, convert
 }
