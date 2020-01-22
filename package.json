@@ -13,12 +13,13 @@
     "mocha": "^6.1.4"
   },
   "scripts": {
-    "start-nodeos": "./scripts/eos/start_nodeos.sh",
-    "kill": "./scripts/eos/kill_nodeos.sh",
-    "deploy": "./scripts/eos/deploy.sh",
-    "compile": "./scripts/eos/compile.sh",
-    "test": "mocha -t 4000 --bail ./test/eos/converter.test.js ./test/eos/network.test.js ./test/eos/multiConvert.test.js ./test/eos/bancor-x.test.js",
-    "start": "npm run start-nodeos && npm run deploy",
+    "start-nodeos": "./scripts/start_nodeos.sh",
+    "kill": "./scripts/kill_nodeos.sh",
+    "deploy:local": "./scripts/deploy/system_contracts.sh && ./scripts/deploy/test_contracts.sh && ./scripts/deploy/bancor_network.sh -m local",
+    "deploy:remote": "./scripts/deploy/bancor_network.sh -m remote",
+    "compile": "./scripts/compile.sh",
+    "test": "mocha -t 8000 --bail ./test/eos/converter.test.js ./test/eos/network.test.js ./test/eos/bancorConverter.test.js ./test/eos/bancor-x.test.js",
+    "start": "npm run start-nodeos && npm run deploy:local",
     "restart": "npm run kill && npm run start && npm run test",
     "cstart": "npm run compile && npm run restart",
     "all": "npm run compile && npm run start && npm run tests && npm run kill"

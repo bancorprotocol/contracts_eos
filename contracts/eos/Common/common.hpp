@@ -35,9 +35,6 @@ struct memo_structure {
     string receiver_memo;
 };
 
-#define BANCOR_NETWORK "thisisbancor"_n
-#define BNT_TOKEN "bntbntbntbnt"_n
-
 constexpr static double MAX_RATIO = 1000000.0;
 constexpr static double MAX_FEE = 1000000.0;
 

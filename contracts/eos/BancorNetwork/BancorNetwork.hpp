@@ -66,6 +66,11 @@ CONTRACT BancorNetwork : public eosio::contract { /*! \endcond */
                  */
                 uint64_t max_fee;
 
+                /**
+                 * @brief network token contract name
+                 */
+                name network_token;
+
                 /*! \cond DOCS_EXCLUDE */
                 uint64_t primary_key() const { return "settings"_n.value; }
                 /*! \endcond */
@@ -77,6 +82,12 @@ CONTRACT BancorNetwork : public eosio::contract { /*! \endcond */
          * @param max_affiliate_fee - what network owner determines to be the maximum 
          */
         ACTION setmaxfee(uint64_t max_affiliate_fee);
+
+        /**
+         * @brief sets the network token contract
+         * @param network_token - network token contract account 
+         */
+        ACTION setnettoken(name network_token);
 
         /**
          * @brief transfer intercepts

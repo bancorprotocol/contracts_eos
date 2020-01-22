@@ -11,6 +11,8 @@ const {
     transfer
 } = require('./common/token')
 
+const config = require('../../config/accountNames.json')
+
 const {
     enablext,
     reporttx,
@@ -23,12 +25,12 @@ const { ERRORS } = require('./common/errors');
 
 
 describe('BancorX', () => {
-    const bancorXContract = 'bancorxoneos';
     const networkTokenSymbol = "BNT";
-    const networkToken = 'bntbntbntbnt';
-    const testUser = 'bnttestuser1';
-    const reporter1User = 'bntreporter1';
-    const reporter2User = 'bntreporter2';
+    const bancorXContract = config.BANCOR_X_ACCOUNT;
+    const networkToken = config.BNT_TOKEN_ACCOUNT;
+    const testUser = config.MASTER_ACCOUNT;
+    const reporter1User = config.REPORTER_1_ACCOUNT;
+    const reporter2User = config.REPORTER_2_ACCOUNT;
 
     it('should throw when attempting to call xTransfer when disabled', async () => {
         await expectNoError(

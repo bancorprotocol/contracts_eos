@@ -25,6 +25,23 @@ ACTION BancorNetwork::setmaxfee(uint64_t max_affiliate_fee) {
         });
 }
 
+ACTION BancorNetwork::setnettoken(name network_token) {
+    require_auth(get_self());
+
+    settings settings_table(get_self(), get_self().value);
+    auto st = settings_table.find("settings"_n.value);
+    check(is_account(network_token), "network token account doesn't exist");
+
+    if (st == settings_table.end())
+        settings_table.emplace(get_self(), [&](auto& s) {
+            s.network_token = network_token;
+        });
+    else
+        settings_table.modify(st, same_payer, [&](auto& s) {		
+            s.network_token = network_token;
+        });
+}
+
 void BancorNetwork::on_transfer(name from, name to, asset quantity, string memo) {
     // avoid unstaking and system contract ops mishaps
     if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
@@ -75,8 +92,10 @@ tuple<asset, memo_structure> BancorNetwork::pay_affiliate(name from, asset quant
     if (quantity.symbol.code() == symbol_code("BNT") && !memo.affiliate_account.empty()) {
         name affiliate = name(memo.affiliate_account);
         uint64_t fee = stoui(memo.affiliate_fee);
+        settings settings_table(get_self(), get_self().value);
+        const auto& st = settings_table.get("settings"_n.value);
         
-        check(get_first_receiver() == BNT_TOKEN, "BNT quantity received is not authentic");
+        check(get_first_receiver() == st.network_token, "BNT quantity received is not authentic");
         check(fee > 0 && max_fee > fee, "inappropriate affiliate fee");
         check(is_account(affiliate), "affiliate is not an account");    
 
@@ -87,7 +106,7 @@ tuple<asset, memo_structure> BancorNetwork::pay_affiliate(name from, asset quant
             asset affiliate_fee = asset(fee_amount, quantity.symbol);
             action(
                 permission_level{ get_self(), "active"_n },
-                BNT_TOKEN, "transfer"_n,
+                st.network_token, "transfer"_n,
                 make_tuple(get_self(), affiliate, affiliate_fee, string("affiliate pay"))
             ).send();
             EMIT_AFFILIATE_FEE_EVENT(memo.trader_account, from, affiliate, quantity, affiliate_fee);

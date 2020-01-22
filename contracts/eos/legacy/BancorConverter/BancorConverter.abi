@@ -1,0 +1,199 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
+    "structs": [
+        {
+            "name": "delreserve",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "init",
+            "base": "",
+            "fields": [
+                {
+                    "name": "smart_contract",
+                    "type": "name"
+                },
+                {
+                    "name": "smart_currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "smart_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "network",
+                    "type": "name"
+                },
+                {
+                    "name": "require_balance",
+                    "type": "bool"
+                },
+                {
+                    "name": "max_fee",
+                    "type": "uint64"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "reserve_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "ratio",
+                    "type": "uint64"
+                },
+                {
+                    "name": "sale_enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "setreserve",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "currency",
+                    "type": "symbol"
+                },
+                {
+                    "name": "ratio",
+                    "type": "uint64"
+                },
+                {
+                    "name": "sale_enabled",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "settings_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "smart_contract",
+                    "type": "name"
+                },
+                {
+                    "name": "smart_currency",
+                    "type": "asset"
+                },
+                {
+                    "name": "smart_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "network",
+                    "type": "name"
+                },
+                {
+                    "name": "require_balance",
+                    "type": "bool"
+                },
+                {
+                    "name": "max_fee",
+                    "type": "uint64"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "update",
+            "base": "",
+            "fields": [
+                {
+                    "name": "smart_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "require_balance",
+                    "type": "bool"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "delreserve",
+            "type": "delreserve",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "init",
+            "type": "init",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setreserve",
+            "type": "setreserve",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "update",
+            "type": "update",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "reserves",
+            "type": "reserve_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "settings",
+            "type": "settings_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}

@@ -206,8 +206,8 @@ async function expectError(prom, expected_error='') {
     }
 }
 async function expectNoError(prom) {
-    var error = ''
-    var result;
+    let error = ''
+    let result;
     try {
         result = await prom;
     }
@@ -219,8 +219,8 @@ async function expectNoError(prom) {
     return result
 }
 async function expectNoErrorPrint(prom) {
-    var error = ''
-    var result;
+    let error = ''
+    let result;
     try {
         result = await prom;
     }
@@ -313,6 +313,9 @@ const calculateQuickConvertReturn = (fromTokenReserveBalance, amount, toTokenRes
 }
 
 const deductFee = (amount, fee, magnitude) => {
+    amount = Decimal(amount)
+    fee = Decimal(fee)
+    magnitude = Decimal(magnitude)
     if (fee.equals(0)) return amount;
 
     return amount.mul(
@@ -376,5 +379,6 @@ module.exports = {
     extractEvents,
     getTableRows,
     toFixedRoundUp,
-    toFixedRoundDown
+    toFixedRoundDown,
+    deductFee
 }
