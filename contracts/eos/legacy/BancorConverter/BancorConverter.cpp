@@ -4,8 +4,8 @@
  *  @copyright defined in ../../../LICENSE
  */
 
-#include "../../eos/Common/common.hpp"
-#include "../../eos/Token/Token.hpp"
+#include "../../Common/common.hpp"
+#include "../../Token/Token.hpp"
 #include "BancorConverter.hpp"
 
 ACTION BancorConverter::init(name smart_contract, asset smart_currency, bool smart_enabled, bool enabled, name network, bool require_balance, uint64_t max_fee, uint64_t fee) {
