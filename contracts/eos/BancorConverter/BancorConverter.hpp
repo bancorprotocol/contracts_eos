@@ -127,7 +127,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
             }; /** @}*/
         
         /** 
-         * @defgroup Converters_Table Converters Table
+         * @defgroup BancorConverter_Converters_Table Converters Table
          * @brief This table stores the key information about all converters in this contract
          * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
          * @{
@@ -161,7 +161,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
             }; /** @}*/
 
         /**
-         * @defgroup Accounts_Table Accounts Table
+         * @defgroup BancorConverter_Accounts_Table Accounts Table
          * @brief This table stores "temporary balances" that are transfered in by liquidity providers before they can get added to their respective reserves
          * @details SCOPE of this table is the `name.value` of the liquidity provider, owner of the `quantity`
          * @{
