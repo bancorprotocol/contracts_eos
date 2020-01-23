@@ -303,7 +303,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param quantity - the quantity for the transfer
          * @param memo - the memo for the transfer
          */
-        //[[eosio::on_notify("*::transfer")]]
+        [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
         
         /*! \cond DOCS_EXCLUDE */

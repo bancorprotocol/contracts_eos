@@ -188,8 +188,10 @@ ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol c
 
     if (reserve != reserves_table.end()) {
         check(reserve->contract == contract, "cannot update the reserve contract name");
+        check(reserve->balance.amount == 0, "can't change a reserve that's not empty");
         reserves_table.modify(reserve, get_self(), [&](auto& r) {
             r.ratio = ratio;
+            r.balance = asset(0, currency);
         });
         auto reserve_balance = reserve->balance.amount / pow(10, currency.precision()); 
         EMIT_PRICE_DATA_EVENT(converter_currency_code, 
@@ -605,17 +607,4 @@ void BancorConverter::on_transfer(name from, name to, asset quantity, string mem
     else {
         convert(from, quantity, memo, get_first_receiver()); 
     }
-}
-
-extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
-    if (action == "transfer"_n.value && code != receiver) 
-        eosio::execute_action(eosio::name(receiver), eosio::name(code), &BancorConverter::on_transfer);
-
-    if (code == receiver)
-        switch (action) {
-            EOSIO_DISPATCH_HELPER(BancorConverter, (create)(delconverter)
-            (setmultitokn)(setstaking)(setmaxfee)(setnetwork)
-            (updateowner)(updatefee)(enablestake)
-            (setreserve)(delreserve)(withdraw)(fund)) 
-        }    
 }
