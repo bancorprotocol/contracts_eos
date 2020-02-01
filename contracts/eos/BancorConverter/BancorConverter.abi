@@ -58,6 +58,10 @@
                 {
                     "name": "initial_supply",
                     "type": "float64"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
                 }
             ]
         },

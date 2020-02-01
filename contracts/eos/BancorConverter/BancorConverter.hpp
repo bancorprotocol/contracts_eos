@@ -200,8 +200,9 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param owner - the converter creator
          * @param initial_supply - initial supply of the smart token governed by the converter
          * @param maximum_supply - maximum supply of the smart token governed by the converter
+         * @param fee - converter fee
          */
-        ACTION create(name owner, symbol_code token_code, double initial_supply);
+        ACTION create(name owner, symbol_code token_code, double initial_supply, uint64_t fee);
 
         /**
          * @brief deletes a converter with empty reserves

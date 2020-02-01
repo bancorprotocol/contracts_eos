@@ -143,7 +143,7 @@ if (($ROWS==0)) ; then # BNT Token & Converter
   # if [[ $MODE == "remote" ]] ; then
   cleos push action $BNT_TOKEN_ACCOUNT create '["'$BANCOR_X_ACCOUNT'", "250000000.00000000 BNT"]' -p $BNT_TOKEN_ACCOUNT
   # fi
-  cleos push action $MULTI_CONVERTER_ACCOUNT create '["'$MASTER_ACCOUNT'", "BNTEOS", "9900.00000000"]' -p $MASTER_ACCOUNT
+  cleos push action $MULTI_CONVERTER_ACCOUNT create '["'$MASTER_ACCOUNT'", "BNTEOS", "9900.00000000", "0"]' -p $MASTER_ACCOUNT
 
   cleos push action $MULTI_CONVERTER_ACCOUNT setreserve '["BNTEOS", "8,BNT", "'$BNT_TOKEN_ACCOUNT'", "500000"]' -p $MASTER_ACCOUNT
   cleos push action $MULTI_CONVERTER_ACCOUNT setreserve '["BNTEOS", "4,EOS", "eosio.token", "500000"]' -p $MASTER_ACCOUNT

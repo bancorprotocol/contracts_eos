@@ -7,7 +7,7 @@
 #include "../Token/Token.hpp"
 #include "BancorConverter.hpp"
 
-ACTION BancorConverter::create(name owner, symbol_code token_code, double initial_supply) {
+ACTION BancorConverter::create(name owner, symbol_code token_code, double initial_supply, uint64_t fee) {
     require_auth(owner);
 
     symbol token_symbol = symbol(token_code, DEFAULT_TOKEN_PRECISION);
@@ -18,16 +18,17 @@ ACTION BancorConverter::create(name owner, symbol_code token_code, double initia
 
     converters converters_table(get_self(), token_symbol.code().raw());
     const auto& converter = converters_table.find(token_symbol.code().raw());
-  
+    
     check(converter == converters_table.end(), "converter for the given symbol already exists");
     check(initial_supply > 0, "must have a non-zero initial supply");
     check(initial_supply / maximum_supply <= MAX_INITIAL_MAXIMUM_SUPPLY_RATIO , "the ratio between initial and max supply is too big");
-    
+    check(fee <= st.max_fee, "fee must be lower or equal to the maximum fee");
+
     converters_table.emplace(owner, [&](auto& c) {
         c.currency = token_symbol;
         c.owner = owner;
         c.stake_enabled = false;
-        c.fee = 0;
+        c.fee = fee;
     });
 
     asset initial_supply_asset = asset(initial_supply * pow(10, token_symbol.precision()) , token_symbol);

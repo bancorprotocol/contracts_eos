@@ -299,7 +299,7 @@ const setMultitoken = async function(actor, token = multiToken) {
     return result;
 }
 // Creates a converter (bancorConverter sub-converter)
-const createConverter = async function(owner, token_code, initial_supply) {
+const createConverter = async function(owner, token_code, initial_supply, fee = 0) {
     const result = await api.transact({ 
         actions: [{
             account: bancorConverter,
@@ -311,7 +311,8 @@ const createConverter = async function(owner, token_code, initial_supply) {
             data: {
                 owner,
                 token_code,
-                initial_supply
+                initial_supply,
+                fee
             }
         }]
     }, 
