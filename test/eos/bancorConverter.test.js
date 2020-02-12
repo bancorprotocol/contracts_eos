@@ -373,14 +373,12 @@ describe('BancorConverter', () => {
             assert.equal(result.rows.length, 1)
             assert.equal(result.rows[0].owner, user1, "converter owner not set correctly - TKNA")
         })
-        it("shouldn't throw error when trying to call 'setreserve' with proper permissions", async () => {
+        it("should throw an error when trying to update an existing reserve", async () => {
             const actor = user1
-            await expectNoError(
-                setreserve(true, bntToken, 'BNT', bancorConverter, 'TKNA', actor, 200000)
+            await expectError(
+                setreserve(true, bntToken, 'BNT', bancorConverter, 'TKNA', actor, 200000),
+                'can\'t update existing reserve'
             )
-            result = await getReserve('BNT', bancorConverter, 'TKNA')
-            assert.equal(result.rows.length, 1)
-            assert.equal(result.rows[0].ratio, 200000, "reserve ratio not set correctly - BNT<->TKNA")
         })
     })
     describe('Formula', async () => {
