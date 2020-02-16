@@ -181,7 +181,7 @@ ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol c
     
     reserves reserves_table(get_self(), converter_currency_code.raw());
     const auto reserve = reserves_table.find(currency.code().raw());
-    check(reserve == reserves_table.end(), "can't update existing reserve");
+    check(reserve == reserves_table.end(), "reserve already exists");
     
     reserves_table.emplace(converter.owner, [&](auto& r) {
         r.contract = contract;

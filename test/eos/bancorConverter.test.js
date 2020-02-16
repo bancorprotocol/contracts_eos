@@ -377,7 +377,7 @@ describe('BancorConverter', () => {
             const actor = user1
             await expectError(
                 setreserve(true, bntToken, 'BNT', bancorConverter, 'TKNA', actor, 200000),
-                'can\'t update existing reserve'
+                'reserve already exists'
             )
         })
     })
