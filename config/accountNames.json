@@ -2,6 +2,7 @@
     "BANCOR_NETWORK_ACCOUNT":"thisisbancor",
     "BNT_TOKEN_ACCOUNT":"bntbntbntbnt",
     "MULTI_STAKING_ACCOUNT":"multistaking",
+    "CONVERTER_REGISTRY_ACCOUNT": "converterreg",
     "MULTI_CONVERTER_ACCOUNT":"multiconvert",
     "MULTI_TOKEN_ACCOUNT":"multi4tokens",
     "TX_REROUTER_ACCOUNT":"bntrerouter1",
