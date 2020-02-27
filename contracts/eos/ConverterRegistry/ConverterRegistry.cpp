@@ -37,6 +37,17 @@ ACTION ConverterRegistry::addconverter(const converter_t& converter) {
             cp.to_token = extended_symbol(converter.pool_token.get_symbol(), converter.pool_token.get_contract());
             cp.converter = converter;
         });
+
+        for (const BancorConverter::reserve_t& other_reserve : reserves_table) {
+            if (other_reserve.contract == reserve.contract && other_reserve.balance.symbol == reserve.balance.symbol)
+                continue;
+            reserve_token_convertible_pairs_table.emplace(get_self(), [&](convertible_pair_t& cp){
+                cp.id = reserve_token_convertible_pairs_table.available_primary_key();
+                cp.from_token = extended_symbol(reserve.balance.symbol, reserve.contract);
+                cp.to_token = extended_symbol(other_reserve.balance.symbol, other_reserve.contract);
+                cp.converter = converter;
+            });
+        }
     }
 }
 
