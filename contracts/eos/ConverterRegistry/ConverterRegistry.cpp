@@ -29,11 +29,13 @@ ACTION ConverterRegistry::addconverter(const converter_t& converter) {
             cp.id = pool_token_convertible_pairs_table.available_primary_key();
             cp.from_token = extended_symbol(converter.pool_token.get_symbol(), converter.pool_token.get_contract());
             cp.to_token = extended_symbol(reserve.balance.symbol, reserve.contract);
+            cp.converter = converter;
         });
         reserve_token_convertible_pairs_table.emplace(get_self(), [&](convertible_pair_t& cp){
             cp.id = reserve_token_convertible_pairs_table.available_primary_key();
             cp.from_token = extended_symbol(reserve.balance.symbol, reserve.contract);
             cp.to_token = extended_symbol(converter.pool_token.get_symbol(), converter.pool_token.get_contract());
+            cp.converter = converter;
         });
     }
 }

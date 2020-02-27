@@ -42,6 +42,10 @@
                 {
                     "name": "to_token",
                     "type": "extended_symbol"
+                },
+                {
+                    "name": "converter",
+                    "type": "converter_t"
                 }
             ]
         },

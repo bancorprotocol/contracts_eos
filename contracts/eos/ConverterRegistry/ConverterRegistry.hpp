@@ -31,6 +31,7 @@ CONTRACT ConverterRegistry : public eosio::contract {
                 uint64_t id;
                 extended_symbol from_token;
                 extended_symbol to_token;
+                converter_t converter;
 
                 uint64_t primary_key() const { return id; }
                 uint64_t by_from_token_contract()   const { return from_token.get_contract().value; } // not unique
