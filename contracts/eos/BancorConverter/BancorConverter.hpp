@@ -260,7 +260,6 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
 
         /**
          * @brief initializes a new reserve in the converter
-         * @details can also be used to update an existing reserve, can only be called by the contract account
          * @param converter_currency_code - the currency code of the currency governed by the converter
          * @param currency - reserve token currency symbol
          * @param contract - reserve token contract name
