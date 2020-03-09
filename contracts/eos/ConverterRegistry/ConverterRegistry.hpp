@@ -38,13 +38,26 @@ CONTRACT ConverterRegistry : public eosio::contract {
                 // uint128_t by_from_token_contract_and_symbol()   const { return ( uint128_t{ from_token.get_contract().value } << 64 ) | to_token.get_symbol().code().raw(); } // unique
             };
 
-        ACTION addconverter(const converter_t& converter);
+        ACTION addconverter(const name& converter_account, const symbol_code& pool_token_code);
         ACTION rmconverter(const converter_t& converter);
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
+        typedef eosio::multi_index<"liqdtypools"_n, converter_t> liquidity_pools;
         typedef eosio::multi_index<"pooltokens"_n, token_t> pool_tokens;
         typedef eosio::multi_index<"cnvrtblpairs"_n, convertible_pair_t,         
             indexed_by<"bycontract"_n, const_mem_fun <convertible_pair_t, uint64_t, &convertible_pair_t::by_from_token_contract >>
         > convertible_pairs;
     private:
+        void register_converter(const converter_t& converter);
+        void register_liquidity_pool(const converter_t& liquidity_pool);
+        void register_convertible_pairs(const converter_t& converter);
+        void register_pool_token(const extended_symbol& pool_token);
+        void unregister_converter(const converter_t& converter);
+        void unregister_liquidity_pool(const converter_t& converter);
+        void unregister_pool_token(const extended_symbol& pool_token_sym);
+        void unregister_convertible_pairs(const converter_t& converter);
         bool is_converter_active(const converter_t& converter);
+
+        // Utils
+        const extended_symbol get_converter_pool_token(const name& converter_account, const symbol_code& pool_token);
+        const BancorConverter::settings_t& get_converter_global_settings(const name& converter);
 };

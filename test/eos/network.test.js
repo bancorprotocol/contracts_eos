@@ -5,7 +5,7 @@ const {
     expectError, 
     expectNoError,
     randomAmount,
-    createAccountOnChain,
+    newAccount,
     deductFee,
     extractEvents,
     toFixedRoundUp
@@ -138,14 +138,14 @@ describe('Test: BancorNetwork', () => {
         assert.isAtMost(balancesDelta, tolerance, 'balanced should be equal');
     });
     it("ensures it's not possible to abuse RAM by planting a non-converter account as part of the conversion path", async () => {
-        const fakeConverter = (await createAccountOnChain()).accountName;
+        const fakeConverter = (await newAccount()).accountName;
         await expectError(
             convertTwice('1.0000', 'eosio.token', 'EOS', 'FAKETKN', bancorConverter, fakeConverter), 
             ERRORS.MUST_HAVE_TOKEN_ENTRY
         )
     })
     it("ensures an error is thrown when a conversion destination account has no token balance entry", async () => {
-        const accountWithNoBalanceEntry = (await createAccountOnChain()).accountName;
+        const accountWithNoBalanceEntry = (await newAccount()).accountName;
         await expectError(
             convert('1.00000000 BNT', bntToken, [`${bancorConverter}:BNTEOS`, 'EOS'], user1, accountWithNoBalanceEntry),
             ERRORS.MUST_HAVE_TOKEN_ENTRY

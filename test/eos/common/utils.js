@@ -1,7 +1,7 @@
 
 const { JsSignatureProvider } = require('eosjs/dist/eosjs-jssig')
 const { TextDecoder, TextEncoder } = require('util')
-const { Api, JsonRpc } = require('eosjs')
+const { Api, JsonRpc, Serialize } = require('eosjs')
 const Decimal = require('decimal.js')
 const fetch = require('node-fetch')
 const Long  = require('long')
@@ -94,6 +94,57 @@ function nameToValue(name) {
     }
     return Long.fromString(bitstr, true, 2)
 }
+
+async function setCode(account, codeFilePath, abiFilePath) {
+    const wasm = await fs.readFileSync(codeFilePath);
+    
+    const buffer = new Serialize.SerialBuffer({
+        textEncoder: api.textEncoder,
+        textDecoder: api.textDecoder,
+    });
+    const abiDefinition = api.abiTypes.get('abi_def');
+    let abi = JSON.parse(await fs.readFileSync(abiFilePath, "utf-8"));
+    abi = abiDefinition.fields.reduce(
+        (acc, {name: fieldName}) => Object.assign(acc, {[fieldName]: acc[fieldName] || []}),
+        abi,
+    );
+    abiDefinition.serialize(buffer, abi);
+    abi = Buffer.from(buffer.asUint8Array()).toString(`hex`);
+
+    return api.transact({
+        actions: [{
+            account: 'eosio',
+            name: 'setcode',
+            authorization: [{
+                actor: account,
+                permission: 'active',
+            }],
+            data: {
+                account: account,
+                vmtype: 0,
+                vmversion: 0,
+                code: wasm
+            },
+        },
+            {
+                account: 'eosio',
+                name: 'setabi',
+                authorization: [{
+                    actor: account,
+                    permission: 'active',
+                }],
+                data: {
+                    account: account,
+                    abi: abi
+                },
+            }
+        ]
+    }, {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    });
+}
+
 function getTableBoundsForSymbol(symbol, asHex = true) {
     const symbolValue = symbolToValue(symbol)
     const symbolValueP1 = symbolValue.add(1)
@@ -125,7 +176,7 @@ function getTableBoundsForName(name, asHex = true) {
     }
 }
 
-async function createAccountOnChain(accountName = randomAccountName(), pubKey = 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV') {
+async function newAccount(accountName = randomAccountName(), pubKey = 'EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV') {
     const res = await api.transact({
         actions: [{
           account: 'eosio',
@@ -365,7 +416,8 @@ module.exports = {
     api, rpc,
     snooze,
     randomAmount,
-    createAccountOnChain,
+    newAccount,
+    setCode,
     expectError,
     expectNoError,
     expectNoErrorPrint,
