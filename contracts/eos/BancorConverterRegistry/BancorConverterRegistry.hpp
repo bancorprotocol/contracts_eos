@@ -13,7 +13,7 @@ using namespace eosio;
 using namespace std;
 
 
-CONTRACT ConverterRegistry : public eosio::contract {
+CONTRACT BancorConverterRegistry : public eosio::contract {
     public:
         using contract::contract;
             TABLE token_t {

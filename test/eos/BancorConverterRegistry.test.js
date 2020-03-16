@@ -22,7 +22,7 @@ const {
 const {
     addConverter,
     rmConverter
-} = require('./common/converter-registry')
+} = require('./common/bancor-converter-registry')
 
 const { 
     getReserve
@@ -35,7 +35,7 @@ const bancorConverter = config.MULTI_CONVERTER_ACCOUNT
 const multiToken = config.MULTI_TOKEN_ACCOUNT
 const bntToken = config.BNT_TOKEN_ACCOUNT
 
-const CONTRACT_NAME = 'ConverterRegistry'
+const CONTRACT_NAME = 'BancorConverterRegistry'
 const CODE_FILE_PATH = path.join(__dirname, "../../contracts/eos/", CONTRACT_NAME, `${CONTRACT_NAME}.wasm`)
 const ABI_FILE_PATH = path.join(__dirname, "../../contracts/eos/", CONTRACT_NAME, `${CONTRACT_NAME}.abi`)
 

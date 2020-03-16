@@ -100,7 +100,7 @@ cleos set contract $TX_REROUTER_ACCOUNT $MY_CONTRACTS_BUILD/eos/XTransferReroute
 cleos set contract $BANCOR_NETWORK_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorNetwork
 cleos set contract $BANCOR_X_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorX
 cleos set contract $BNT_TOKEN_ACCOUNT $MY_CONTRACTS_BUILD/eos/Token
-cleos set contract $CONVERTER_REGISTRY_ACCOUNT $MY_CONTRACTS_BUILD/eos/ConverterRegistry
+cleos set contract $CONVERTER_REGISTRY_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorConverterRegistry
 
 cleos set contract $MULTI_CONVERTER_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorConverter
 cleos set contract $MULTI_TOKEN_ACCOUNT $EOSIO_CONTRACTS_ROOT/eosio.token/
