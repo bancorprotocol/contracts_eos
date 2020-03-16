@@ -39,7 +39,7 @@ const CONTRACT_NAME = 'BancorConverterRegistry'
 const CODE_FILE_PATH = path.join(__dirname, "../../contracts/eos/", CONTRACT_NAME, `${CONTRACT_NAME}.wasm`)
 const ABI_FILE_PATH = path.join(__dirname, "../../contracts/eos/", CONTRACT_NAME, `${CONTRACT_NAME}.abi`)
 
-describe.only(CONTRACT_NAME, () => {
+describe(CONTRACT_NAME, () => {
     let converterRegistryAccount;
 
     before(async () => {
