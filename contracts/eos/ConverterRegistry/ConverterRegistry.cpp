@@ -18,7 +18,9 @@ ACTION ConverterRegistry::addconverter(const name& converter_account, const symb
         register_liquidity_pool(converter);
 }
 
-ACTION ConverterRegistry::rmconverter(const converter_t& converter) {
+ACTION ConverterRegistry::rmconverter(const name& converter_account, const symbol_code& pool_token_code) {
+    const extended_symbol pool_token = get_converter_pool_token(converter_account, pool_token_code);
+    const converter_t converter = converter_t{ converter_account, pool_token };
     check(has_auth(get_self()) || !is_converter_active(converter), "cannot remove an active converter");
 
     unregister_converter(converter);

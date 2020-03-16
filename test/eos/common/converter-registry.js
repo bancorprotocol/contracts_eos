@@ -24,7 +24,26 @@ async function addConverter(converterRegistryAccount, converterAccount, poolToke
     })
 }
 
+async function rmConverter(converterRegistryAccount, converterAccount, poolTokenSymbolCode, authorization = defaultAuth) {
+    return api.transact({ 
+        actions: [{
+            account: converterRegistryAccount,
+            name: "rmconverter",
+            authorization: [authorization],
+            data: {
+                converter_account: converterAccount,
+                pool_token_code: poolTokenSymbolCode
+            }
+        }]
+    }, 
+    {
+        blocksBehind: 3,
+        expireSeconds: 30,
+    })
+}
+
 
 module.exports = {
-    addConverter
+    addConverter,
+    rmConverter
 };

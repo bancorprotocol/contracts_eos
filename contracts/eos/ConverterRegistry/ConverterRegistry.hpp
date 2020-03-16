@@ -39,7 +39,7 @@ CONTRACT ConverterRegistry : public eosio::contract {
             };
 
         ACTION addconverter(const name& converter_account, const symbol_code& pool_token_code);
-        ACTION rmconverter(const converter_t& converter);
+        ACTION rmconverter(const name& converter_account, const symbol_code& pool_token_code);
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
         typedef eosio::multi_index<"liqdtypools"_n, converter_t> liquidity_pools;
         typedef eosio::multi_index<"pooltokens"_n, token_t> pool_tokens;

@@ -72,8 +72,12 @@
             "base": "",
             "fields": [
                 {
-                    "name": "converter",
-                    "type": "converter_t"
+                    "name": "converter_account",
+                    "type": "name"
+                },
+                {
+                    "name": "pool_token_code",
+                    "type": "symbol_code"
                 }
             ]
         },

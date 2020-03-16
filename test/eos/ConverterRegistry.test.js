@@ -20,7 +20,8 @@ const {
 } = require('./common/token')
 
 const {
-    addConverter
+    addConverter,
+    rmConverter
 } = require('./common/converter-registry')
 
 const { 
@@ -45,16 +46,14 @@ describe.only(CONTRACT_NAME, () => {
         converterRegistryAccount = (await newAccount()).accountName;
         await setCode(converterRegistryAccount, CODE_FILE_PATH, ABI_FILE_PATH);
     });
-    describe('addconverter', async () => {
-        it("verifies adding a valid converter registers all data correctly", async () => {
-            const poolTokenExtendedSymbol = { sym: '4,BNTEOS', contract: multiToken }
-            const reservesExtendedSymbols = [
-                { sym: '8,BNT', contract: config.BNT_TOKEN_ACCOUNT },
-                { sym: '4,EOS', contract: 'eosio.token' }
-            ]
-
-            const poolTokenSymbol = poolTokenExtendedSymbol.sym.split(',')[1]
-
+    describe('end to end converter registration and deletion', async () => {
+        const poolTokenExtendedSymbol = { sym: '4,BNTEOS', contract: multiToken }
+        const poolTokenSymbol = poolTokenExtendedSymbol.sym.split(',')[1]
+        const reservesExtendedSymbols = [
+            { sym: '8,BNT', contract: config.BNT_TOKEN_ACCOUNT },
+            { sym: '4,EOS', contract: 'eosio.token' }
+        ]
+        it("[addconverter] verifies data is registered properly", async () => {
             await expectNoError(
                 addConverter(converterRegistryAccount, bancorConverter, poolTokenSymbol)
             )
@@ -98,6 +97,29 @@ describe.only(CONTRACT_NAME, () => {
                     assert.notEqual(toTokenIndex, -1)
                     possibleToTokens = possibleToTokens.slice(0, toTokenIndex).concat(possibleToTokens.slice(toTokenIndex + 1))
                 }
+            }
+        })
+        it('[rmconverter] verifies all registered data gets deleted', async () => {
+            await expectNoError(
+                rmConverter(converterRegistryAccount, bancorConverter, poolTokenSymbol, { actor: converterRegistryAccount, permission: 'active' })
+            )
+            const { rows: [registeredConverterData] } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'converters', bancorConverter)
+            assert.isUndefined(registeredConverterData)
+
+            const { rows: [registeredLiquidityPoolData] } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'liqdtypools', bancorConverter)
+            assert.isUndefined(registeredLiquidityPoolData)
+            
+            const { rows: [registeredPoolTokenData] } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'pooltokens', bancorConverter)
+            assert.isUndefined(registeredPoolTokenData)
+
+            const { rows: registeredPoolTokenConvertiblePairsData } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'cnvrtblpairs', bancorConverter)
+            assert.lengthOf(registeredPoolTokenConvertiblePairsData, 0)
+            
+            for (const reserve of reservesExtendedSymbols) {
+                const reserveSymbolCode = reserve.sym.split(',')[1]
+                const { rows: registeredReserveConvertiblePairsData } = await getTableRows(converterRegistryAccount, reserveSymbolCode, 'cnvrtblpairs', bancorConverter)
+                
+                assert.lengthOf(registeredReserveConvertiblePairsData, 0)
             }
         })
     });
