@@ -90,7 +90,7 @@ void BancorConverterRegistry::register_convertible_pairs(const converter_t& conv
 
 void BancorConverterRegistry::unregister_converter(const converter_t& converter) {
     converters converters_table(get_self(), converter.pool_token.get_symbol().code().raw());
-    const auto p_converter = converters_table.require_find(converter.pool_token.get_contract().value, "can't remove an unexisting converter");
+    const auto p_converter = converters_table.require_find(converter.pool_token.get_contract().value, "can't remove a nonexistent converter");
     converters_table.erase(p_converter);
 }
 

@@ -5,7 +5,7 @@ const networkContract = config.BANCOR_NETWORK_ACCOUNT
 const networkToken = config.BNT_TOKEN_ACCOUNT
 
 
-const bancorConverter = config.MULTI_CONVERTER_ACCOUNT
+const bancorConverter = config.BANCOR_CONVERTER_ACCOUNT_ACCOUNT
 const multiToken = config.MULTI_TOKEN_ACCOUNT
 const multiStaking = config.MULTI_STAKING_ACCOUNT
 const bntConverter = bancorConverter

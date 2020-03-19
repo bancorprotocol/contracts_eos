@@ -52,7 +52,7 @@ const bntToken = config.BNT_TOKEN_ACCOUNT
 const user1 = config.MASTER_ACCOUNT
 const user2 = config.TEST_ACCOUNT
 const multiToken = config.MULTI_TOKEN_ACCOUNT
-const bancorConverter = config.MULTI_CONVERTER_ACCOUNT
+const bancorConverter = config.BANCOR_CONVERTER_ACCOUNT_ACCOUNT
 
 describe('BancorConverter', () => {
     describe('setup', async () => {

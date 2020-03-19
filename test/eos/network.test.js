@@ -26,7 +26,7 @@ const {
 const { ERRORS } = require('./common/errors')
 const user1 = config.MASTER_ACCOUNT
 const user2 = config.TEST_ACCOUNT
-const bancorConverter = config.MULTI_CONVERTER_ACCOUNT
+const bancorConverter = config.BANCOR_CONVERTER_ACCOUNT_ACCOUNT
 const bntToken = config.BNT_TOKEN_ACCOUNT
 
 describe('Test: BancorNetwork', () => {
