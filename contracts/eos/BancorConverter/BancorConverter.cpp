@@ -10,6 +10,7 @@
 ACTION BancorConverter::create(name owner, symbol_code token_code, double initial_supply) {
     require_auth(owner);
 
+    check( token_code.is_valid(), "token_code is invalid");
     symbol token_symbol = symbol(token_code, DEFAULT_TOKEN_PRECISION);
     double maximum_supply = DEFAULT_MAX_SUPPLY;
 
