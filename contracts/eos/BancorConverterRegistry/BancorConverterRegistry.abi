@@ -4,6 +4,20 @@
     "types": [],
     "structs": [
         {
+            "name": "Converter",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "pool_token",
+                    "type": "extended_symbol"
+                }
+            ]
+        },
+        {
             "name": "addconverter",
             "base": "",
             "fields": [
@@ -22,12 +36,12 @@
             "base": "",
             "fields": [
                 {
-                    "name": "contract",
-                    "type": "name"
+                    "name": "id",
+                    "type": "uint64"
                 },
                 {
-                    "name": "pool_token",
-                    "type": "extended_symbol"
+                    "name": "converter",
+                    "type": "Converter"
                 }
             ]
         },
@@ -49,7 +63,7 @@
                 },
                 {
                     "name": "converter",
-                    "type": "converter_t"
+                    "type": "Converter"
                 }
             ]
         },
@@ -85,6 +99,10 @@
             "name": "token_t",
             "base": "",
             "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
                 {
                     "name": "token",
                     "type": "extended_symbol"

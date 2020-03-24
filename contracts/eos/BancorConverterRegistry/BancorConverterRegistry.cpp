@@ -3,9 +3,16 @@
 #include "../BancorConverter/BancorConverter.hpp"
 #include "BancorConverterRegistry.hpp"
 
+
+inline BancorConverterRegistry::BancorConverterRegistry(name receiver, name code, datastream<const char *> ds):contract(receiver, code, ds),
+    converters_table(receiver, receiver.value),
+    liquidity_pools_table(receiver, receiver.value),
+    pool_tokens_table(receiver, receiver.value){}
+
+
 ACTION BancorConverterRegistry::addconverter(const name& converter_account, const symbol_code& pool_token_code) {
     const extended_symbol pool_token = get_converter_pool_token(converter_account, pool_token_code);
-    const converter_t converter = converter_t{ converter_account, pool_token };
+    const Converter converter = Converter{ converter_account, pool_token };
     check(is_converter_active(converter), "converter is inactive");
 
     register_converter(converter);
@@ -20,7 +27,7 @@ ACTION BancorConverterRegistry::addconverter(const name& converter_account, cons
 
 ACTION BancorConverterRegistry::rmconverter(const name& converter_account, const symbol_code& pool_token_code) {
     const extended_symbol pool_token = get_converter_pool_token(converter_account, pool_token_code);
-    const converter_t converter = converter_t{ converter_account, pool_token };
+    const Converter converter = Converter{ converter_account, pool_token };
     check(has_auth(get_self()) || !is_converter_active(converter), "cannot remove an active converter");
 
     unregister_converter(converter);
@@ -29,34 +36,34 @@ ACTION BancorConverterRegistry::rmconverter(const name& converter_account, const
     unregister_liquidity_pool(converter);
 }
 
-void BancorConverterRegistry::register_converter(const converter_t& converter) {
-    converters converters_table(get_self(), converter.pool_token.get_symbol().code().raw());
-    const auto p_converter = converters_table.find(converter.pool_token.get_contract().value);
+void BancorConverterRegistry::register_converter(const Converter& converter) {
+    const auto p_converter = find_converter(converter.contract, converter.pool_token.get_symbol().code());
     check(p_converter == converters_table.end(), "converter already exists");
-    converters_table.emplace(get_self(), [&converter](converter_t& c){
-        c = converter;
+    converters_table.emplace(get_self(), [&](converter_t& c){
+        c.id = converters_table.available_primary_key();
+        c.converter= converter;
     });
 }
 
-void BancorConverterRegistry::register_liquidity_pool(const converter_t& liquidity_pool) {
-    liquidity_pools liquidity_pools_table(get_self(), liquidity_pool.pool_token.get_symbol().code().raw());
-    const auto p_liquidity_pool = liquidity_pools_table.find(liquidity_pool.pool_token.get_contract().value);
+void BancorConverterRegistry::register_liquidity_pool(const Converter& liquidity_pool) {
+    const auto p_liquidity_pool = find_liquidity_pool(liquidity_pool.contract, liquidity_pool.pool_token.get_symbol().code());
     check(p_liquidity_pool == liquidity_pools_table.end(), "liquidity pool already exists");
-    liquidity_pools_table.emplace(get_self(), [&liquidity_pool](converter_t& lp){
-        lp = liquidity_pool;
+    liquidity_pools_table.emplace(get_self(), [&](converter_t& lp){
+        lp.id = liquidity_pools_table.available_primary_key();
+        lp.converter = liquidity_pool;
     });
 }
 
 void BancorConverterRegistry::register_pool_token(const extended_symbol& pool_token) {
-    pool_tokens pool_tokens_table(get_self(), pool_token.get_symbol().code().raw());
-    const auto p_pool_token = pool_tokens_table.find(pool_token.get_contract().value);
+    const auto p_pool_token = find_pool_token(pool_token);
     check(p_pool_token == pool_tokens_table.end(), "pool token already exists");
-    pool_tokens_table.emplace(get_self(), [&pool_token](token_t& p){
+    pool_tokens_table.emplace(get_self(), [&](token_t& p){
+        p.id = pool_tokens_table.available_primary_key();
         p.token = pool_token;
     });
 }
 
-void BancorConverterRegistry::register_convertible_pairs(const converter_t& converter) {
+void BancorConverterRegistry::register_convertible_pairs(const Converter& converter) {
     BancorConverter::reserves reserves_table(converter.contract, converter.pool_token.get_symbol().code().raw());
 
     convertible_pairs pool_token_convertible_pairs_table(get_self(), converter.pool_token.get_symbol().code().raw());
@@ -88,26 +95,29 @@ void BancorConverterRegistry::register_convertible_pairs(const converter_t& conv
     }
 }
 
-void BancorConverterRegistry::unregister_converter(const converter_t& converter) {
-    converters converters_table(get_self(), converter.pool_token.get_symbol().code().raw());
-    const auto p_converter = converters_table.require_find(converter.pool_token.get_contract().value, "can't remove a nonexistent converter");
+void BancorConverterRegistry::unregister_converter(const Converter& converter) {
+    auto p_converter = find_converter(converter.contract, converter.pool_token.get_symbol().code());
+    
+    check(p_converter != converters_table.end(), "can't find converter");
     converters_table.erase(p_converter);
 }
 
-void BancorConverterRegistry::unregister_liquidity_pool(const converter_t& converter) {
-    liquidity_pools liquidity_pools_table(get_self(), converter.pool_token.get_symbol().code().raw());
-    const auto p_liquidity_pool = liquidity_pools_table.find(converter.pool_token.get_contract().value);
+
+void BancorConverterRegistry::unregister_liquidity_pool(const Converter& liquidity_pool) {
+    const auto p_liquidity_pool = find_liquidity_pool(liquidity_pool.contract, liquidity_pool.pool_token.get_symbol().code());
+    
     if (p_liquidity_pool != liquidity_pools_table.end())
         liquidity_pools_table.erase(p_liquidity_pool);
 }
 
 void BancorConverterRegistry::unregister_pool_token(const extended_symbol& pool_token_sym) {
-    pool_tokens pool_tokens_table(get_self(), pool_token_sym.get_symbol().code().raw());
-    const token_t& pool_token = pool_tokens_table.get(pool_token_sym.get_contract().value, "pool token not found");
-    pool_tokens_table.erase(pool_token);
+    const auto p_pool_token = find_pool_token(pool_token_sym);
+    check(p_pool_token != pool_tokens_table.end(), "pool token not found");
+
+    pool_tokens_table.erase(p_pool_token);
 }
 
-void BancorConverterRegistry::unregister_convertible_pairs(const converter_t& converter) {
+void BancorConverterRegistry::unregister_convertible_pairs(const Converter& converter) {
     convertible_pairs pool_token_convertible_pairs_table(get_self(), converter.pool_token.get_symbol().code().raw());
     auto pool_token_index = pool_token_convertible_pairs_table.get_index<"bycontract"_n >();
     auto pool_tokens_pairs_itr = pool_token_index.find(converter.pool_token.get_contract().value);
@@ -123,7 +133,7 @@ void BancorConverterRegistry::unregister_convertible_pairs(const converter_t& co
     }
 }
 
-bool BancorConverterRegistry::is_converter_active(const converter_t& converter) {
+bool BancorConverterRegistry::is_converter_active(const Converter& converter) {
     BancorConverter::converters converters_table(converter.contract, converter.pool_token.get_symbol().code().raw());
     BancorConverter::reserves reserves_table(converter.contract, converter.pool_token.get_symbol().code().raw());
 
@@ -144,6 +154,40 @@ bool BancorConverterRegistry::is_converter_active(const converter_t& converter) 
         return false;
     
     return true;
+}
+
+// tables lookup functions
+const BancorConverterRegistry::converters::const_iterator BancorConverterRegistry::find_converter(const name& converter_contract, const symbol_code& pool_token) {
+    uint128_t key = encode_name_and_symcode(converter_contract, pool_token);
+    
+    auto index = converters_table.get_index<"contract.sym"_n >();
+    auto itr = index.find(key);
+
+    if (itr == index.end())
+        return converters_table.end();
+    return converters_table.find(itr->id);
+}
+
+const BancorConverterRegistry::liquidity_pools::const_iterator BancorConverterRegistry::find_liquidity_pool(const name& liquidity_pool_contract, const symbol_code& pool_token) {
+    uint128_t key = encode_name_and_symcode(liquidity_pool_contract, pool_token);
+    
+    auto index = liquidity_pools_table.get_index<"contract.sym"_n >();
+    auto itr = index.find(key);
+
+    if (itr == index.end())
+        return liquidity_pools_table.end();
+    return liquidity_pools_table.find(itr->id);
+}
+
+const BancorConverterRegistry::pool_tokens::const_iterator BancorConverterRegistry::find_pool_token(const extended_symbol& token) {
+    uint128_t key = encode_name_and_symcode(token.get_contract(), token.get_symbol().code());
+    
+    auto index = pool_tokens_table.get_index<"token"_n >();
+    auto itr = index.find(key);
+
+    if (itr == index.end())
+        return pool_tokens_table.end();
+    return pool_tokens_table.find(itr->id);
 }
 
 

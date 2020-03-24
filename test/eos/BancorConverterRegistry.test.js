@@ -39,11 +39,12 @@ const CONTRACT_NAME = 'BancorConverterRegistry'
 const CODE_FILE_PATH = path.join(__dirname, "../../contracts/eos/", CONTRACT_NAME, `${CONTRACT_NAME}.wasm`)
 const ABI_FILE_PATH = path.join(__dirname, "../../contracts/eos/", CONTRACT_NAME, `${CONTRACT_NAME}.abi`)
 
-describe(CONTRACT_NAME, () => {
+describe.only(CONTRACT_NAME, () => {
     let converterRegistryAccount;
 
     before(async () => {
         converterRegistryAccount = (await newAccount()).accountName;
+        console.log(converterRegistryAccount)
         await setCode(converterRegistryAccount, CODE_FILE_PATH, ABI_FILE_PATH);
     });
     describe('end to end converter registration and deletion', async () => {
@@ -58,15 +59,15 @@ describe(CONTRACT_NAME, () => {
                 addConverter(converterRegistryAccount, bancorConverter, poolTokenSymbol)
             )
             
-            const { rows: [registeredConverterData] } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'converters', bancorConverter)
-            assert.equal(registeredConverterData.contract, bancorConverter)
-            assert.equal(registeredConverterData.pool_token.sym, `4,${poolTokenSymbol}`)
-            assert.equal(registeredConverterData.pool_token.contract, poolTokenExtendedSymbol.contract)
+            const { rows: [registeredConverterData] } = await getTableRows(converterRegistryAccount, converterRegistryAccount, 'converters', bancorConverter)
+            assert.equal(registeredConverterData.converter.contract, bancorConverter)
+            assert.equal(registeredConverterData.converter.pool_token.sym, `4,${poolTokenSymbol}`)
+            assert.equal(registeredConverterData.converter.pool_token.contract, poolTokenExtendedSymbol.contract)
 
-            const { rows: [registeredLiquidityPoolData] } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'liqdtypools', bancorConverter)
-            assert.deepEqual(registeredLiquidityPoolData, registeredConverterData)
+            const { rows: [registeredLiquidityPoolData] } = await getTableRows(converterRegistryAccount, converterRegistryAccount, 'liqdtypools', bancorConverter)
+            assert.deepEqual(registeredLiquidityPoolData.converter, registeredConverterData.converter)
             
-            const { rows: [registeredPoolTokenData] } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'pooltokens', bancorConverter)
+            const { rows: [registeredPoolTokenData] } = await getTableRows(converterRegistryAccount, converterRegistryAccount, 'pooltokens', bancorConverter)
             assert.equal(registeredPoolTokenData.token.sym, `4,${poolTokenSymbol}`)
             assert.equal(registeredPoolTokenData.token.contract, poolTokenExtendedSymbol.contract)
 
@@ -74,7 +75,7 @@ describe(CONTRACT_NAME, () => {
             const { rows: registeredPoolTokenConvertiblePairsData } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'cnvrtblpairs', bancorConverter)
             for (const convertiblePair of registeredPoolTokenConvertiblePairsData) {
                 assert.deepEqual(convertiblePair.from_token, registeredPoolTokenData.token)
-                assert.deepEqual(convertiblePair.converter, registeredConverterData)
+                assert.deepEqual(convertiblePair.converter, registeredConverterData.converter)
 
                 const reserveIndex = remainingReserves.findIndex(reserve => (reserve.sym === convertiblePair.to_token.sym && reserve.contract === convertiblePair.to_token.contract))
                 assert.notEqual(reserveIndex, -1)
@@ -91,7 +92,7 @@ describe(CONTRACT_NAME, () => {
                 ]
                 for (const convertiblePair of registeredReserveConvertiblePairsData) {
                     assert.deepEqual(convertiblePair.from_token, reserve)
-                    assert.deepEqual(convertiblePair.converter, registeredConverterData)
+                    assert.deepEqual(convertiblePair.converter, registeredConverterData.converter)
 
                     const toTokenIndex = possibleToTokens.findIndex(toToken => (toToken.sym === convertiblePair.to_token.sym && toToken.contract === convertiblePair.to_token.contract))
                     assert.notEqual(toTokenIndex, -1)
@@ -103,13 +104,13 @@ describe(CONTRACT_NAME, () => {
             await expectNoError(
                 rmConverter(converterRegistryAccount, bancorConverter, poolTokenSymbol, { actor: converterRegistryAccount, permission: 'active' })
             )
-            const { rows: [registeredConverterData] } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'converters', bancorConverter)
+            const { rows: [registeredConverterData] } = await getTableRows(converterRegistryAccount, converterRegistryAccount, 'converters', bancorConverter)
             assert.isUndefined(registeredConverterData)
 
-            const { rows: [registeredLiquidityPoolData] } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'liqdtypools', bancorConverter)
+            const { rows: [registeredLiquidityPoolData] } = await getTableRows(converterRegistryAccount, converterRegistryAccount, 'liqdtypools', bancorConverter)
             assert.isUndefined(registeredLiquidityPoolData)
             
-            const { rows: [registeredPoolTokenData] } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'pooltokens', bancorConverter)
+            const { rows: [registeredPoolTokenData] } = await getTableRows(converterRegistryAccount, converterRegistryAccount, 'pooltokens', bancorConverter)
             assert.isUndefined(registeredPoolTokenData)
 
             const { rows: registeredPoolTokenConvertiblePairsData } = await getTableRows(converterRegistryAccount, poolTokenSymbol, 'cnvrtblpairs', bancorConverter)
