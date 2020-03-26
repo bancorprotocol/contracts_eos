@@ -118,13 +118,15 @@ void BancorConverterRegistry::unregister_pool_token(const extended_symbol& pool_
 }
 
 void BancorConverterRegistry::unregister_convertible_pairs(const Converter& converter) {
+    uint128_t index_key = encode_name_and_symcode(converter.contract, converter.pool_token.get_symbol().code());
+
     convertible_pairs pool_token_convertible_pairs_table(get_self(), converter.pool_token.get_symbol().code().raw());
-    auto pool_token_index = pool_token_convertible_pairs_table.get_index<"bycontract"_n >();
-    auto pool_tokens_pairs_itr = pool_token_index.find(converter.pool_token.get_contract().value);
+    auto pool_token_index = pool_token_convertible_pairs_table.get_index<"converter"_n >();
+    auto pool_tokens_pairs_itr = pool_token_index.find(index_key);
     while (pool_tokens_pairs_itr != pool_token_index.end()) {
         convertible_pairs reserve_token_convertible_pairs_table(get_self(), pool_tokens_pairs_itr->to_token.get_symbol().code().raw());
-        auto reserve_index = reserve_token_convertible_pairs_table.get_index<"bycontract"_n >();
-        auto reserve_tokens_pairs_itr = reserve_index.find(pool_tokens_pairs_itr->to_token.get_contract().value);
+        auto reserve_index = reserve_token_convertible_pairs_table.get_index<"converter"_n >();
+        auto reserve_tokens_pairs_itr = reserve_index.find(index_key);
         while (reserve_tokens_pairs_itr != reserve_index.end()) {
             reserve_tokens_pairs_itr = reserve_index.erase(reserve_tokens_pairs_itr);
         }
@@ -158,7 +160,7 @@ bool BancorConverterRegistry::is_converter_active(const Converter& converter) {
 
 // tables lookup functions
 const BancorConverterRegistry::converters::const_iterator BancorConverterRegistry::find_converter(const name& converter_contract, const symbol_code& pool_token) {
-    uint128_t key = encode_name_and_symcode(converter_contract, pool_token);
+    const uint128_t key = encode_name_and_symcode(converter_contract, pool_token);
     
     auto index = converters_table.get_index<"contract.sym"_n >();
     auto itr = index.find(key);
@@ -169,7 +171,7 @@ const BancorConverterRegistry::converters::const_iterator BancorConverterRegistr
 }
 
 const BancorConverterRegistry::liquidity_pools::const_iterator BancorConverterRegistry::find_liquidity_pool(const name& liquidity_pool_contract, const symbol_code& pool_token) {
-    uint128_t key = encode_name_and_symcode(liquidity_pool_contract, pool_token);
+    const uint128_t key = encode_name_and_symcode(liquidity_pool_contract, pool_token);
     
     auto index = liquidity_pools_table.get_index<"contract.sym"_n >();
     auto itr = index.find(key);
@@ -180,7 +182,7 @@ const BancorConverterRegistry::liquidity_pools::const_iterator BancorConverterRe
 }
 
 const BancorConverterRegistry::pool_tokens::const_iterator BancorConverterRegistry::find_pool_token(const extended_symbol& token) {
-    uint128_t key = encode_name_and_symcode(token.get_contract(), token.get_symbol().code());
+    const uint128_t key = encode_name_and_symcode(token.get_contract(), token.get_symbol().code());
     
     auto index = pool_tokens_table.get_index<"token"_n >();
     auto itr = index.find(key);

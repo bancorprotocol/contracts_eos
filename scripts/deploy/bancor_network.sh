@@ -85,7 +85,7 @@ ensureaccount $BANCOR_NETWORK_ACCOUNT $MASTER_PUB_KEY
 ensureaccount $BNT_TOKEN_ACCOUNT $MASTER_PUB_KEY
 ensureaccount $TX_REROUTER_ACCOUNT $MASTER_PUB_KEY
 
-ensureaccount $BANCOR_CONVERTER_ACCOUNT_ACCOUNT $MASTER_PUB_KEY
+ensureaccount $BANCOR_CONVERTER_ACCOUNT $MASTER_PUB_KEY
 ensureaccount $MULTI_TOKEN_ACCOUNT $MASTER_PUB_KEY
 ensureaccount $MULTI_STAKING_ACCOUNT $MASTER_PUB_KEY
 
@@ -102,7 +102,7 @@ cleos set contract $BANCOR_X_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorX
 cleos set contract $BNT_TOKEN_ACCOUNT $MY_CONTRACTS_BUILD/eos/Token
 cleos set contract $CONVERTER_REGISTRY_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorConverterRegistry
 
-cleos set contract $BANCOR_CONVERTER_ACCOUNT_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorConverter
+cleos set contract $BANCOR_CONVERTER_ACCOUNT $MY_CONTRACTS_BUILD/eos/BancorConverter
 cleos set contract $MULTI_TOKEN_ACCOUNT $EOSIO_CONTRACTS_ROOT/eosio.token/
 
 
@@ -113,9 +113,9 @@ cleos set account permission $BANCOR_NETWORK_ACCOUNT active '{ "threshold": 1, "
 cleos set account permission $BANCOR_X_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$BANCOR_X_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $BANCOR_X_ACCOUNT
 cleos set account permission $BNT_TOKEN_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$BNT_TOKEN_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $BNT_TOKEN_ACCOUNT
 
-cleos set account permission $BANCOR_CONVERTER_ACCOUNT_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$BANCOR_CONVERTER_ACCOUNT_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $BANCOR_CONVERTER_ACCOUNT_ACCOUNT
+cleos set account permission $BANCOR_CONVERTER_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$BANCOR_CONVERTER_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $BANCOR_CONVERTER_ACCOUNT
 cleos set account permission $MULTI_TOKEN_ACCOUNT active '{ "threshold": 1, "keys": [{ "key": "'$MASTER_PUB_KEY'", "weight": 1 }], "accounts": [{ "permission": { "actor":"'$MULTI_TOKEN_ACCOUNT'","permission":"eosio.code" }, "weight":1 }] }' owner -p $MULTI_TOKEN_ACCOUNT
-cleos set account permission $MULTI_TOKEN_ACCOUNT active $BANCOR_CONVERTER_ACCOUNT_ACCOUNT --add-code
+cleos set account permission $MULTI_TOKEN_ACCOUNT active $BANCOR_CONVERTER_ACCOUNT --add-code
 
 
 
@@ -131,14 +131,14 @@ if (($ROWS==0)) ; then # BancorX
   cleos push action $BANCOR_X_ACCOUNT addreporter '["'$REPORTER_3_ACCOUNT'"]' -p $BANCOR_X_ACCOUNT
 fi
 
-ROWS=$(cleos get table $BANCOR_CONVERTER_ACCOUNT_ACCOUNT $BANCOR_CONVERTER_ACCOUNT_ACCOUNT settings | jq .rows | jq length)
+ROWS=$(cleos get table $BANCOR_CONVERTER_ACCOUNT $BANCOR_CONVERTER_ACCOUNT settings | jq .rows | jq length)
 if (($ROWS==0)) ; then # BancorConverter
   # if [[ $MODE == "remote" ]] ; then
-    cleos push action $BANCOR_CONVERTER_ACCOUNT_ACCOUNT setmultitokn '["'$MULTI_TOKEN_ACCOUNT'"]' -p $BANCOR_CONVERTER_ACCOUNT_ACCOUNT
-    cleos push action $BANCOR_CONVERTER_ACCOUNT_ACCOUNT setstaking '["'$MULTI_STAKING_ACCOUNT'"]' -p $BANCOR_CONVERTER_ACCOUNT_ACCOUNT
-    cleos push action $BANCOR_CONVERTER_ACCOUNT_ACCOUNT setmaxfee '["30000"]' -p $BANCOR_CONVERTER_ACCOUNT_ACCOUNT  
+    cleos push action $BANCOR_CONVERTER_ACCOUNT setmultitokn '["'$MULTI_TOKEN_ACCOUNT'"]' -p $BANCOR_CONVERTER_ACCOUNT
+    cleos push action $BANCOR_CONVERTER_ACCOUNT setstaking '["'$MULTI_STAKING_ACCOUNT'"]' -p $BANCOR_CONVERTER_ACCOUNT
+    cleos push action $BANCOR_CONVERTER_ACCOUNT setmaxfee '["30000"]' -p $BANCOR_CONVERTER_ACCOUNT  
   # fi
-  cleos push action $BANCOR_CONVERTER_ACCOUNT_ACCOUNT setnetwork '["'$BANCOR_NETWORK_ACCOUNT'"]' -p $BANCOR_CONVERTER_ACCOUNT_ACCOUNT
+  cleos push action $BANCOR_CONVERTER_ACCOUNT setnetwork '["'$BANCOR_NETWORK_ACCOUNT'"]' -p $BANCOR_CONVERTER_ACCOUNT
 fi
 
 ROWS=$(cleos get table $BNT_TOKEN_ACCOUNT BNT stat | jq .rows | jq length)
@@ -146,18 +146,34 @@ if (($ROWS==0)) ; then # BNT Token & Converter
   # if [[ $MODE == "remote" ]] ; then
   cleos push action $BNT_TOKEN_ACCOUNT create '["'$BANCOR_X_ACCOUNT'", "250000000.00000000 BNT"]' -p $BNT_TOKEN_ACCOUNT
   # fi
-  cleos push action $BANCOR_CONVERTER_ACCOUNT_ACCOUNT create '["'$MASTER_ACCOUNT'", "BNTEOS", "9900.00000000"]' -p $MASTER_ACCOUNT
 
-  cleos push action $BANCOR_CONVERTER_ACCOUNT_ACCOUNT setreserve '["BNTEOS", "8,BNT", "'$BNT_TOKEN_ACCOUNT'", "500000"]' -p $MASTER_ACCOUNT
-  cleos push action $BANCOR_CONVERTER_ACCOUNT_ACCOUNT setreserve '["BNTEOS", "4,EOS", "eosio.token", "500000"]' -p $MASTER_ACCOUNT
+
+  # BNTEOS converter 
+  cleos push action $BANCOR_CONVERTER_ACCOUNT create '["'$MASTER_ACCOUNT'", "BNTEOS", "9900.00000000"]' -p $MASTER_ACCOUNT
+
+  cleos push action $BANCOR_CONVERTER_ACCOUNT setreserve '["BNTEOS", "8,BNT", "'$BNT_TOKEN_ACCOUNT'", "500000"]' -p $MASTER_ACCOUNT
+  cleos push action $BANCOR_CONVERTER_ACCOUNT setreserve '["BNTEOS", "4,EOS", "eosio.token", "500000"]' -p $MASTER_ACCOUNT
   
   cleos push action $BNT_TOKEN_ACCOUNT issue '[ "'$BANCOR_X_ACCOUNT'", "100000.00000000 BNT", ""]' -p $BANCOR_X_ACCOUNT
   cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$BANCOR_X_ACCOUNT'", '"$MASTER_ACCOUNT"', "10000.00000000 BNT", ""]' -p $BANCOR_X_ACCOUNT
 
-  cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$BANCOR_CONVERTER_ACCOUNT_ACCOUNT'", "99.00000000 BNT", "fund;BNTEOS"]' -p $MASTER_ACCOUNT
-  cleos push action eosio.token transfer '["'$MASTER_ACCOUNT'", "'$BANCOR_CONVERTER_ACCOUNT_ACCOUNT'", "99.0000 EOS", "fund;BNTEOS"]' -p $MASTER_ACCOUNT
+  cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$BANCOR_CONVERTER_ACCOUNT'", "99.00000000 BNT", "fund;BNTEOS"]' -p $MASTER_ACCOUNT
+  cleos push action eosio.token transfer '["'$MASTER_ACCOUNT'", "'$BANCOR_CONVERTER_ACCOUNT'", "99.0000 EOS", "fund;BNTEOS"]' -p $MASTER_ACCOUNT
+
+  # TEST converter
+  cleos push action $BANCOR_CONVERTER_ACCOUNT create '["'$MASTER_ACCOUNT'", "TEST", "9900.00000000"]' -p $MASTER_ACCOUNT
+
+  cleos push action $BANCOR_CONVERTER_ACCOUNT setreserve '["TEST", "8,BNT", "'$BNT_TOKEN_ACCOUNT'", "500000"]' -p $MASTER_ACCOUNT
+  cleos push action $BANCOR_CONVERTER_ACCOUNT setreserve '["TEST", "4,EOS", "eosio.token", "500000"]' -p $MASTER_ACCOUNT
+  
+  cleos push action $BNT_TOKEN_ACCOUNT issue '[ "'$BANCOR_X_ACCOUNT'", "100000.00000000 BNT", ""]' -p $BANCOR_X_ACCOUNT
+  cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$BANCOR_X_ACCOUNT'", '"$MASTER_ACCOUNT"', "10000.00000000 BNT", ""]' -p $BANCOR_X_ACCOUNT
+
+  cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$BANCOR_CONVERTER_ACCOUNT'", "99.00000000 BNT", "fund;TEST"]' -p $MASTER_ACCOUNT
+  cleos push action eosio.token transfer '["'$MASTER_ACCOUNT'", "'$BANCOR_CONVERTER_ACCOUNT'", "99.0000 EOS", "fund;TEST"]' -p $MASTER_ACCOUNT
 
   cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$TEST_ACCOUNT'", "3000.00000000 BNT", ""]' -p $MASTER_ACCOUNT
+
 fi
 
 ROWS=$(cleos get table $BANCOR_NETWORK_ACCOUNT $BANCOR_NETWORK_ACCOUNT settings | jq .rows | jq length)

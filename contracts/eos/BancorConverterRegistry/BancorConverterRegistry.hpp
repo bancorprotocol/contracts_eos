@@ -49,8 +49,9 @@ CONTRACT BancorConverterRegistry : public eosio::contract {
             Converter converter;
 
             uint64_t primary_key() const { return id; }
-            uint64_t by_from_token_contract()   const { return from_token.get_contract().value; } // not unique
-            // uint128_t by_from_token_contract_and_symbol()   const { return ( uint128_t{ from_token.get_contract().value } << 64 ) | to_token.get_symbol().code().raw(); } // unique
+            uint128_t by_converter() const {
+                return encode_name_and_symcode(converter.contract, converter.pool_token.get_symbol().code());
+            }
         };
 
         inline BancorConverterRegistry(name receiver, name code, datastream<const char *> ds);
@@ -71,7 +72,7 @@ CONTRACT BancorConverterRegistry : public eosio::contract {
             indexed_by<"token"_n, const_mem_fun <token_t, uint128_t, &token_t::by_token >>
         > pool_tokens;
         typedef eosio::multi_index<"cnvrtblpairs"_n, convertible_pair_t,         
-            indexed_by<"bycontract"_n, const_mem_fun <convertible_pair_t, uint64_t, &convertible_pair_t::by_from_token_contract >>
+            indexed_by<"converter"_n, const_mem_fun <convertible_pair_t, uint128_t, &convertible_pair_t::by_converter >>
         > convertible_pairs;
     private:
         converters converters_table;
