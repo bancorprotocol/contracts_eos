@@ -9,6 +9,8 @@ const {
 } = require('./common/utils')
 
 const {
+    issue,
+    transfer,
     getBalance,
     convertBNT,
     convertTwice,
@@ -42,8 +44,17 @@ describe.only(CONTRACT_NAME, () => {
 
     before(async () => {
         converterRegistryAccount = (await newAccount()).accountName;
-        console.info(`BancorConverterRegistry is Deployed @ ${converterRegistryAccount}`)
+        console.info(`Deployed @ ${converterRegistryAccount}`)
         await setCode(converterRegistryAccount, CODE_FILE_PATH, ABI_FILE_PATH);
+    });
+    describe('inactive converter logic', async () => {
+        const inactivePoolToken = 'INACTIV'
+        it('[addconverter] ensures an error is thrown when adding an inactive converter', async () => {
+            await expectError(
+                addConverter(converterRegistryAccount, bancorConverter, inactivePoolToken),
+                ERRORS.INACTIVE_CONVERTER
+            )
+        });
     });
     describe('end to end converter registration and deletion', async () => {
         const converters = [

@@ -174,6 +174,16 @@ if (($ROWS==0)) ; then # BNT Token & Converter
 
   cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$TEST_ACCOUNT'", "3000.00000000 BNT", ""]' -p $MASTER_ACCOUNT
 
+  # INACTIV converter (partially configured)
+  cleos push action $BANCOR_CONVERTER_ACCOUNT create '["'$MASTER_ACCOUNT'", "INACTIV", "9900.00000000"]' -p $MASTER_ACCOUNT
+
+  cleos push action $BANCOR_CONVERTER_ACCOUNT setreserve '["INACTIV", "8,BNT", "'$BNT_TOKEN_ACCOUNT'", "500000"]' -p $MASTER_ACCOUNT
+  cleos push action $BANCOR_CONVERTER_ACCOUNT setreserve '["INACTIV", "4,EOS", "eosio.token", "500000"]' -p $MASTER_ACCOUNT
+  
+  cleos push action $BNT_TOKEN_ACCOUNT issue '[ "'$BANCOR_X_ACCOUNT'", "100000.00000000 BNT", ""]' -p $BANCOR_X_ACCOUNT
+  cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$BANCOR_X_ACCOUNT'", '"$MASTER_ACCOUNT"', "10000.00000000 BNT", ""]' -p $BANCOR_X_ACCOUNT
+
+  cleos push action $BNT_TOKEN_ACCOUNT transfer '["'$MASTER_ACCOUNT'", "'$BANCOR_CONVERTER_ACCOUNT'", "99.00000000 BNT", "fund;INACTIV"]' -p $MASTER_ACCOUNT
 fi
 
 ROWS=$(cleos get table $BANCOR_NETWORK_ACCOUNT $BANCOR_NETWORK_ACCOUNT settings | jq .rows | jq length)

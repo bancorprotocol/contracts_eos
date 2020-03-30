@@ -136,6 +136,9 @@ void BancorConverterRegistry::unregister_convertible_pairs(const Converter& conv
 }
 
 bool BancorConverterRegistry::is_converter_active(const Converter& converter) {
+    if (!is_account(converter.contract) || !is_account(converter.pool_token.get_contract()))
+        return false;
+    
     BancorConverter::converters converters_table(converter.contract, converter.pool_token.get_symbol().code().raw());
     BancorConverter::reserves reserves_table(converter.contract, converter.pool_token.get_symbol().code().raw());
 
