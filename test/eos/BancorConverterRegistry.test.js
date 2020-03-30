@@ -10,12 +10,9 @@ const {
 
 const {
     issue,
+    retire,
     transfer,
-    getBalance,
-    convertBNT,
-    convertTwice,
-    convertMulti,
-    convert
+    getBalance
 } = require('./common/token')
 
 const {
@@ -28,7 +25,8 @@ const {
 } = require('./common/bancor-converter-registry')
 
 const { 
-    getReserve
+    getReserve,
+    fund
 } = require('./common/converter')
 
 const { ERRORS } = require('./common/errors')
@@ -48,12 +46,71 @@ describe.only(CONTRACT_NAME, () => {
         await setCode(converterRegistryAccount, CODE_FILE_PATH, ABI_FILE_PATH);
     });
     describe('inactive converter logic', async () => {
-        const inactivePoolToken = 'INACTIV'
+        const inactivePoolTokenSym = 'INACTIV'
+        const activeConverter = {
+            poolToken: { sym: '4,TEST', contract: multiToken },
+            reserves: [
+                { sym: '8,BNT', contract: config.BNT_TOKEN_ACCOUNT },
+                { sym: '4,EOS', contract: 'eosio.token' }
+            ]
+        };
+        const activePoolTokenSym = activeConverter.poolToken.sym.split(',')[1]
         it('[addconverter] ensures an error is thrown when adding an inactive converter', async () => {
             await expectError(
-                addConverter(converterRegistryAccount, bancorConverter, inactivePoolToken),
+                addConverter(converterRegistryAccount, bancorConverter, inactivePoolTokenSym),
                 ERRORS.INACTIVE_CONVERTER
             )
+        });
+        it('[rmconverter] ensures an error is thrown when trying to remove an active converter (without contract account permissions)', async () => {
+            // scenario setup
+            await expectNoError(
+                addConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym)
+            )
+
+
+            await expectError(
+                rmConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym),
+                ERRORS.CANNOT_REMOVE_ACTIVE_CONVERTER
+            )
+
+            // rollback
+            await expectNoError(
+                rmConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym, { actor: converterRegistryAccount, permission: 'active' })
+            )
+        });
+        it.only('[rmconverter] ensures removing an inactive converter without contract account permissions works', async () => {
+            // scenario setup START
+            await expectNoError(
+                addConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym)
+            )
+            const { rows: [{ balance }] } = await getBalance(config.MASTER_ACCOUNT, activeConverter.poolToken.contract, activePoolTokenSym)
+            await expectNoError(
+                transfer(activeConverter.poolToken.contract, balance, bancorConverter, config.MASTER_ACCOUNT, 'liquidate')
+            )
+            // scenario setup END
+
+
+            await expectNoError(
+                rmConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym)
+            )
+
+            // rollback
+            for (const reserve of activeConverter.reserves) {
+                const reservePrecision = reserve.sym.split(',')[0]
+                const reserveSym = reserve.sym.split(',')[1]
+                await expectNoError(
+                    transfer(reserve.contract, `${Number(99).toFixed(reservePrecision)} ${reserveSym}`, bancorConverter, config.MASTER_ACCOUNT, `fund;${activePoolTokenSym}`),
+                )
+            }
+            // await expectNoError(
+            //     fund(config.MASTER_ACCOUNT, balance)
+            // )
+            // await expectNoError(
+            //     issue(activeConverter.poolToken.contract, issuer, quantity, '')
+            // )
+            // await expectNoError(
+            //     transfer(activeConverter.poolToken.contract, balance, config.MASTER_ACCOUNT, bancorConverter, '')
+            // )
         });
     });
     describe('end to end converter registration and deletion', async () => {
