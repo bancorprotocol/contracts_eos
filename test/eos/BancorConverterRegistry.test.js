@@ -9,13 +9,8 @@ const {
 } = require('./common/utils')
 
 const {
-    issue,
     transfer,
-    getBalance,
-    convertBNT,
-    convertTwice,
-    convertMulti,
-    convert
+    getBalance
 } = require('./common/token')
 
 const {
@@ -27,10 +22,6 @@ const {
     getConvertiblePairs
 } = require('./common/bancor-converter-registry')
 
-const { 
-    getReserve
-} = require('./common/converter')
-
 const { ERRORS } = require('./common/errors')
 const bancorConverter = config.BANCOR_CONVERTER_ACCOUNT
 const multiToken = config.MULTI_TOKEN_ACCOUNT
@@ -39,22 +30,13 @@ const CONTRACT_NAME = 'BancorConverterRegistry'
 const CODE_FILE_PATH = path.join(__dirname, "../../contracts/eos/", CONTRACT_NAME, `${CONTRACT_NAME}.wasm`)
 const ABI_FILE_PATH = path.join(__dirname, "../../contracts/eos/", CONTRACT_NAME, `${CONTRACT_NAME}.abi`)
 
-describe.only(CONTRACT_NAME, () => {
+describe(CONTRACT_NAME, () => {
     let converterRegistryAccount;
 
     before(async () => {
         converterRegistryAccount = (await newAccount()).accountName;
         console.info(`Deployed @ ${converterRegistryAccount}`)
         await setCode(converterRegistryAccount, CODE_FILE_PATH, ABI_FILE_PATH);
-    });
-    describe('inactive converter logic', async () => {
-        const inactivePoolToken = 'INACTIV'
-        it('[addconverter] ensures an error is thrown when adding an inactive converter', async () => {
-            await expectError(
-                addConverter(converterRegistryAccount, bancorConverter, inactivePoolToken),
-                ERRORS.INACTIVE_CONVERTER
-            )
-        });
     });
     describe('end to end converter registration and deletion', async () => {
         const converters = [
@@ -152,5 +134,53 @@ describe.only(CONTRACT_NAME, () => {
                 }
             }
         })
+    });
+    describe('inactive converter logic', async () => {
+        const inactivePoolTokenSym = 'INACTIV'
+        const activeConverter = {
+            poolToken: { sym: '4,TEST', contract: multiToken },
+            reserves: [
+                { sym: '8,BNT', contract: config.BNT_TOKEN_ACCOUNT },
+                { sym: '4,EOS', contract: 'eosio.token' }
+            ]
+        };
+        const activePoolTokenSym = activeConverter.poolToken.sym.split(',')[1]
+        it('[addconverter] ensures an error is thrown when adding an inactive converter', async () => {
+            await expectError(
+                addConverter(converterRegistryAccount, bancorConverter, inactivePoolTokenSym),
+                ERRORS.INACTIVE_CONVERTER
+            )
+        });
+        it('[rmconverter] ensures an error is thrown when trying to remove an active converter (without contract account permissions)', async () => {
+            // scenario setup
+            await expectNoError(
+                addConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym)
+            )
+
+            await expectError(
+                rmConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym),
+                ERRORS.CANNOT_REMOVE_ACTIVE_CONVERTER
+            )
+
+            // rollback
+            await expectNoError(
+                rmConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym, { actor: converterRegistryAccount, permission: 'active' })
+            )
+        });
+        it('[rmconverter] ensures removing an inactive converter without contract account permissions works', async () => {
+            // scenario setup START
+            await expectNoError(
+                addConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym)
+            )
+            const { rows: [{ balance }] } = await getBalance(config.MASTER_ACCOUNT, activeConverter.poolToken.contract, activePoolTokenSym)
+            await expectNoError(
+                transfer(activeConverter.poolToken.contract, balance, bancorConverter, config.MASTER_ACCOUNT, 'liquidate')
+            )
+            // scenario setup END
+
+            await expectNoError(
+                rmConverter(converterRegistryAccount, bancorConverter, activePoolTokenSym)
+            )
+        });
     });
 })

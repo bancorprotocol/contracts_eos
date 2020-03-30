@@ -224,10 +224,11 @@ describe('BancorConverter', () => {
             const RELAYReserveBalance = Number((await getReserve('BNT', bancorConverter, 'RELAY')).rows[0].balance.split(' ')[0])
             const RELAYBReserveBalance = Number((await getReserve('BNT', bancorConverter, 'RELAYB')).rows[0].balance.split(' ')[0])
             const TESTReserveBalance = Number((await getReserve('BNT', bancorConverter, 'TEST')).rows[0].balance.split(' ')[0])
+            const INACTIVReserveBalance = Number((await getReserve('BNT', bancorConverter, 'INACTIV')).rows[0].balance.split(' ')[0])
             
             const totalBntBalance = (await getBalance(bancorConverter, bntToken, 'BNT')).rows[0].balance.split(' ')[0]
             
-            const reserveBalancesSum = [TokenAReserveBalance, TokenBReserveBalance, BNTEOSReserveBalance, BNTSYSReserveBalance, RELAYReserveBalance, RELAYBReserveBalance, TESTReserveBalance]
+            const reserveBalancesSum = [TokenAReserveBalance, TokenBReserveBalance, BNTEOSReserveBalance, BNTSYSReserveBalance, RELAYReserveBalance, RELAYBReserveBalance, TESTReserveBalance, INACTIVReserveBalance]
                 .reduce((sum, c) => sum.add(c), Decimal(0));
             assert.equal(reserveBalancesSum.toFixed(8), totalBntBalance)
         })
