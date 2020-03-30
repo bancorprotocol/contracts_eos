@@ -36,7 +36,6 @@ module.exports = Object.freeze({
         ONLY_DEPOSIT: "only 'stake' may transfer to self",
         DEPOSIT_FIRST: "must deposit first",
         BAD_RELAY: 'multi-token mismatch',
-        INACTIVE_CONVERTER: 'converter is inactive',
-        CANNOT_REMOVE_ACTIVE_CONVERTER: 'cannot remove an active converter'
+        INACTIVE_CONVERTER: 'converter is inactive'
     }
 });

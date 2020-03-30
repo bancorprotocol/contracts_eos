@@ -84,26 +84,6 @@ const issue = async function (token, issuer, quantity, memo) {
         throw(err)
     }
 }
-const retire = async function (token, issuer, quantity, memo='') {
-    return api.transact({ 
-        actions: [{
-            account: token,
-            name: "retire",
-            authorization: [{
-                actor: issuer,
-                permission: 'active',
-            }],
-            data: {
-                quantity: quantity,
-                memo: memo
-            }
-        }]
-    }, 
-    {
-        blocksBehind: 3,
-        expireSeconds: 30,
-    })
-}
 const transfer = async function (token, quantity, to = bntConverter, from = token, memo = 'setup') { 
     try {
         const result = await api.transact({ 
@@ -272,7 +252,7 @@ const convertTwice = async function (amount, token, relaySymbol = bntRelaySymbol
 }
 
 module.exports = {
-    get, issue, retire, create,
+    get, issue, create,
     transfer, getBalance, 
     convertTwice, convertBNT,
     convertMulti, convert
