@@ -77,7 +77,7 @@ const getConverter = async function (symbol) {
 }
 const init = async function (converter = bntConverter, actor = converter, relay = bntRelay, symbol = bntRelaySymbol, fee = 0, smart_enabled = false) {
     try {
-        const result = await api.transact({ 
+        const result = await api.transact({
             actions: [{
                 account: converter,
                 name: "init",
@@ -96,7 +96,7 @@ const init = async function (converter = bntConverter, actor = converter, relay 
                     fee: fee
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -108,7 +108,7 @@ const init = async function (converter = bntConverter, actor = converter, relay 
 }
 const delreserve = async function(reserve = 'BNT', actor = bntConverter, converter = bntConverter, converterScope = null) {
     try {
-        const result = await api.transact({ 
+        const result = await api.transact({
             actions: [{
                 account: converter,
                 name: "delreserve",
@@ -120,7 +120,7 @@ const delreserve = async function(reserve = 'BNT', actor = bntConverter, convert
                     ...(converterScope ? { converter: converterScope, reserve } : { currency: reserve })
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -131,11 +131,11 @@ const delreserve = async function(reserve = 'BNT', actor = bntConverter, convert
         throw(err)
     }
 }
-const update = async function(fee = 0, converter = bntConverter, actor = converter, 
-                              smart_enabled = true, enabled = true, 
+const update = async function(fee = 0, converter = bntConverter, actor = converter,
+                              smart_enabled = true, enabled = true,
                               require_balance = false) {
     try {
-        const result = await api.transact({ 
+        const result = await api.transact({
             actions: [{
                 account: converter,
                 name: "update",
@@ -144,13 +144,13 @@ const update = async function(fee = 0, converter = bntConverter, actor = convert
                     permission: 'active',
                 }],
                 data: {
-                    smart_enabled, 
-                    enabled, 
-                    require_balance, 
+                    smart_enabled,
+                    enabled,
+                    require_balance,
                     fee
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -160,15 +160,15 @@ const update = async function(fee = 0, converter = bntConverter, actor = convert
         throw(err)
     }
 }
-const activateStaking = async function(stake_contract = bntStaking, stake_enabled = true, fee = 0, 
-                                       converter = bntConverter, actor = converter, smart_enabled = true, 
+const activateStaking = async function(stake_contract = bntStaking, stake_enabled = true, fee = 0,
+                                       converter = bntConverter, actor = converter, smart_enabled = true,
                                        enabled = true, require_balance = false) {
     try {
         extend = {
             stake_contract,
             stake_enabled
         }
-        const result = await api.transact({ 
+        const result = await api.transact({
             actions: [{
                 account: converter,
                 name: "update",
@@ -177,14 +177,14 @@ const activateStaking = async function(stake_contract = bntStaking, stake_enable
                     permission: 'active',
                 }],
                 data: {
-                    smart_enabled, 
-                    enabled, 
-                    require_balance, 
+                    smart_enabled,
+                    enabled,
+                    require_balance,
                     fee,
                     extend
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -194,17 +194,17 @@ const activateStaking = async function(stake_contract = bntStaking, stake_enable
         throw(err)
     }
 }
-const setreserve = async function(precise = true, token = networkToken, 
-                                  symbol = networkTokenSymbol, 
+const setreserve = async function(precise = true, token = networkToken,
+                                  symbol = networkTokenSymbol,
                                   converter = bntConverter,
-                                  converterScope = null, 
-                                  actor = converter, 
+                                  converterScope = null,
+                                  actor = converter,
                                   ratio = 500000) {
     let precision = 8
     if (!precise)
         precision = 4
     try {
-        const result = await api.transact({ 
+        const result = await api.transact({
             actions: [{
                 account: converter,
                 name: "setreserve",
@@ -219,7 +219,7 @@ const setreserve = async function(precise = true, token = networkToken,
                     ...(converterScope ? { converter_currency_code: converterScope } : { sale_enabled: true })
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -230,7 +230,7 @@ const setreserve = async function(precise = true, token = networkToken,
     }
 }
 const setEnabled = async function(actor, enabled = true) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: "setenabled",
@@ -239,7 +239,7 @@ const setEnabled = async function(actor, enabled = true) {
                 permission: 'active',
             }], data: { enabled }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -247,7 +247,7 @@ const setEnabled = async function(actor, enabled = true) {
     return result;
 }
 const setMaxfee = async function(actor, maxfee, account = actor) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account,
             name: "setmaxfee",
@@ -257,7 +257,7 @@ const setMaxfee = async function(actor, maxfee, account = actor) {
             }],
             data: { maxfee }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -265,7 +265,7 @@ const setMaxfee = async function(actor, maxfee, account = actor) {
     return result;
 }
 const setStaking = async function(actor, staking = multiStaking) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: "setstaking",
@@ -274,7 +274,7 @@ const setStaking = async function(actor, staking = multiStaking) {
                 permission: 'active',
             }], data: { staking }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -282,7 +282,7 @@ const setStaking = async function(actor, staking = multiStaking) {
     return result;
 }
 const setMultitoken = async function(actor, token = multiToken) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: "setmultitokn",
@@ -291,7 +291,7 @@ const setMultitoken = async function(actor, token = multiToken) {
                 permission: 'active',
             }], data: { multi_token: token }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -300,7 +300,7 @@ const setMultitoken = async function(actor, token = multiToken) {
 }
 // Creates a converter (bancorConverter sub-converter)
 const createConverter = async function(owner, token_code, initial_supply) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: 'create',
@@ -314,7 +314,7 @@ const createConverter = async function(owner, token_code, initial_supply) {
                 initial_supply
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -322,7 +322,7 @@ const createConverter = async function(owner, token_code, initial_supply) {
     return result;
 }
 const delConverter = async function(converter_currency_code, owner) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: 'delconverter',
@@ -334,7 +334,7 @@ const delConverter = async function(converter_currency_code, owner) {
                 converter_currency_code
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -343,7 +343,7 @@ const delConverter = async function(converter_currency_code, owner) {
     return result;
 }
 const enableConvert = async function(actor, currency, enabled = true) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: "enablecnvrt",
@@ -352,7 +352,7 @@ const enableConvert = async function(actor, currency, enabled = true) {
                 permission: 'active',
             }], data: { currency, enabled }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -360,7 +360,7 @@ const enableConvert = async function(actor, currency, enabled = true) {
     return result;
 }
 const enableStake = async function(actor, currency, enabled = true) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: "enablestake",
@@ -369,7 +369,7 @@ const enableStake = async function(actor, currency, enabled = true) {
                 permission: 'active',
             }], data: { currency, enabled }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -377,7 +377,7 @@ const enableStake = async function(actor, currency, enabled = true) {
     return result;
 }
 const updateOwner = async function(actor, currency, new_owner) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: "updateowner",
@@ -390,7 +390,7 @@ const updateOwner = async function(actor, currency, new_owner) {
                 new_owner
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -398,7 +398,7 @@ const updateOwner = async function(actor, currency, new_owner) {
     return result;
 }
 const updateFee = async function(actor, currency, fee) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: "updatefee",
@@ -411,7 +411,7 @@ const updateFee = async function(actor, currency, fee) {
                 fee
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -419,7 +419,7 @@ const updateFee = async function(actor, currency, fee) {
     return result;
 }
 const withdraw = async function(sender, quantity, converter_currency_code) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: "withdraw",
@@ -433,7 +433,7 @@ const withdraw = async function(sender, quantity, converter_currency_code) {
                 converter_currency_code
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -441,7 +441,7 @@ const withdraw = async function(sender, quantity, converter_currency_code) {
     return result;
 }
 const fund = async function(sender, quantity) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account: bancorConverter,
             name: "fund",
@@ -454,7 +454,7 @@ const fund = async function(sender, quantity) {
                 quantity
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -462,10 +462,10 @@ const fund = async function(sender, quantity) {
     return result;
 }
 module.exports = { init, update, enableStake,
-                   activateStaking, setStaking, 
-                   setreserve, getReserve, delreserve, 
-                   getSettings, setMultitoken, 
-                   setMaxfee, updateFee, updateOwner, 
-                   setEnabled, enableConvert, getAccount,   
+                   activateStaking, setStaking,
+                   setreserve, getReserve, delreserve,
+                   getSettings, setMultitoken,
+                   setMaxfee, updateFee, updateOwner,
+                   setEnabled, enableConvert, getAccount,
                    getConverter, createConverter,
                    delConverter, withdraw, fund }

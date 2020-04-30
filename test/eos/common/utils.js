@@ -18,7 +18,7 @@ const ROUND_DOWN = 1;
 
 // Keys associated with all test-related accounts
 const EOS = "5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3" //eosio
-const eos = "5JUoVWoLLV3Sj7jUKmfE8Qdt7Eo7dUd4PGZ2snZ81xqgnZzGKdC" //eosio.token 
+const eos = "5JUoVWoLLV3Sj7jUKmfE8Qdt7Eo7dUd4PGZ2snZ81xqgnZzGKdC" //eosio.token
 const bnt = "5JS9bTWMc52HWmMC8v58hdfePTxPV5dd5fcxq92xUzbfmafeeRo"
 const con = "5KgKxmnm8oh5WbHC4jmLARNFdkkgVdZ389rdxwGEiBdAJHkubBH"
 const rep = "5JFLPVygcZZdEno2WWWkf3fPriuxnvjtVpkThifYM5HwcKg6ndu"
@@ -44,7 +44,7 @@ function bytesToHex(bytes) {
 const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
 const charidx = ch => {
     const idx = charmap.indexOf(ch)
-    if (idx === -1) 
+    if (idx === -1)
         throw new TypeError(`Invalid character: '${ch}'`)
     return idx;
 }
@@ -55,16 +55,16 @@ function randomAccountName() {
     return text
 }
 function symbolToValue(symbol) {
-    if (typeof symbol !== 'string') 
+    if (typeof symbol !== 'string')
         throw new TypeError('name parameter is a required string')
-  
-    if (symbol.length > 7) 
+
+    if (symbol.length > 7)
         throw new TypeError('A symbol can be up to 7 characters long')
-    
+
     final = ""
     for (i = 0; i < symbol.length; i++) {
         code = symbol.charCodeAt(i)
-        if (code < 65 || code > 90) 
+        if (code < 65 || code > 90)
             throw new TypeError('A symbol must have only A...Z caps characters')
         bin = Number(code).toString(2)
         while (bin.length < 8) bin = "0" + bin
@@ -73,22 +73,22 @@ function symbolToValue(symbol) {
     return Long.fromString(final, true, 2)
 }
 function nameToValue(name) {
-    if (typeof name !== 'string') 
+    if (typeof name !== 'string')
         throw new TypeError('name parameter is a required string')
-  
-    if (name.length > 12) 
+
+    if (name.length > 12)
         throw new TypeError('A name can be up to 12 characters long')
-  
+
     let bitstr = ''
     for (let i = 0; i <= 12; i++) {
       // process all 64 bits (even if name is short)
       const c = i < name.length ? charidx(name[i]) : 0
       const bitlen = i < 12 ? 5 : 4
       let bits = Number(c).toString(2)
-      
+
       if (bits.length > bitlen)
         throw new TypeError('Invalid name ' + name)
-      
+
       bits = '0'.repeat(bitlen - bits.length) + bits
       bitstr += bits
     }
@@ -215,7 +215,7 @@ async function expectNoError(prom) {
         error = err
     }
     assert.equal(error, '', 'promise should have resolved');
-    
+
     return result
 }
 async function expectNoErrorPrint(prom) {
@@ -250,7 +250,7 @@ const calculateFundCost = (fundingAmount, supply, reserveBalance, totalRatio) =>
     fundingAmount = Decimal(fundingAmount);
     reserveBalance = Decimal(reserveBalance);
     totalRatio = Decimal(totalRatio);
-    
+
     return reserveBalance.mul(
         supply.add(fundingAmount).div(supply).pow(MAX_RATIO.div(totalRatio)).sub(ONE)
     );
@@ -261,7 +261,7 @@ const calculateLiquidateReturn = (liquidationAmount, supply, reserveBalance, tot
     liquidationAmount = Decimal(liquidationAmount);
     reserveBalance = Decimal(reserveBalance);
     totalRatio = Decimal(totalRatio);
-    
+
     return reserveBalance.mul(
         ONE.sub(
             supply.sub(liquidationAmount).div(supply).pow(MAX_RATIO.div(totalRatio))
@@ -291,7 +291,7 @@ const calculateSaleReturn = (supply, balance, ratio, amount, fee = 0) => {
     amount = Decimal(amount)
     ratio = Decimal(ratio)
     fee = Decimal(fee)
-    
+
     const newAmount = balance.mul(
         ONE.sub(
             ONE.sub(amount.div(supply)).pow(MAX_RATIO.div(ratio))
@@ -325,9 +325,9 @@ const deductFee = (amount, fee, magnitude) => {
 const extractEvents = async (conversionTx) => {
     if (conversionTx instanceof Promise)
         conversionTx = await expectNoError(conversionTx);
-    
+
     const rawEvents = getConsoleOutputRecursively(conversionTx.processed.action_traces[0])
-    
+
     return rawEvents.reduce((acc, o) => (acc[o.etype] ? { ...acc, [o.etype]: [...acc[o.etype], o] } : { ...acc, [o.etype]: [o] } ), {})
 }
 

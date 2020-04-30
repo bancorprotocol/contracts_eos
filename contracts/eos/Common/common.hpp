@@ -82,7 +82,7 @@ string build_memo(memo_structure data) {
     return memo;
 }
 
-/** @dev to_fixed 
+/** @dev to_fixed
  *  formats a number to a fixed precision
  *  e.g. - to_fixed(14.214212, 3) --> 14.214
 */
@@ -100,7 +100,7 @@ float stof(const char* s) {
     for (int point_seen = 0; *s; s++) {
         if (*s == '.') {
             if (point_seen) return 0;
-            point_seen = 1; 
+            point_seen = 1;
             continue;
         }
         int d = *s - '0';
@@ -133,12 +133,12 @@ uint64_t stoui(string const& value) {
 
 memo_structure parse_memo(string memo) {
     memo_structure res = memo_structure();
-    
+
     vector<string> split_memos = split(memo, ";"); // we separate concantenated memos with ";"
     vector<string> parts = split(split_memos[0], ","); // split the first memo by ","
-    
+
     check(parts.size() >= 4 && parts.size() <= 7, "invalid memo");
-    
+
     res.converters = {};
     res.version = parts[0];
 
@@ -148,7 +148,7 @@ memo_structure parse_memo(string memo) {
         res.path = {};
     else
         res.path = path_elements;
-    
+
     for (int i = 0; i < res.path.size(); i += 2) {
         auto converter_data = split(res.path[i], ":");
         auto cnvrt = converter();
@@ -163,14 +163,14 @@ memo_structure parse_memo(string memo) {
 
     res.min_return = parts[2];
     res.dest_account = parts[3];
-    
-    // supplying an affiliate account without affiliate fee 
+
+    // supplying an affiliate account without affiliate fee
     // will interpret ^account as sender of the conversion (trader_account)
     if (parts.size() == 5) { // or no affiliate parts at all
         res.trader_account = parts[4];
     }
     // affiliate parts present, but sender (trader) not yet set
-    else if (parts.size() == 6) { 
+    else if (parts.size() == 6) {
         res.affiliate_account = parts[4];
         res.affiliate_fee = parts[5];
     }

@@ -32,7 +32,7 @@ CONTRACT XTransferRerouter : public contract { /*! \endcond */
         using contract::contract;
 
         /**
-         * @defgroup Xtransfer_Settings_Table Settings Table 
+         * @defgroup Xtransfer_Settings_Table Settings Table
          * @brief Basic minimal settings
          * @{
          *//*! \cond DOCS_EXCLUDE */
@@ -42,11 +42,11 @@ CONTRACT XTransferRerouter : public contract { /*! \endcond */
             }; /** @}*/
 
         /**
-         * @brief can only be called by the contract account 
+         * @brief can only be called by the contract account
          * @param enable - true to enable rerouting xtransfers, false to disable it
          */
         ACTION enablerrt(bool enable);
-    
+
         /**
          * @brief only the original sender may reroute an invalid transaction
          * @details allows an account to change xtransfer transaction details if the original transaction
@@ -56,7 +56,7 @@ CONTRACT XTransferRerouter : public contract { /*! \endcond */
          * @param target - target account/address
          */
         ACTION reroutetx(uint64_t tx_id, string blockchain, string target);
-    
+
     private:
         typedef eosio::singleton<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"settings"_n, settings_t> dummy_for_abi; // hack until abi generator generates correct name

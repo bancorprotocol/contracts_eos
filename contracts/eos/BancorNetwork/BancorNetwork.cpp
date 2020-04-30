@@ -20,7 +20,7 @@ ACTION BancorNetwork::setmaxfee(uint64_t max_affiliate_fee) {
             s.max_fee = max_affiliate_fee;
         });
     else
-        settings_table.modify(st, same_payer, [&](auto& s) {		
+        settings_table.modify(st, same_payer, [&](auto& s) {
             s.max_fee = max_affiliate_fee;
         });
 }
@@ -37,24 +37,24 @@ ACTION BancorNetwork::setnettoken(name network_token) {
             s.network_token = network_token;
         });
     else
-        settings_table.modify(st, same_payer, [&](auto& s) {		
+        settings_table.modify(st, same_payer, [&](auto& s) {
             s.network_token = network_token;
         });
 }
 
 void BancorNetwork::on_transfer(name from, name to, asset quantity, string memo) {
     // avoid unstaking and system contract ops mishaps
-    if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
+    if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n)
         return;
 
     check(quantity.symbol.is_valid(), "invalid quantity in transfer");
     check(quantity.amount > 0, "may only transfer positive quantity");
-    
+
     settings settings_table(get_self(), get_self().value);
     auto st = settings_table.find("settings"_n.value);
     check(st != settings_table.end(), "create network settings");
 
-    auto memo_object = parse_memo(memo); 
+    auto memo_object = parse_memo(memo);
     asset new_quantity = quantity;
 
     if (!memo_object.path.size()) { // just exited from the last conversion in the path
@@ -68,18 +68,18 @@ void BancorNetwork::on_transfer(name from, name to, asset quantity, string memo)
     } else {
         auto path_size = memo_object.path.size();
         to = memo_object.converters[0].account;
-        
+
         check(path_size >= 2 && !(path_size % 2), "bad path format");
 
         if (memo_object.trader_account.empty()) { // about to enter the first conversion in the path
             memo_object.trader_account = from.to_string();
             memo = build_memo(memo_object);
-        } else 
+        } else
             tie(new_quantity, memo_object) = pay_affiliate(from, quantity, st->max_fee, memo_object);
     }
     if (new_quantity.amount != quantity.amount) // if affiliate fee was deducted from was from quantity
         memo = build_memo(memo_object);
-        
+
     verify_entry(to, get_first_receiver(), quantity.symbol);
     action(
         permission_level{ get_self(), "active"_n },
@@ -94,14 +94,14 @@ tuple<asset, memo_structure> BancorNetwork::pay_affiliate(name from, asset quant
         uint64_t fee = stoui(memo.affiliate_fee);
         settings settings_table(get_self(), get_self().value);
         const auto& st = settings_table.get("settings"_n.value);
-        
+
         check(get_first_receiver() == st.network_token, "BNT quantity received is not authentic");
         check(fee > 0 && max_fee > fee, "inappropriate affiliate fee");
-        check(is_account(affiliate), "affiliate is not an account");    
+        check(is_account(affiliate), "affiliate is not an account");
 
         double amount = quantity.amount / pow(10, quantity.symbol.precision());
         uint64_t fee_amount = calculate_fee(amount, fee, 1) * pow(10, quantity.symbol.precision());
-        
+
         if (fee_amount > 0) {
             asset affiliate_fee = asset(fee_amount, quantity.symbol);
             action(

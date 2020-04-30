@@ -35,7 +35,7 @@ const create = async function (issuer, token, symbol, precise=true) {
         let precision = '250000000.00000000'
         if (!precise)
             precision = '250000000.0000'
-        const result = await api.transact({ 
+        const result = await api.transact({
             actions: [{
                 account: token,
                 name: "create",
@@ -48,7 +48,7 @@ const create = async function (issuer, token, symbol, precise=true) {
                     maximum_supply: `${precision} ${symbol}`
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -60,7 +60,7 @@ const create = async function (issuer, token, symbol, precise=true) {
 }
 const issue = async function (token, issuer, quantity, memo) {
     try {
-        const result = await api.transact({ 
+        const result = await api.transact({
             actions: [{
                 account: token,
                 name: "issue",
@@ -74,7 +74,7 @@ const issue = async function (token, issuer, quantity, memo) {
                     memo: memo
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -84,9 +84,9 @@ const issue = async function (token, issuer, quantity, memo) {
         throw(err)
     }
 }
-const transfer = async function (token, quantity, to = bntConverter, from = token, memo = 'setup') { 
+const transfer = async function (token, quantity, to = bntConverter, from = token, memo = 'setup') {
     try {
-        const result = await api.transact({ 
+        const result = await api.transact({
             actions: [{
                 account: token,
                 name: "transfer",
@@ -101,7 +101,7 @@ const transfer = async function (token, quantity, to = bntConverter, from = toke
                     memo
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -125,16 +125,16 @@ const getBalance = async function (user, token, symbol) {
         throw(err)
     }
 }
-const convertMulti = async function(amount, symbol, targetSymbol, 
-                                    converter = bancorConverter, 
+const convertMulti = async function(amount, symbol, targetSymbol,
+                                    converter = bancorConverter,
                                     from = user, min = '0.00000001',
                                     affiliate = null, affiliateFee = null) {
     try {
         let memo = `1,${converter}:${symbol} ${targetSymbol},${min},${from}`
         if (affiliate)
             memo += `,${affiliate},${affiliateFee}`
-        
-        const result = await api.transact({ 
+
+        const result = await api.transact({
             actions: [{
                 account: multiToken,
                 name: "transfer",
@@ -149,7 +149,7 @@ const convertMulti = async function(amount, symbol, targetSymbol,
                     memo
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -160,7 +160,7 @@ const convertMulti = async function(amount, symbol, targetSymbol,
     }
 }
 const convert = async function (quantity, tokenAccount, conversionPath,
-                                   from = user, to = from, affiliate = null, 
+                                   from = user, to = from, affiliate = null,
                                    affiliateFee = null, min = '0.00000001') {
     if (conversionPath instanceof Array)
         conversionPath = conversionPath.join(' ')
@@ -168,8 +168,8 @@ const convert = async function (quantity, tokenAccount, conversionPath,
     let memo = `1,${conversionPath},${min},${to}`
     if (affiliate)
         memo += `,${affiliate},${affiliateFee}`
-    
-    const result = await api.transact({ 
+
+    const result = await api.transact({
         actions: [{
             account: tokenAccount,
             name: "transfer",
@@ -184,7 +184,7 @@ const convert = async function (quantity, tokenAccount, conversionPath,
                 memo
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -192,14 +192,14 @@ const convert = async function (quantity, tokenAccount, conversionPath,
     return result
 }
 const convertBNT = async function (amount, toSymbol = bntRelaySymbol, relay = `${bntConverter}:BNTEOS`,
-                                   from = user, to = from, affiliate = null, 
+                                   from = user, to = from, affiliate = null,
                                    affiliateFee = null, min = '0.00000001') {
     let memo = `1,${relay} ${toSymbol},${min},${to}`
 
     if (affiliate)
         memo += `,${affiliate},${affiliateFee}`
-    
-    const result = await api.transact({ 
+
+    const result = await api.transact({
         actions: [{
             account: networkToken,
             name: "transfer",
@@ -214,7 +214,7 @@ const convertBNT = async function (amount, toSymbol = bntRelaySymbol, relay = `$
                 memo
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -225,7 +225,7 @@ const convertTwice = async function (amount, token, relaySymbol = bntRelaySymbol
                                      relay = bntConverter, relay2 = sysConverter,
                                      from = user, to = user, min = '0.00000001') { // buy BNTSYS with BNTEOS
     try {
-        const result = await api.transact({ 
+        const result = await api.transact({
             actions: [{
                 account: token,
                 name: "transfer",
@@ -240,7 +240,7 @@ const convertTwice = async function (amount, token, relaySymbol = bntRelaySymbol
                     memo: `1,${relay}:BNTEOS ${networkTokenSymbol} ${relay2} ${relay2symbol},${min},${to}`
                 }
             }]
-        }, 
+        },
         {
             blocksBehind: 3,
             expireSeconds: 30,
@@ -253,7 +253,7 @@ const convertTwice = async function (amount, token, relaySymbol = bntRelaySymbol
 
 module.exports = {
     get, issue, create,
-    transfer, getBalance, 
+    transfer, getBalance,
     convertTwice, convertBNT,
     convertMulti, convert
 }
