@@ -74,7 +74,7 @@ CONTRACT BancorX : public contract { /*! \endcond */
     public:
         using contract::contract;
 
-        /** 
+        /**
          * @defgroup XSettings_Table Settings Table
          * @brief This table stores settings for cross-transfers
          * @{
@@ -88,7 +88,7 @@ CONTRACT BancorX : public contract { /*! \endcond */
                 uint64_t limit_inc;
                 uint64_t max_issue_limit;
                 uint64_t prev_issue_limit;
-                uint64_t prev_issue_time;       
+                uint64_t prev_issue_time;
                 uint64_t max_destroy_limit;
                 uint64_t prev_destroy_limit;
                 uint64_t prev_destroy_time;
@@ -109,13 +109,13 @@ CONTRACT BancorX : public contract { /*! \endcond */
                 string       data;
                 vector<name> reporters;
 
-                /*! \cond DOCS_EXCLUDE */  
-                uint64_t     primary_key() const { return tx_id; }                
+                /*! \cond DOCS_EXCLUDE */
+                uint64_t     primary_key() const { return tx_id; }
                 /*! \endcond */
 
             }; /** @}*/
 
-        /** 
+        /**
          * @defgroup Amounts_Table Amounts Table
          * @brief This table quantities for cross-transfers
          * @{
@@ -125,21 +125,21 @@ CONTRACT BancorX : public contract { /*! \endcond */
                 name     target;
                 asset    quantity;
 
-                /*! \cond DOCS_EXCLUDE */        
+                /*! \cond DOCS_EXCLUDE */
                 uint64_t primary_key() const { return x_transfer_id; }
                 /*! \endcond */
 
             }; /** @}*/
 
-        /** 
+        /**
          * @defgroup Reporters_Table Reporters Table
          * @brief This table stores the account names of BancorX reporters
          * @{
-         *! \cond DOCS_EXCLUDE */        
+         *! \cond DOCS_EXCLUDE */
             TABLE reporter_t { /*! \endcond */
-                name reporter; 
+                name reporter;
 
-                /*! \cond DOCS_EXCLUDE */        
+                /*! \cond DOCS_EXCLUDE */
                 uint64_t primary_key() const { return reporter.value; }
                 /*! \endcond */
 
@@ -165,14 +165,14 @@ CONTRACT BancorX : public contract { /*! \endcond */
          * @param max_issue_limit - new maximum incoming amount
          * @param max_destroy_limit - new maximum outgoing amount
          */
-        ACTION update(uint64_t min_reporters,uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit); 
+        ACTION update(uint64_t min_reporters,uint64_t min_limit, uint64_t limit_inc, uint64_t max_issue_limit, uint64_t max_destroy_limit);
 
         /**
          * @brief can only be called by the contract account
          * @param enable - true to enable reporting (and thus issuance), false to disable it
          */
         ACTION enablerpt(bool enable);
-        
+
         /**
          * @brief can only be called by the contract account
          * @param enable - true to enable cross chain transfers, false to disable them
@@ -184,7 +184,7 @@ CONTRACT BancorX : public contract { /*! \endcond */
          * @param reporter - name of the reporter
          */
         ACTION addreporter(name reporter);
-        
+
         /**
          * @brief removes an existing reporter, can only be called by the contract account
          * @param reporter - name of the reporter
@@ -202,7 +202,7 @@ CONTRACT BancorX : public contract { /*! \endcond */
          * @param quantity - amount to issue to the target account if the minimum required number of reports is met
          * @param memo - memo to pass in in the transfer action
          * @param data - custom source blockchain value, usually a string representing the tx hash on the source blockchain
-         */ 
+         */
         ACTION reporttx(name reporter, string blockchain, uint64_t tx_id, uint64_t x_transfer_id, name target, asset quantity, string memo, string data);
 
         /**
@@ -221,7 +221,7 @@ CONTRACT BancorX : public contract { /*! \endcond */
          */
         [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
-    
+
     private:
         using transfer_action = action_wrapper<name("transfer"), &BancorX::on_transfer>;
         typedef eosio::singleton<"settings"_n, settings_t> settings;
@@ -229,7 +229,7 @@ CONTRACT BancorX : public contract { /*! \endcond */
         typedef eosio::multi_index<"transfers"_n, transfer_t> transfers;
         typedef eosio::multi_index<"amounts"_n, amounts_t> amounts;
         typedef eosio::multi_index<"reporters"_n, reporter_t> reporters;
-        
+
         struct memo_x_transfer {
             string version;
             string blockchain;

@@ -13,11 +13,11 @@ namespace eosio {
 
    using std::string;
 
-   
+
     /**
      * @defgroup BancorToken Token
      * @brief BNT Token contract
-     * @details based on `eosio.token` contract (with addition of `transferbyid`) defines the 
+     * @details based on `eosio.token` contract (with addition of `transferbyid`) defines the
      * structures and actions that allow to create, issue, and transfer BNT tokens
      * @{
      */

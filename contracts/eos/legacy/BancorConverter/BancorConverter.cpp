@@ -12,15 +12,15 @@ ACTION BancorConverter::init(name smart_contract, asset smart_currency, bool sma
     require_auth(get_self());
     check(max_fee <= MAX_FEE,
          ("maximum fee must be lower or equal to " + std::to_string(MAX_FEE)).c_str()
-    ); 
+    );
     check(fee <= max_fee, "fee must be lower or equal to the maximum fee");
 
     settings settings_table(get_self(), get_self().value);
     auto st = settings_table.find("settings"_n.value);
     check(st == settings_table.end(), "settings already exist");
     check(is_account(smart_contract), "invalid relay token account");
-    
-    st = settings_table.emplace(get_self(), [&](auto& s) {		
+
+    st = settings_table.emplace(get_self(), [&](auto& s) {
         s.smart_contract  = smart_contract;
         s.smart_currency  = smart_currency;
         s.smart_enabled   = smart_enabled;
@@ -37,15 +37,15 @@ ACTION BancorConverter::update(bool smart_enabled, bool enabled, bool require_ba
 
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-    
+
     check(fee <= st.max_fee, "fee must be lower or equal to the maximum fee");
     uint64_t prevFee = st.fee;
 
     settings_table.modify(st, get_self(), [&](auto& s) {
-        s.smart_enabled   = smart_enabled;		
+        s.smart_enabled   = smart_enabled;
         s.enabled         = enabled;
-        s.require_balance = require_balance;				
-        s.fee             = fee;		
+        s.require_balance = require_balance;
+        s.fee             = fee;
     });
     if (prevFee != fee) // trigger the conversion fee update event
         EMIT_CONVERSION_FEE_UPDATE_EVENT(prevFee, fee);
@@ -77,8 +77,8 @@ ACTION BancorConverter::setreserve(name contract, symbol currency, uint64_t rati
     uint64_t total_ratio = 0;
     for (auto& reserve : reserves_table)
         total_ratio += reserve.ratio;
-    
-    check(total_ratio <= MAX_RATIO, 
+
+    check(total_ratio <= MAX_RATIO,
          ("ratio must be between 1 and " + std::to_string(MAX_RATIO)).c_str());
 
     settings settings_table(get_self(), get_self().value);
@@ -86,7 +86,7 @@ ACTION BancorConverter::setreserve(name contract, symbol currency, uint64_t rati
 
     auto current_smart_supply = (get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount;
     current_smart_supply /= pow(10, converter_settings.smart_currency.symbol.precision());
-    auto reserve_balance = get_balance_amount(contract, get_self(), currency.code()) / pow(10, currency.precision()); 
+    auto reserve_balance = get_balance_amount(contract, get_self(), currency.code()) / pow(10, currency.precision());
     EMIT_PRICE_DATA_EVENT(current_smart_supply, contract, currency.code(), reserve_balance, ratio / MAX_RATIO);
 }
 
@@ -96,7 +96,7 @@ ACTION BancorConverter::delreserve(symbol_code currency) {
 
     reserves reserves_table(get_self(), get_self().value);
     const auto& rsrv = reserves_table.get(currency.raw(), "reserve not found");
-    
+
     asset balance = get_balance(rsrv.contract, get_self(), currency);
     check(!balance.amount, "may delete only empty reserves");
 
@@ -108,10 +108,10 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
 
     auto memo_object = parse_memo(memo);
     check(memo_object.path.size() > 1, "invalid memo format");
-    
+
     settings settings_table(get_self(), get_self().value);
     const auto& converter_settings = settings_table.get("settings"_n.value, "settings do not exist");
-    
+
     check(converter_settings.enabled, "converter is disabled");
     check(converter_settings.network == from, "converter can only receive from network contract");
 
@@ -119,9 +119,9 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     auto from_path_currency = quantity.symbol.code().raw();
     auto to_path_currency = symbol_code(memo_object.path[1].c_str()).raw();
 
-    check(contract_name == get_self(), "wrong converter");    
+    check(contract_name == get_self(), "wrong converter");
     check(from_path_currency != to_path_currency, "cannot convert to self");
-    
+
     auto smart_symbol_name = converter_settings.smart_currency.symbol.code().raw();
     auto from_token = get_reserve(from_path_currency, converter_settings);
     auto to_token = get_reserve(to_path_currency, converter_settings);
@@ -130,31 +130,31 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
     auto to_currency = to_token.currency;
 
     auto to_currency_precision = to_currency.symbol.precision();
-    
+
     auto from_contract = from_token.contract;
     auto to_contract = to_token.contract;
 
     bool incoming_smart_token = (from_currency.symbol.code().raw() == smart_symbol_name);
     bool outgoing_smart_token = (to_currency.symbol.code().raw() == smart_symbol_name);
-    
+
     auto from_ratio = from_token.ratio;
     auto to_ratio = to_token.ratio;
 
     check(to_token.sale_enabled, "'to' token purchases disabled");
     check(code == from_contract, "unknown 'from' contract");
-    
-    auto current_from_balance = ((get_balance(from_contract, get_self(), from_currency.symbol.code())).amount + from_currency.amount - quantity.amount) / pow(10, from_currency.symbol.precision()); 
+
+    auto current_from_balance = ((get_balance(from_contract, get_self(), from_currency.symbol.code())).amount + from_currency.amount - quantity.amount) / pow(10, from_currency.symbol.precision());
     auto current_to_balance = ((get_balance(to_contract, get_self(), to_currency.symbol.code())).amount + to_currency.amount) / pow(10, to_currency_precision);
-    
+
     double current_smart_supply = (get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount;
     current_smart_supply /= pow(10, converter_settings.smart_currency.symbol.precision());
 
     name final_to = name(memo_object.dest_account.c_str());
-    
+
     double smart_tokens = 0;
     double to_tokens = 0;
     bool quick = false;
-    
+
     if (incoming_smart_token) {
         action( // destory received token
             permission_level{ get_self(), "active"_n },
@@ -189,9 +189,9 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
 
     if (outgoing_smart_token)
         current_smart_supply -= fee;
-    
+
     double formatted_total_fee_amount = to_fixed(fee, to_currency_precision);
-    
+
     to_tokens = to_fixed(to_tokens, to_currency_precision);
 
     EMIT_CONVERSION_EVENT(memo, from_token.contract, from_currency.symbol.code(), to_token.contract, to_currency.symbol.code(), from_amount, to_tokens, formatted_total_fee_amount);
@@ -215,9 +215,9 @@ void BancorConverter::convert(name from, eosio::asset quantity, std::string memo
         action(
             permission_level{ get_self(), "active"_n },
             to_contract, "issue"_n,
-            make_tuple(get_self(), new_asset, new_memo) 
+            make_tuple(get_self(), new_asset, new_memo)
         ).send();
-    
+
     check(new_asset.amount > 0, "below min return");
     action(
         permission_level{ get_self(), "active"_n },
@@ -303,7 +303,7 @@ void BancorConverter::on_transfer(name from, name to, asset quantity, std::strin
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
 
     // avoid unstaking and system contract ops mishaps
-    if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
+    if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n)
 	    return;
 
     if (memo == "setup") {
@@ -313,9 +313,9 @@ void BancorConverter::on_transfer(name from, name to, asset quantity, std::strin
 
         auto current_smart_supply = (get_supply(converter_settings.smart_contract, converter_settings.smart_currency.symbol.code())).amount + converter_settings.smart_currency.amount;
         current_smart_supply /= pow(10, converter_settings.smart_currency.symbol.precision());
-        auto reserve_balance = get_balance_amount(reserve.contract, get_self(), quantity.symbol.code()) / pow(10, quantity.symbol.precision()); 
-        
+        auto reserve_balance = get_balance_amount(reserve.contract, get_self(), quantity.symbol.code()) / pow(10, quantity.symbol.precision());
+
         EMIT_PRICE_DATA_EVENT(current_smart_supply, reserve.contract, quantity.symbol.code(), reserve_balance, reserve.ratio / MAX_RATIO);
-    } else 
-        convert(from, quantity, memo, get_first_receiver()); 
+    } else
+        convert(from, quantity, memo, get_first_receiver());
 }

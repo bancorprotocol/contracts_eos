@@ -7,7 +7,7 @@ const bancorXContract = config.BANCOR_X_ACCOUNT;
 
 
 async function enablext(enable) {
-    return api.transact({ 
+    return api.transact({
         actions: [{
             account: bancorXContract,
             name: "enablext",
@@ -19,7 +19,7 @@ async function enablext(enable) {
                 enable
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -28,7 +28,7 @@ async function enablext(enable) {
 
 
 async function enablerpt(enable) {
-    return api.transact({ 
+    return api.transact({
         actions: [{
             account: bancorXContract,
             name: "enablerpt",
@@ -40,7 +40,7 @@ async function enablerpt(enable) {
                 enable
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -49,7 +49,7 @@ async function enablerpt(enable) {
 
 
 async function addreporter(reporter) {
-    return api.transact({ 
+    return api.transact({
         actions: [{
             account: bancorXContract,
             name: "addreporter",
@@ -61,7 +61,7 @@ async function addreporter(reporter) {
                 reporter
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -70,7 +70,7 @@ async function addreporter(reporter) {
 
 
 async function rmreporter(reporter) {
-    return api.transact({ 
+    return api.transact({
         actions: [{
             account: bancorXContract,
             name: "rmreporter",
@@ -82,7 +82,7 @@ async function rmreporter(reporter) {
                 reporter
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -94,7 +94,7 @@ async function update(
     { min_reporters, min_limit, limit_inc, max_issue_limit, max_destroy_limit },
     authorization = { actor: bancorXContract, permission: 'active' }
     ) {
-    return api.transact({ 
+    return api.transact({
         actions: [{
             account: bancorXContract,
             name: "update",
@@ -107,7 +107,7 @@ async function update(
                 max_destroy_limit
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -115,7 +115,7 @@ async function update(
 }
 
 async function reporttx({ tx_id, reporter, target = user, quantity = `2.00000000 ${networkTokenSymbol}`, memo = 'enjoy your BNTs', data = 'txHash', blockchain = 'eth', x_transfer_id = 0 }) {
-    return api.transact({ 
+    return api.transact({
         actions: [{
             account: bancorXContract,
             name: "reporttx",
@@ -134,7 +134,7 @@ async function reporttx({ tx_id, reporter, target = user, quantity = `2.00000000
                 blockchain
             }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,

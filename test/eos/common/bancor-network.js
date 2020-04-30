@@ -2,7 +2,7 @@ const { api } = require('./utils')
 
 
 const setNetworkToken = async function(network_token, account, actor = account) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account,
             name: "setnettoken",
@@ -12,7 +12,7 @@ const setNetworkToken = async function(network_token, account, actor = account) 
             }],
             data: { network_token }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,
@@ -21,7 +21,7 @@ const setNetworkToken = async function(network_token, account, actor = account) 
 }
 
 const setMaxAffiliateFee = async function(actor, max_affiliate_fee, account = actor) {
-    const result = await api.transact({ 
+    const result = await api.transact({
         actions: [{
             account,
             name: "setmaxfee",
@@ -31,7 +31,7 @@ const setMaxAffiliateFee = async function(actor, max_affiliate_fee, account = ac
             }],
             data: { max_affiliate_fee }
         }]
-    }, 
+    },
     {
         blocksBehind: 3,
         expireSeconds: 30,

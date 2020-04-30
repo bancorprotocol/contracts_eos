@@ -58,8 +58,8 @@ using namespace std;
 CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
     public:
         using contract::contract;
-        
-        /** 
+
+        /**
          * @defgroup Converter_Settings_Table Settings Table
          * @brief This table stores stats on the settings of the converter
          * @details Both SCOPE and PRIMARY KEY are `_self`, so this table is effectively a singleton.
@@ -69,52 +69,52 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
                 /**
                  * @brief contract account name of the smart token governed by the converter
                  */
-                name smart_contract; 
-                
+                name smart_contract;
+
                 /**
                  * @brief currency of the smart token governed by the converter
                  */
-                asset smart_currency; 
-                 
-                /**                 
+                asset smart_currency;
+
+                /**
                  * @brief true if the smart token can be converted to/from, false if not
                  */
-                bool smart_enabled; 
-                
+                bool smart_enabled;
+
                 /**
                  * @brief true if conversions are enabled, false if not
                  */
-                bool enabled; 
+                bool enabled;
 
                 /**
                  * @brief bancor network contract name
                  */
-                name network; 
+                name network;
 
                 /**
                  * @brief require creating new balance for the calling account should fail
                  */
                 bool require_balance;
-                
+
                 /**
                  * @brief maximum conversion fee percentage, 0-30000, 4-pt precision a la eosio.asset
                  */
-                uint64_t max_fee; 
-                
+                uint64_t max_fee;
+
                 /**
                  * @brief conversion fee for this converter
                  */
-                uint64_t fee; 
-                
+                uint64_t fee;
+
                 /*! \cond DOCS_EXCLUDE */
-                uint64_t primary_key() const { return "settings"_n.value; }  
+                uint64_t primary_key() const { return "settings"_n.value; }
                 /*! \endcond */
 
             }; /** @}*/
 
-            /** 
+            /**
              * @defgroup Converter_Reserves_Table Reserves Table
-             * @brief This table stores stats on the reserves of the converter, the actual balance is owned by converter account within the accounts 
+             * @brief This table stores stats on the reserves of the converter, the actual balance is owned by converter account within the accounts
              * @details SCOPE of this table is `_self`
              * @{
              *//*! \cond DOCS_EXCLUDE */
@@ -122,26 +122,26 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
                 /**
                  * @brief Token contract for the currency
                  */
-                name contract; 
+                name contract;
 
                 /**
                  * @brief Symbol of the tokens in this reserve
                  * @details PRIMARY KEY is `currency.symbol.code().raw()`
                  */
-                asset currency; 
-                
+                asset currency;
+
                 /**
                  * @brief Reserve ratio
                  */
                 uint64_t ratio;
-                
+
                 /**
                  * @brief Are transactions enabled on this reserve
                  */
-                bool sale_enabled; 
-               
+                bool sale_enabled;
+
                 /*! \cond DOCS_EXCLUDE */
-                uint64_t primary_key() const { return currency.symbol.code().raw(); } 
+                uint64_t primary_key() const { return currency.symbol.code().raw(); }
                  /*! \endcond */
 
             }; /** @}*/
@@ -157,7 +157,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param network - bancor network contract name
          * @param max_fee - maximum conversion fee percentage, 0-30000, 4-pt precision a la eosio.asset
          * @param fee - conversion fee percentage, must be lower than the maximum fee, same precision
-         */ 
+         */
         ACTION init(name smart_contract, asset smart_currency, bool smart_enabled, bool enabled, name network, bool require_balance, uint64_t max_fee, uint64_t fee);
 
         /**
@@ -169,7 +169,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param fee - conversion fee percentage, must be lower than the maximum fee, same precision
          */
         ACTION update(bool smart_enabled, bool enabled, bool require_balance, uint64_t fee);
-        
+
         /**
          * @brief initializes a new reserve in the converter
          * @details can also be used to update an existing reserve, can only be called by the contract account
@@ -177,7 +177,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param currency - reserve token currency symbol
          * @param ratio - reserve ratio, percentage, 0-1000000, precision a la max_fee
          * @param sale_enabled - true if purchases are enabled with the reserve, false if not
-         */ 
+         */
         ACTION setreserve(name contract, symbol currency, uint64_t ratio, bool sale_enabled);
 
         /**
@@ -188,7 +188,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
 
         /**
          * @brief transfer intercepts
-         * @details `memo` in csv format, may contain an extra keyword (e.g. "setup") following a semicolon at the end of the conversion path; 
+         * @details `memo` in csv format, may contain an extra keyword (e.g. "setup") following a semicolon at the end of the conversion path;
          * indicates special transfer which otherwise would be interpreted as a standard conversion
          * @param from - the sender of the transfer
          * @param to - the receiver of the transfer
@@ -197,12 +197,12 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          */
         [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, std::string memo);
-    
+
     private:
         using transfer_action = action_wrapper<name("transfer"), &BancorConverter::on_transfer>;
         typedef eosio::multi_index<"settings"_n, settings_t> settings;
-        typedef eosio::multi_index<"reserves"_n, reserve_t> reserves; 
-    
+        typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
+
         void convert(name from, eosio::asset quantity, std::string memo, name code);
         const reserve_t& get_reserve(uint64_t name, const settings_t& settings);
 

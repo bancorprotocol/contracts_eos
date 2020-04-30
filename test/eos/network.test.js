@@ -1,8 +1,8 @@
 const assert = require('chai').assert
 const Decimal = require('decimal.js')
 const config = require('../../config/accountNames.json')
-const {  
-    expectError, 
+const {
+    expectError,
     expectNoError,
     randomAmount,
     createAccountOnChain,
@@ -19,7 +19,7 @@ const {
     convert
 } = require('./common/token')
 
-const { 
+const {
     getReserve
 } = require('./common/converter')
 
@@ -114,7 +114,7 @@ describe('Test: BancorNetwork', () => {
     })
     it('verifies that converting reserve --> reserve return == converting reserve --> relay & relay --> reserve (2 different transactions)', async function() {
         const initialBNTBalance = (await getBalance(user1, bntToken, 'BNT')).rows[0].balance.split(' ')[0];
-        
+
         let conversionEvent;
         let returnedAmount;
         conversionEvent = (await extractEvents(
@@ -132,7 +132,7 @@ describe('Test: BancorNetwork', () => {
         )).conversion[0]
 
         const finalBNTBalance = (await getBalance(user1, bntToken, 'BNT')).rows[0].balance.split(' ')[0];
-        
+
         const tolerance = 0.00000003;
         const balancesDelta = Math.abs(Decimal(finalBNTBalance).sub(initialBNTBalance))
         assert.isAtMost(balancesDelta, tolerance, 'balanced should be equal');
@@ -140,7 +140,7 @@ describe('Test: BancorNetwork', () => {
     it("ensures it's not possible to abuse RAM by planting a non-converter account as part of the conversion path", async () => {
         const fakeConverter = (await createAccountOnChain()).accountName;
         await expectError(
-            convertTwice('1.0000', 'eosio.token', 'EOS', 'FAKETKN', bancorConverter, fakeConverter), 
+            convertTwice('1.0000', 'eosio.token', 'EOS', 'FAKETKN', bancorConverter, fakeConverter),
             ERRORS.MUST_HAVE_TOKEN_ENTRY
         )
     })

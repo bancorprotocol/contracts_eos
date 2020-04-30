@@ -24,7 +24,7 @@ ACTION BancorX::init(name x_token_name, uint64_t min_reporters, uint64_t min_lim
 
     uint64_t current_time = current_time_point().sec_since_epoch();
 
-    settings_table.set(settings_t{ 
+    settings_table.set(settings_t{
         x_token_name,
         false,
         false,
@@ -86,7 +86,7 @@ ACTION BancorX::addreporter(name reporter) {
     auto it = reporters_table.find(reporter.value);
 
     check(it == reporters_table.end(), "reporter already defined");
-    
+
     reporters_table.emplace(get_self(), [&](auto& s) {
         s.reporter  = reporter;
     });
@@ -98,7 +98,7 @@ ACTION BancorX::rmreporter(name reporter) {
     auto it = reporters_table.find(reporter.value);
 
     check(it != reporters_table.end(), "reporter does not exist");
-    
+
     reporters_table.erase(it);
 }
 
@@ -118,7 +118,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     uint64_t limit_inc = st.limit_inc;
 
     uint64_t timestamp = current_time_point().sec_since_epoch();
-    
+
     uint64_t current_delta = 0;
     if (timestamp > prev_issue_time)
         current_delta = timestamp - prev_issue_time;
@@ -137,7 +137,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     transfers transfers_table(get_self(), get_self().value);
     auto transaction = transfers_table.find(tx_id);
 
-    // first reporter 
+    // first reporter
     if (transaction == transfers_table.end()) {
         check(quantity.amount <= current_limit, "above max limit");
         transfers_table.emplace(get_self(), [&](auto& s) {
@@ -159,7 +159,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
     }
     else {
         // checks that the reporter didn't already report the transfer
-        check(std::find(transaction->reporters.begin(), transaction->reporters.end(), reporter) 
+        check(std::find(transaction->reporters.begin(), transaction->reporters.end(), reporter)
               == transaction->reporters.end(), "the reporter already reported the transfer");
 
         check(transaction->x_transfer_id == x_transfer_id &&
@@ -173,7 +173,7 @@ ACTION BancorX::reporttx(name reporter, string blockchain, uint64_t tx_id, uint6
         transfers_table.modify(transaction, get_self(), [&](auto& s) {
             s.reporters.push_back(reporter);
         });
-        
+
         EMIT_TX_REPORT_EVENT(reporter, blockchain, tx_id, target, quantity, x_transfer_id, memo);
     }
     // get the transaction again in case this was the first report
@@ -224,12 +224,12 @@ ACTION BancorX::clearamount(uint64_t x_transfer_id) {
     auto it = amounts_table.find(x_transfer_id);
 
     check(it != amounts_table.end(), "amount doesn't exist in table");
-    
+
     amounts_table.erase(it);
 }
 
 void BancorX::on_transfer(name from, name to, asset quantity, string memo) {
-    if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) 
+    if (from == get_self() || from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n)
 	    return;
 
     settings settings_table(get_self(), get_self().value);
