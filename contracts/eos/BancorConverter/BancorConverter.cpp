@@ -172,7 +172,6 @@ ACTION BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
 
 ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
     converters converters_table(get_self(), get_self().value);
-
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     require_auth(converter.owner);
 
