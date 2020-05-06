@@ -377,6 +377,9 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         [[eosio::action]]
         void migrate( const set<symbol_code> converters );
 
+        [[eosio::action]]
+        void delmigrate( const set<symbol_code> converters );
+
         /*! \cond DOCS_EXCLUDE */
         typedef eosio::multi_index<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
@@ -399,7 +402,6 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         using setmaxfee_action = action_wrapper<"setmaxfee"_n, &BancorConverter::setmaxfee>;
         using updateowner_action = action_wrapper<"updateowner"_n, &BancorConverter::updateowner>;
         using updatefee_action = action_wrapper<"updatefee"_n, &BancorConverter::updatefee>;
-        using enablestake_action = action_wrapper<"enablestake"_n, &BancorConverter::enablestake>;
         using setreserve_action = action_wrapper<"setreserve"_n, &BancorConverter::setreserve>;
         using delreserve_action = action_wrapper<"delreserve"_n, &BancorConverter::delreserve>;
         using withdraw_action = action_wrapper<"withdraw"_n, &BancorConverter::withdraw>;
@@ -446,5 +448,6 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         // migration
         void migrate_converters_v1_no_scope( const symbol_code symcode );
         void migrate_converters_v2( const symbol_code symcode );
+        void delete_converters_v2( const symbol_code symcode );
 
 }; /** @}*/

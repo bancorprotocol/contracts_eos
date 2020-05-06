@@ -52,6 +52,9 @@ ACTION BancorConverter::create(name owner, symbol_code token_code, double initia
         st.multi_token, "transfer"_n,
         make_tuple(get_self(), owner, initial_supply_asset, string("setup"))
     ).send();
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( token_code );
 }
 
 ACTION BancorConverter::setmaxfee(uint64_t maxfee) {
@@ -146,6 +149,9 @@ ACTION BancorConverter::updateowner(symbol_code currency, name new_owner) {
     converters_table.modify(converter, same_payer, [&](auto& c) {
         c.owner = new_owner;
     });
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( currency );
 }
 
 ACTION BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
@@ -168,6 +174,9 @@ ACTION BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
         });
         EMIT_CONVERSION_FEE_UPDATE_EVENT(currency, prevFee, fee);
     }
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( currency );
 }
 
 ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
@@ -196,6 +205,9 @@ ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol c
         total_ratio += reserve.ratio;
 
     check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter_currency_code );
 }
 
 ACTION BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
@@ -204,6 +216,9 @@ ACTION BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
     const auto& rsrv = reserves_table.get(reserve.raw(), "reserve not found");
 
     reserves_table.erase(rsrv);
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter );
 }
 
 ACTION BancorConverter::delconverter(symbol_code converter_currency_code) {
@@ -213,6 +228,9 @@ ACTION BancorConverter::delconverter(symbol_code converter_currency_code) {
 
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     converters_table.erase(converter);
+
+    // DELETE MIGRATED DATA from V2
+    delete_converters_v2( converter_currency_code );
 }
 
 ACTION BancorConverter::fund(name sender, asset quantity) {
@@ -250,6 +268,9 @@ ACTION BancorConverter::fund(name sender, asset quantity) {
         st.multi_token, "transfer"_n,
         make_tuple(get_self(), sender, quantity, string("fund"))
     ).send();
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( quantity.symbol.code() );
 }
 
 void BancorConverter::liquidate(name sender, asset quantity) {
@@ -283,12 +304,18 @@ void BancorConverter::liquidate(name sender, asset quantity) {
         st.multi_token, "retire"_n,
         make_tuple(quantity, string("liquidation"))
     ).send();
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( quantity.symbol.code() );
 }
 
 ACTION BancorConverter::withdraw(name sender, asset quantity, symbol_code converter_currency_code) {
     require_auth(sender);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
     mod_balances(sender, -quantity, converter_currency_code, get_self());
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter_currency_code );
 }
 
 double BancorConverter::calculate_liquidate_return(double liquidation_amount, double supply, double reserve_balance, double total_ratio) {
@@ -434,6 +461,9 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
         to_return.amount / pow(10, to_return.symbol.precision()),
         fee
     );
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter_currency_code );
 }
 
 std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token) {
@@ -521,6 +551,9 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
         to_return.contract, "transfer"_n,
         make_tuple(get_self(), st.network, to_return.quantity, new_memo)
     ).send();
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter_currency.code() );
 }
 
 bool BancorConverter::is_converter_active(symbol_code converter) {

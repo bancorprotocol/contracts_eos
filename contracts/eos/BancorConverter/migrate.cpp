@@ -9,6 +9,16 @@ void BancorConverter::migrate( const set<symbol_code> converters )
     }
 }
 
+[[eosio::action]]
+void BancorConverter::delmigrate( const set<symbol_code> converters )
+{
+    require_auth( get_self() );
+
+    for ( const symbol_code symcode : converters ) {
+        delete_converters_v2( symcode );
+    }
+}
+
 void BancorConverter::migrate_converters_v1_no_scope( const symbol_code symcode )
 {
     // tables
@@ -91,5 +101,16 @@ void BancorConverter::migrate_converters_v2( const symbol_code symcode )
             row.reserve_weights = reserve_weights;
             row.reserve_balances = reserve_balances;
         });
+    }
+}
+
+void BancorConverter::delete_converters_v2( const symbol_code symcode )
+{
+    // tables
+    converters_v2 converters_v2( get_self(), get_self().value );
+    auto itr = converters_v2.find( symcode.raw() );
+
+    if ( itr != converters_v2.end() ) {
+        converters_v2.erase( itr );
     }
 }
