@@ -74,7 +74,6 @@ void BancorConverter::migrate_converters_v2( const symbol_code symcode )
 
             // converter
             row.owner = converter.owner;
-            row.stake_enabled = converter.stake_enabled;
             row.fee = converter.fee;
 
             // reserve
@@ -86,7 +85,6 @@ void BancorConverter::migrate_converters_v2( const symbol_code symcode )
         converters_v2.modify(reserve_itr_v2, get_self(), [&](auto& row) {
             // converter
             row.owner = converter.owner;
-            row.stake_enabled = converter.stake_enabled;
             row.fee = converter.fee;
 
             // reserve

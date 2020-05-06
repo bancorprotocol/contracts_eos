@@ -145,24 +145,49 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
                 name owner;
 
                 /**
-                 * @brief toggle boolean to enable/disable this staking and voting for this converter
-                 */
-                bool stake_enabled;
-
-                /**
                  * @brief conversion fee for this converter, applied on every hop
                  */
                 uint64_t fee;
 
                 /**
                  * @brief reserve weights relative to the other reserves
+                 * @example
+                 * {
+                 *   "key: "BNT",
+                 *   "value": 500000
+                 * }
                  */
                 map<symbol_code, uint64_t> reserve_weights;
 
                 /**
                  * @brief balances in each reserve
+                 * @example
+                 * {
+                 *   "key: "BNT",
+                 *   "value": "10000.0000 BNT"
+                 * }
                  */
                 map<symbol_code, extended_asset> reserve_balances;
+
+                /**
+                 * @brief [optional] protocol features for converter
+                 * @example
+                 * {
+                 *   "key: "stake",
+                 *   "value": "true"
+                 * }
+                 */
+                map<name, name> protocol_features;
+
+                /**
+                 * @brief [optional] additional metadata for converter
+                 * @example
+                 * {
+                 *   "key: "website",
+                 *   "value": "https://mywebsite.com"
+                 * }
+                 */
+                map<name, string> metadata_json;
 
                 /*! \cond DOCS_EXCLUDE */
                 uint64_t primary_key() const { return currency.code().raw(); }
