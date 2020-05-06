@@ -1,6 +1,8 @@
 [[eosio::action]]
 void BancorConverter::migrate( const set<symbol_code> converters )
 {
+    require_auth( get_self() );
+
     for ( const symbol_code symcode : converters ) {
         migrate_converters_v1_no_scope( symcode );
         migrate_converters_v2( symcode );
