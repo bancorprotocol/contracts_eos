@@ -2,12 +2,12 @@
 void BancorConverter::migrate( const set<symbol_code> converters )
 {
     for ( const symbol_code symcode : converters ) {
-        const symbol currency = migrate_converter( symcode );
-        migrate_reserve( currency );
+        migrate_converters_v1_no_scope( symcode );
+        migrate_converters_v2( symcode );
     }
 }
 
-symbol BancorConverter::migrate_converter( const symbol_code symcode )
+void BancorConverter::migrate_converters_v1_no_scope( const symbol_code symcode )
 {
     // tables
     converters converters_table_scope( get_self(), symcode.raw() );
@@ -38,42 +38,58 @@ symbol BancorConverter::migrate_converter( const symbol_code symcode )
             row.fee = converter_itr_scope->fee;
         });
     }
-    // currency to be used for reserve migration
-    return converter_itr_scope->currency;
 }
 
-void BancorConverter::migrate_reserve( const symbol currency )
+void BancorConverter::migrate_converters_v2( const symbol_code symcode )
 {
     // tables
-    reserves reserves_table_v1( get_self(), currency.code().raw() );
-    reserves_v2 reserves_table_v2( get_self(), get_self().value );
+    reserves reserves_table_v1( get_self(), symcode.raw() );
+    converters_v2 converters_v2( get_self(), get_self().value );
+    converters converters_table_no_scope( get_self(), get_self().value );
 
-    // create empty map objects of ratios & balances
-    map<symbol_code, uint64_t> ratios;
-    map<symbol_code, extended_asset> balances;
+    // get no scope v1 converter
+    converter_t converter = converters_table_no_scope.get( symcode.raw() );
 
+    // create empty map objects of weights & balances
+    map<symbol_code, uint64_t> reserve_weights;
+    map<symbol_code, extended_asset> reserve_balances;
+
+    // iterate over v1 reserves
     for ( const auto reserve: reserves_table_v1 ) {
         const symbol_code symcode = reserve.balance.symbol.code();
-        ratios[symcode] = reserve.ratio;
-        balances[symcode] = extended_asset{reserve.balance, reserve.contract};
+        reserve_weights[symcode] = reserve.ratio;
+        reserve_balances[symcode] = extended_asset{reserve.balance, reserve.contract};
     }
 
     // iterators
-    auto reserve_itr_v2 = reserves_table_v2.find( currency.code().raw() );
+    auto reserve_itr_v2 = converters_v2.find( symcode.raw() );
 
     // create v2 reserve to main scope
-    if ( reserve_itr_v2 == reserves_table_v2.end() ) {
-        reserves_table_v2.emplace(get_self(), [&](auto& row) {
-            row.currency = currency;
-            row.ratios = ratios;
-            row.balances = balances;
+    if ( reserve_itr_v2 == converters_v2.end() ) {
+        converters_v2.emplace(get_self(), [&](auto& row) {
+            // primary key
+            row.currency = converter.currency;
+
+            // converter
+            row.owner = converter.owner;
+            row.stake_enabled = converter.stake_enabled;
+            row.fee = converter.fee;
+
+            // reserve
+            row.reserve_weights = reserve_weights;
+            row.reserve_balances = reserve_balances;
         });
     // modify
     } else {
-        reserves_table_v2.modify(reserve_itr_v2, get_self(), [&](auto& row) {
-            row.currency = currency;
-            row.ratios = ratios;
-            row.balances = balances;
+        converters_v2.modify(reserve_itr_v2, get_self(), [&](auto& row) {
+            // converter
+            row.owner = converter.owner;
+            row.stake_enabled = converter.stake_enabled;
+            row.fee = converter.fee;
+
+            // reserve
+            row.reserve_weights = reserve_weights;
+            row.reserve_balances = reserve_balances;
         });
     }
 }

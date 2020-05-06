@@ -132,7 +132,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
          * @{
          *//*! \cond DOCS_EXCLUDE */
-            TABLE reserve_v2_t {
+            TABLE converter_v2_t {
                 /**
                  * @brief symbol of the smart token -- representing a share in the reserves of this converter
                  * @details PRIMARY KEY for this table is `currency.code().raw()`
@@ -140,14 +140,29 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
                 symbol currency;
 
                 /**
-                 * @brief reserve ratios relative to the other reserves
+                 * @brief creator of the converter
                  */
-                map<symbol_code, uint64_t> ratios;
+                name owner;
+
+                /**
+                 * @brief toggle boolean to enable/disable this staking and voting for this converter
+                 */
+                bool stake_enabled;
+
+                /**
+                 * @brief conversion fee for this converter, applied on every hop
+                 */
+                uint64_t fee;
+
+                /**
+                 * @brief reserve weights relative to the other reserves
+                 */
+                map<symbol_code, uint64_t> reserve_weights;
 
                 /**
                  * @brief balances in each reserve
                  */
-                map<symbol_code, extended_asset> balances;
+                map<symbol_code, extended_asset> reserve_balances;
 
                 /*! \cond DOCS_EXCLUDE */
                 uint64_t primary_key() const { return currency.code().raw(); }
@@ -347,7 +362,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
                             &account_t::by_cnvrt >>> accounts;
 
         // migration table
-        typedef eosio::multi_index<"reserves.v2"_n, reserve_v2_t> reserves_v2;
+        typedef eosio::multi_index<"converter.v2"_n, converter_v2_t> converters_v2;
 
         /*! \endcond */
 
@@ -404,7 +419,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         constexpr static uint8_t DEFAULT_TOKEN_PRECISION = 4;
 
         // migration
-        symbol migrate_converter( const symbol_code symcode );
-        void migrate_reserve( const symbol currency );
+        void migrate_converters_v1_no_scope( const symbol_code symcode );
+        void migrate_converters_v2( const symbol_code symcode );
 
 }; /** @}*/
