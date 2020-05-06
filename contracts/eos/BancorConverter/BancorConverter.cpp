@@ -124,18 +124,27 @@ ACTION BancorConverter::setnetwork(name network) {
     }
 }
 
-ACTION BancorConverter::enablestake(symbol_code currency, bool enabled) {
-    converters converters_table(get_self(), get_self().value);
+ACTION BancorConverter::activate( const symbol_code currency, const name protocol_feature, const bool enabled ) {
+    converters_v2 converters_v2_table(get_self(), get_self().value);
     settings settings_table(get_self(), get_self().value);
+
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-    const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
+    const auto& converter = converters_v2_table.get(currency.raw(), "converter does not exist");
+
+    // only converter owner can activate
     require_auth(converter.owner);
 
-    check(is_account(st.staking), "set staking account before enabling staking");
-    check(enabled != converter.stake_enabled, "setting same value as before");
+    // available protocol features
+    const set<name> protocol_features = set<name>{"stake"_n};
+    check( protocol_features.find( protocol_feature ) != protocol_features.end(), "invalid protocol feature");
 
-    converters_table.modify(converter, same_payer, [&](auto& c) {
-        c.stake_enabled = enabled;
+    // additional check for `stake` protocol feature
+    if ( protocol_feature == "stake"_n ) check( is_account(st.staking), "set staking account before enabling staking");
+
+    // update protocol feature
+    converters_v2_table.modify(converter, same_payer, [&](auto& row) {
+        check(row.protocol_features[protocol_feature] != enabled, "setting same value as before");
+        row.protocol_features[protocol_feature] = enabled;
     });
 }
 
@@ -635,9 +644,12 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
 
     if (code == receiver)
         switch (action) {
-            EOSIO_DISPATCH_HELPER(BancorConverter, (create)(delconverter)
-            (setmultitokn)(setstaking)(setmaxfee)(setnetwork)
-            (updateowner)(updatefee)(enablestake)
-            (setreserve)(delreserve)(withdraw)(fund)(migrate))
+            EOSIO_DISPATCH_HELPER(BancorConverter,
+                (create)(delconverter)
+                (setmultitokn)(setstaking)(activate)(setmaxfee)(setnetwork)
+                (updateowner)(updatefee)
+                (setreserve)(delreserve)(withdraw)(fund)
+                (migrate)(delmigrate)
+            )
         }
 }

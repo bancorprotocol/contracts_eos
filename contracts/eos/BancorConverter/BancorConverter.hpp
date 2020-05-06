@@ -174,10 +174,10 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
                  * @example
                  * {
                  *   "key: "stake",
-                 *   "value": "true"
+                 *   "value": true
                  * }
                  */
-                map<name, name> protocol_features;
+                map<name, bool> protocol_features;
 
                 /**
                  * @brief [optional] additional metadata for converter
@@ -293,6 +293,14 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         ACTION setstaking(name staking);
 
         /**
+         * @brief may only set staking/voting contract for this multi-converter once
+         * @param currency - currency converter symbol code
+         * @param protocol_feature - protocol feature
+         * @param enabled - (true/false) to be enabled
+         */
+        ACTION activate( const symbol_code currency, const name protocol_feature, const bool enabled );
+
+        /**
          * @brief modify maxfee in this multi-converter's settings
          * @param maxfee - maximum fee for all converters in this multi-converter
          */
@@ -319,13 +327,6 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param fee - the new fee % for this converter, must be lower than the maximum fee, 0-1000000
          */
         ACTION updatefee(symbol_code currency, uint64_t fee);
-
-        /**
-         * @brief flag indicating if the smart token can be staked, false if not
-         * @param currency - the currency symbol governed by the converter
-         * @param enabled - true if staking/voting for this symbol are enabled
-         */
-        ACTION enablestake(symbol_code currency, bool enabled);
 
         /**
          * @brief initializes a new reserve in the converter
