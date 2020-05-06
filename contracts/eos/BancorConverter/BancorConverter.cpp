@@ -6,6 +6,7 @@
 
 #include "../Token/Token.hpp"
 #include "BancorConverter.hpp"
+#include "migrate.cpp"
 
 ACTION BancorConverter::create(name owner, symbol_code token_code, double initial_supply) {
     require_auth(owner);
@@ -17,7 +18,7 @@ ACTION BancorConverter::create(name owner, symbol_code token_code, double initia
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
 
-    converters converters_table(get_self(), token_symbol.code().raw());
+    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.find(token_symbol.code().raw());
 
     check(converter == converters_table.end(), "converter for the given symbol already exists");
@@ -121,7 +122,7 @@ ACTION BancorConverter::setnetwork(name network) {
 }
 
 ACTION BancorConverter::enablestake(symbol_code currency, bool enabled) {
-    converters converters_table(get_self(), currency.raw());
+    converters converters_table(get_self(), get_self().value);
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
@@ -136,7 +137,7 @@ ACTION BancorConverter::enablestake(symbol_code currency, bool enabled) {
 }
 
 ACTION BancorConverter::updateowner(symbol_code currency, name new_owner) {
-    converters converters_table(get_self(), currency.raw());
+    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
 
     require_auth(converter.owner);
@@ -149,7 +150,7 @@ ACTION BancorConverter::updateowner(symbol_code currency, name new_owner) {
 
 ACTION BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
     settings settings_table(get_self(), get_self().value);
-    converters converters_table(get_self(), currency.raw());
+    converters converters_table(get_self(), get_self().value);
 
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
@@ -170,7 +171,8 @@ ACTION BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
 }
 
 ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
-    converters converters_table(get_self(), converter_currency_code.raw());
+    converters converters_table(get_self(), get_self().value);
+
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     require_auth(converter.owner);
 
@@ -206,7 +208,7 @@ ACTION BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
 }
 
 ACTION BancorConverter::delconverter(symbol_code converter_currency_code) {
-    converters converters_table(get_self(), converter_currency_code.raw());
+    converters converters_table(get_self(), get_self().value);
     reserves reserves_table(get_self(), converter_currency_code.raw());
     check(reserves_table.begin() == reserves_table.end(), "delete reserves first");
 
@@ -219,7 +221,7 @@ ACTION BancorConverter::fund(name sender, asset quantity) {
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
 
     settings settings_table(get_self(), get_self().value);
-    converters converters_table(get_self(), quantity.symbol.code().raw());
+    converters converters_table(get_self(), get_self().value);
     const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
     const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
 
@@ -351,7 +353,7 @@ void BancorConverter::mod_balances(name sender, asset quantity, symbol_code conv
     reserves reserves_table(get_self(), converter_currency_code.raw());
     const auto& reserve = reserves_table.get(quantity.symbol.code().raw(), "reserve doesn't exist");
 
-    converters converters_table(get_self(), converter_currency_code.raw());
+    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
 
     if (quantity.amount > 0)
@@ -404,7 +406,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
     symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
-    converters converters_table(get_self(), converter_currency_code.raw());
+    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
 
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
@@ -604,6 +606,6 @@ extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
             EOSIO_DISPATCH_HELPER(BancorConverter, (create)(delconverter)
             (setmultitokn)(setstaking)(setmaxfee)(setnetwork)
             (updateowner)(updatefee)(enablestake)
-            (setreserve)(delreserve)(withdraw)(fund))
+            (setreserve)(delreserve)(withdraw)(fund)(migrate))
         }
 }
