@@ -6,6 +6,7 @@
 #pragma once
 
 #include <eosio/eosio.hpp>
+#include <eosio/singleton.hpp>
 #include <eosio/transaction.hpp>
 #include <eosio/asset.hpp>
 #include <eosio/symbol.hpp>
@@ -70,7 +71,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @details Both SCOPE and PRIMARY KEY are `_self`, so this table is effectively a singleton
          * @{
          *//*! \cond DOCS_EXCLUDE */
-            TABLE settings_t { /*! \endcond */
+            struct [[eosio::table("settings")]] settings_params { /*! \endcond */
                 /**
                  * @brief maximum conversion fee for converters in this contract
                  */
@@ -90,11 +91,6 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
                  * @brief account name of contract for voting and staking
                  */
                 name staking;
-
-                /*! \cond DOCS_EXCLUDE */
-                uint64_t primary_key() const { return "settings"_n.value; }
-                /*! \endcond */
-
             }; /** @}*/
 
         /**
@@ -279,18 +275,21 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         ACTION delconverter(symbol_code converter_currency_code);
 
         /**
-         * @brief creates the multi-converter settings, can only be called by multi-converter owner
+         * @brief sets the bancor network settings
          * @param multi_token - may only set multi-token contract once
-         */
-        ACTION setmultitokn(name multi_token);
-
-        // the 3 actions below modify multi-converter settings after the multi-token contract has been set
-
-        /**
-         * @brief may only set staking/voting contract for this multi-converter once
          * @param staking - name of staking/voting contract
+         * @param maxfee - maximum fee for all converters in this multi-converter
+         * @param network - bancor network contract account
+         * @example
+         *
+         * cleos push action bancorcnvrtr setparams '[{
+         *     "max_fee": 30000,
+         *     "multi_token": "smarttokens1",
+         *     "network": "thisisbancor",
+         *     "staking": ""
+         * }]' -p bancorcnvrtr
          */
-        ACTION setstaking(name staking);
+        ACTION setparams( const BancorConverter::settings_params params );
 
         /**
          * @brief may only set staking/voting contract for this multi-converter once
@@ -299,18 +298,6 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param enabled - (true/false) to be enabled
          */
         ACTION activate( const symbol_code currency, const name protocol_feature, const bool enabled );
-
-        /**
-         * @brief modify maxfee in this multi-converter's settings
-         * @param maxfee - maximum fee for all converters in this multi-converter
-         */
-        ACTION setmaxfee(uint64_t maxfee);
-
-        /**
-         * @brief sets the bancor network contract account
-         * @param network - bancor network contract account
-         */
-        ACTION setnetwork(name network);
 
         // the 4 actions below updates the converter settings, can only be called by the converter owner after creation
 
@@ -382,7 +369,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         void delmigrate( const set<symbol_code> converters );
 
         /*! \cond DOCS_EXCLUDE */
-        typedef eosio::multi_index<"settings"_n, settings_t> settings;
+        typedef eosio::singleton<"settings"_n, settings_params> settings;
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
         typedef eosio::multi_index<"accounts"_n, account_t,
@@ -398,9 +385,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         // Action wrappers
         using create_action = action_wrapper<"create"_n, &BancorConverter::create>;
         using close_action = action_wrapper<"delconverter"_n, &BancorConverter::delconverter>;
-        using setmultitokn_action = action_wrapper<"setmultitokn"_n, &BancorConverter::setmultitokn>;
-        using setstaking_action = action_wrapper<"setstaking"_n, &BancorConverter::setstaking>;
-        using setmaxfee_action = action_wrapper<"setmaxfee"_n, &BancorConverter::setmaxfee>;
+        using setparams_action = action_wrapper<"setparams"_n, &BancorConverter::setparams>;
         using updateowner_action = action_wrapper<"updateowner"_n, &BancorConverter::updateowner>;
         using updatefee_action = action_wrapper<"updatefee"_n, &BancorConverter::updatefee>;
         using setreserve_action = action_wrapper<"setreserve"_n, &BancorConverter::setreserve>;
