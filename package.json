@@ -18,7 +18,7 @@
     "deploy:local": "./scripts/deploy/system_contracts.sh && ./scripts/deploy/test_contracts.sh && ./scripts/deploy/bancor_network.sh -m local",
     "deploy:remote": "./scripts/deploy/bancor_network.sh -m remote",
     "compile": "./scripts/compile.sh",
-    "test": "mocha -t 8000 --bail ./test/eos/converter.test.js ./test/eos/network.test.js ./test/eos/bancorConverter.test.js ./test/eos/bancor-x.test.js",
+    "test": "mocha -t 8000 --bail ./test/eos/converter.test.js ./test/eos/network.test.js ./test/eos/bancorConverter.test.js ./test/eos/bancor-x.test.js ./test/eos/BancorConverterRegistry.test.js",
     "start": "npm run start-nodeos && npm run deploy:local",
     "restart": "npm run kill && npm run start && npm run test",
     "cstart": "npm run compile && npm run restart",

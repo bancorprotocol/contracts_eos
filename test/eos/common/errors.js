@@ -35,6 +35,7 @@ module.exports = Object.freeze({
         NO_CONFIG: 'setconfig first',
         ONLY_DEPOSIT: "only 'stake' may transfer to self",
         DEPOSIT_FIRST: "must deposit first",
-        BAD_RELAY: 'multi-token mismatch'
+        BAD_RELAY: 'multi-token mismatch',
+        INACTIVE_CONVERTER: 'converter is inactive'
     }
 });

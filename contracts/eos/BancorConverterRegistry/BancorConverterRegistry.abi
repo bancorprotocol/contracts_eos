@@ -1,0 +1,157 @@
+{
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
+    "structs": [
+        {
+            "name": "Converter",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "pool_token",
+                    "type": "extended_symbol"
+                }
+            ]
+        },
+        {
+            "name": "addconverter",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_account",
+                    "type": "name"
+                },
+                {
+                    "name": "pool_token_code",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "converter_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "converter",
+                    "type": "Converter"
+                }
+            ]
+        },
+        {
+            "name": "convertible_pair_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "from_token",
+                    "type": "extended_symbol"
+                },
+                {
+                    "name": "to_token",
+                    "type": "extended_symbol"
+                },
+                {
+                    "name": "converter",
+                    "type": "Converter"
+                }
+            ]
+        },
+        {
+            "name": "extended_symbol",
+            "base": "",
+            "fields": [
+                {
+                    "name": "sym",
+                    "type": "symbol"
+                },
+                {
+                    "name": "contract",
+                    "type": "name"
+                }
+            ]
+        },
+        {
+            "name": "rmconverter",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converter_account",
+                    "type": "name"
+                },
+                {
+                    "name": "pool_token_code",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "token_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "token",
+                    "type": "extended_symbol"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "addconverter",
+            "type": "addconverter",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "rmconverter",
+            "type": "rmconverter",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [
+        {
+            "name": "cnvrtblpairs",
+            "type": "convertible_pair_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "converters",
+            "type": "converter_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "liqdtypools",
+            "type": "converter_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "pooltokens",
+            "type": "token_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
+    "ricardian_clauses": [],
+    "variants": []
+}

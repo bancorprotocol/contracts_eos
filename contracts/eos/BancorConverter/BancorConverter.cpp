@@ -524,7 +524,6 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
 
 bool BancorConverter::is_converter_active(symbol_code converter) {
     reserves reserves_table(get_self(), converter.raw());
-
     for (auto& reserve : reserves_table) {
         if (reserve.balance.amount == 0)
             return false;

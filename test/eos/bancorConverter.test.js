@@ -52,7 +52,7 @@ const bntToken = config.BNT_TOKEN_ACCOUNT
 const user1 = config.MASTER_ACCOUNT
 const user2 = config.TEST_ACCOUNT
 const multiToken = config.MULTI_TOKEN_ACCOUNT
-const bancorConverter = config.MULTI_CONVERTER_ACCOUNT
+const bancorConverter = config.BANCOR_CONVERTER_ACCOUNT
 
 describe('BancorConverter', () => {
     describe('setup', async () => {
@@ -223,10 +223,12 @@ describe('BancorConverter', () => {
             const BNTSYSReserveBalance = Number((await getReserve('BNT', bancorConverter, 'BNTSYS')).rows[0].balance.split(' ')[0])
             const RELAYReserveBalance = Number((await getReserve('BNT', bancorConverter, 'RELAY')).rows[0].balance.split(' ')[0])
             const RELAYBReserveBalance = Number((await getReserve('BNT', bancorConverter, 'RELAYB')).rows[0].balance.split(' ')[0])
+            const TESTReserveBalance = Number((await getReserve('BNT', bancorConverter, 'TEST')).rows[0].balance.split(' ')[0])
+            const INACTIVReserveBalance = Number((await getReserve('BNT', bancorConverter, 'INACTIV')).rows[0].balance.split(' ')[0])
             
             const totalBntBalance = (await getBalance(bancorConverter, bntToken, 'BNT')).rows[0].balance.split(' ')[0]
             
-            const reserveBalancesSum = [TokenAReserveBalance, TokenBReserveBalance, BNTEOSReserveBalance, BNTSYSReserveBalance, RELAYReserveBalance, RELAYBReserveBalance]
+            const reserveBalancesSum = [TokenAReserveBalance, TokenBReserveBalance, BNTEOSReserveBalance, BNTSYSReserveBalance, RELAYReserveBalance, RELAYBReserveBalance, TESTReserveBalance, INACTIVReserveBalance]
                 .reduce((sum, c) => sum.add(c), Decimal(0));
             assert.equal(reserveBalancesSum.toFixed(8), totalBntBalance)
         })
@@ -819,7 +821,7 @@ describe('BancorConverter', () => {
             assert.equal(fromTokenPriceDataEvent.reserve_ratio, 500000, "unexpected reserve_ratio");
             
             const expectedFromTokenReserveBalance = parseFloat(amount) + initialFromTokenReserveBalance;
-            assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance), expectedFromTokenReserveBalance, "unexpected reserve_balance");
+            assert.equal(parseFloat(fromTokenPriceDataEvent.reserve_balance).toFixed(8), expectedFromTokenReserveBalance.toFixed(8), "unexpected reserve_balance");
         
             res = await get(multiToken, 'BNTEOS');
             const expectedSmartSupply = parseFloat(res.rows[0].supply.split(' ')[0])
