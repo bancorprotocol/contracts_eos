@@ -71,7 +71,7 @@ class BancorConverter : public contract { /*! \endcond */
          * @details Both SCOPE and PRIMARY KEY are `_self`, so this table is effectively a singleton
          * @{
          *//*! \cond DOCS_EXCLUDE */
-            struct [[eosio::table("settings")]] settings_params { /*! \endcond */
+            struct [[eosio::table("settings")]] settings_t { /*! \endcond */
                 /**
                  * @brief maximum conversion fee for converters in this contract
                  */
@@ -277,14 +277,14 @@ class BancorConverter : public contract { /*! \endcond */
         void delconverter(symbol_code converter_currency_code);
 
         /**
-         * @brief sets the bancor network settings
+         * @brief sets the bancor settings
          * @param multi_token - may only set multi-token contract once
          * @param staking - name of staking/voting contract
          * @param maxfee - maximum fee for all converters in this multi-converter
          * @param network - bancor network contract account
          * @example
          *
-         * cleos push action bancorcnvrtr setparams '[{
+         * cleos push action bancorcnvrtr setsettings '[{
          *     "max_fee": 30000,
          *     "multi_token": "smarttokens1",
          *     "network": "thisisbancor",
@@ -292,7 +292,7 @@ class BancorConverter : public contract { /*! \endcond */
          * }]' -p bancorcnvrtr
          */
         [[eosio::action]]
-        void setparams( const BancorConverter::settings_params params );
+        void setsettings( const BancorConverter::settings_t params );
 
         /**
          * @brief may only set staking/voting contract for this multi-converter once
@@ -379,7 +379,7 @@ class BancorConverter : public contract { /*! \endcond */
         void delmigrate( const set<symbol_code> converters );
 
         /*! \cond DOCS_EXCLUDE */
-        typedef eosio::singleton<"settings"_n, settings_params> settings;
+        typedef eosio::singleton<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
         typedef eosio::multi_index<"accounts"_n, account_t,

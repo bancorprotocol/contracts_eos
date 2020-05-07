@@ -59,7 +59,7 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
 }
 
 [[eosio::action]]
-void BancorConverter::setparams( const settings_params params )
+void BancorConverter::setsettings( const BancorConverter::settings_t params )
 {
     require_auth( get_self() );
     BancorConverter::settings _settings( get_self(), get_self().value );
