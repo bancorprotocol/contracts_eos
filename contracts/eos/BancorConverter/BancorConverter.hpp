@@ -61,7 +61,7 @@ using namespace std;
 }
 
 /*! \cond DOCS_EXCLUDE */
-CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
+class BancorConverter : public contract { /*! \endcond */
     public:
         using contract::contract;
 
@@ -99,7 +99,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
          * @{
          *//*! \cond DOCS_EXCLUDE */
-            TABLE reserve_t { /*! \endcond */
+            struct [[eosio::table("reserves")]] reserve_t { /*! \endcond */
                 /**
                  * @brief name of the account storing the token contract for this reserve's token
                  */
@@ -128,7 +128,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
          * @{
          *//*! \cond DOCS_EXCLUDE */
-            TABLE converter_v2_t {
+            struct [[eosio::table("converter.v2")]] converter_v2_t {
                 /**
                  * @brief symbol of the smart token -- representing a share in the reserves of this converter
                  * @details PRIMARY KEY for this table is `currency.code().raw()`
@@ -197,7 +197,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
          * @{
          *//*! \cond DOCS_EXCLUDE */
-            TABLE converter_t { /*! \endcond */
+            struct [[eosio::table("converters")]] converter_t { /*! \endcond */
                 /**
                  * @brief symbol of the smart token -- representing a share in the reserves of this converter
                  * @details PRIMARY KEY for this table is `currency.code().raw()`
@@ -231,7 +231,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @details SCOPE of this table is the `name.value` of the liquidity provider, owner of the `quantity`
          * @{
          *//*! \cond DOCS_EXCLUDE */
-            TABLE account_t { /*! \endcond */
+            struct [[eosio::table("account")]] account_t { /*! \endcond */
                 /**
                  * @brief symbol of the smart token (a way to reference converters) this balance pertains to
                  */
@@ -266,13 +266,15 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param initial_supply - initial supply of the smart token governed by the converter
          * @param maximum_supply - maximum supply of the smart token governed by the converter
          */
-        ACTION create(name owner, symbol_code token_code, double initial_supply);
+        [[eosio::action]]
+        void create(name owner, symbol_code token_code, double initial_supply);
 
         /**
          * @brief deletes a converter with empty reserves
          * @param converter_currency_code - the currency code of the currency governed by the converter
          */
-        ACTION delconverter(symbol_code converter_currency_code);
+        [[eosio::action]]
+        void delconverter(symbol_code converter_currency_code);
 
         /**
          * @brief sets the bancor network settings
@@ -289,7 +291,8 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          *     "staking": ""
          * }]' -p bancorcnvrtr
          */
-        ACTION setparams( const BancorConverter::settings_params params );
+        [[eosio::action]]
+        void setparams( const BancorConverter::settings_params params );
 
         /**
          * @brief may only set staking/voting contract for this multi-converter once
@@ -297,7 +300,8 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param protocol_feature - protocol feature
          * @param enabled - (true/false) to be enabled
          */
-        ACTION activate( const symbol_code currency, const name protocol_feature, const bool enabled );
+        [[eosio::action]]
+        void activate( const symbol_code currency, const name protocol_feature, const bool enabled );
 
         // the 4 actions below updates the converter settings, can only be called by the converter owner after creation
 
@@ -306,14 +310,16 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param currency - the currency symbol governed by the converter
          * @param new_owner - converter's new owner
          */
-        ACTION updateowner(symbol_code currency, name new_owner);
+        [[eosio::action]]
+        void updateowner(symbol_code currency, name new_owner);
 
         /**
          * @brief updates the converter fee
          * @param currency - the currency symbol governed by the converter
          * @param fee - the new fee % for this converter, must be lower than the maximum fee, 0-1000000
          */
-        ACTION updatefee(symbol_code currency, uint64_t fee);
+        [[eosio::action]]
+        void updatefee(symbol_code currency, uint64_t fee);
 
         /**
          * @brief initializes a new reserve in the converter
@@ -322,22 +328,25 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param contract - reserve token contract name
          * @param ratio - reserve ratio, percentage, 0-1000000
          */
-        ACTION setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio);
+        [[eosio::action]]
+        void setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio);
 
         /**
          * @brief deletes an empty reserve in the converter
          * @param converter - the currency code of the smart token governed by the converter
          * @param currency - reserve token currency code
          */
-        ACTION delreserve(symbol_code converter, symbol_code reserve);
+        [[eosio::action]]
+        void delreserve(symbol_code converter, symbol_code reserve);
 
         /**
          * @brief called by liquidity providers withdrawing "temporary balances" before `fund`ing them into the reserve
          * @param sender - sender of the quantity
          * @param quantity - amount to decrease the supply by (in the smart token)
          * @param converter_currency_code - the currency code of the currency governed by the converter
-        */
-        ACTION withdraw(name sender, asset quantity, symbol_code converter_currency_code);
+         */
+        [[eosio::action]]
+        void withdraw(name sender, asset quantity, symbol_code converter_currency_code);
 
         /**
          * @brief buys smart tokens with all connector tokens using the same percentage
@@ -346,8 +355,9 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * can only be called if the total ratio is exactly 100%
          * @param  sender - sender of the quantity
          * @param quantity - amount to increase the supply by (in the smart token)
-        */
-        ACTION fund(name sender, asset quantity);
+         */
+        [[eosio::action]]
+        void fund(name sender, asset quantity);
 
         /**
          * @brief transfer intercepts with standard transfer args
@@ -359,7 +369,7 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
          * @param quantity - the quantity for the transfer
          * @param memo - the memo for the transfer
          */
-        //[[eosio::on_notify("*::transfer")]]
+        [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
 
         [[eosio::action]]
@@ -373,9 +383,8 @@ CONTRACT BancorConverter : public eosio::contract { /*! \endcond */
         typedef eosio::multi_index<"converters"_n, converter_t> converters;
         typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
         typedef eosio::multi_index<"accounts"_n, account_t,
-                        indexed_by<"bycnvrt"_n,
-                            const_mem_fun <account_t, uint128_t,
-                            &account_t::by_cnvrt >>> accounts;
+            indexed_by<"bycnvrt"_n, const_mem_fun <account_t, uint128_t, &account_t::by_cnvrt >>
+        > accounts;
 
         // migration table
         typedef eosio::multi_index<"converter.v2"_n, converter_v2_t> converters_v2;

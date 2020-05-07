@@ -8,7 +8,8 @@
 #include "BancorConverter.hpp"
 #include "migrate.cpp"
 
-ACTION BancorConverter::create(name owner, symbol_code token_code, double initial_supply) {
+[[eosio::action]]
+void BancorConverter::create(name owner, symbol_code token_code, double initial_supply) {
     require_auth(owner);
 
     check( token_code.is_valid(), "token_code is invalid");
@@ -57,7 +58,8 @@ ACTION BancorConverter::create(name owner, symbol_code token_code, double initia
     migrate_converters_v2( token_code );
 }
 
-ACTION BancorConverter::setparams( const settings_params params )
+[[eosio::action]]
+void BancorConverter::setparams( const settings_params params )
 {
     require_auth( get_self() );
     BancorConverter::settings _settings( get_self(), get_self().value );
@@ -81,7 +83,8 @@ ACTION BancorConverter::setparams( const settings_params params )
     _settings.set( params, get_self() );
 }
 
-ACTION BancorConverter::activate( const symbol_code currency, const name protocol_feature, const bool enabled ) {
+[[eosio::action]]
+void BancorConverter::activate( const symbol_code currency, const name protocol_feature, const bool enabled ) {
     converters_v2 converters_v2_table(get_self(), get_self().value);
     settings settings_table(get_self(), get_self().value);
 
@@ -105,7 +108,8 @@ ACTION BancorConverter::activate( const symbol_code currency, const name protoco
     });
 }
 
-ACTION BancorConverter::updateowner(symbol_code currency, name new_owner) {
+[[eosio::action]]
+void BancorConverter::updateowner(symbol_code currency, name new_owner) {
     converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
 
@@ -120,7 +124,8 @@ ACTION BancorConverter::updateowner(symbol_code currency, name new_owner) {
     migrate_converters_v2( currency );
 }
 
-ACTION BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
+[[eosio::action]]
+void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
     settings settings_table(get_self(), get_self().value);
     converters converters_table(get_self(), get_self().value);
 
@@ -145,7 +150,8 @@ ACTION BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
     migrate_converters_v2( currency );
 }
 
-ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
+[[eosio::action]]
+void BancorConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
     converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     require_auth(converter.owner);
@@ -176,7 +182,8 @@ ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol c
     migrate_converters_v2( converter_currency_code );
 }
 
-ACTION BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
+[[eosio::action]]
+void BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
     check(!is_converter_active(converter),  "a reserve can only be deleted if it's converter is inactive");
     reserves reserves_table(get_self(), converter.raw());
     const auto& rsrv = reserves_table.get(reserve.raw(), "reserve not found");
@@ -187,7 +194,8 @@ ACTION BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
     migrate_converters_v2( converter );
 }
 
-ACTION BancorConverter::delconverter(symbol_code converter_currency_code) {
+[[eosio::action]]
+void BancorConverter::delconverter(symbol_code converter_currency_code) {
     converters converters_table(get_self(), get_self().value);
     reserves reserves_table(get_self(), converter_currency_code.raw());
     check(reserves_table.begin() == reserves_table.end(), "delete reserves first");
@@ -199,7 +207,8 @@ ACTION BancorConverter::delconverter(symbol_code converter_currency_code) {
     delete_converters_v2( converter_currency_code );
 }
 
-ACTION BancorConverter::fund(name sender, asset quantity) {
+[[eosio::action]]
+void BancorConverter::fund(name sender, asset quantity) {
     require_auth(sender);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
 
@@ -275,7 +284,8 @@ void BancorConverter::liquidate(name sender, asset quantity) {
     migrate_converters_v2( quantity.symbol.code() );
 }
 
-ACTION BancorConverter::withdraw(name sender, asset quantity, symbol_code converter_currency_code) {
+[[eosio::action]]
+void BancorConverter::withdraw(name sender, asset quantity, symbol_code converter_currency_code) {
     require_auth(sender);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
     mod_balances(sender, -quantity, converter_currency_code, get_self());
@@ -576,8 +586,10 @@ double BancorConverter::quick_convert(double balance, double in, double toBalanc
     return in / (balance + in) * toBalance;
 }
 
+[[eosio::on_notify("*::transfer")]]
 void BancorConverter::on_transfer(name from, name to, asset quantity, string memo) {
     require_auth(from);
+
     // avoid unstaking and system contract ops mishaps
     if (to != get_self() || from == get_self() ||
         from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) return;
@@ -585,28 +597,12 @@ void BancorConverter::on_transfer(name from, name to, asset quantity, string mem
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
 
     const auto& splitted_memo = split(memo, ";");
-    if (splitted_memo[0] == "fund")
-        mod_balances(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver());
-    else if (splitted_memo[0] == "liquidate")
-        liquidate(from, quantity);
 
-    else {
+    if (splitted_memo[0] == "fund") {
+        mod_balances(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver());
+    } else if (splitted_memo[0] == "liquidate") {
+        liquidate(from, quantity);
+    } else {
         convert(from, quantity, memo, get_first_receiver());
     }
-}
-
-extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
-    if (action == "transfer"_n.value && code != receiver)
-        eosio::execute_action(eosio::name(receiver), eosio::name(code), &BancorConverter::on_transfer);
-
-    if (code == receiver)
-        switch (action) {
-            EOSIO_DISPATCH_HELPER(BancorConverter,
-                (create)(delconverter)
-                (setparams)(activate)
-                (updateowner)(updatefee)
-                (setreserve)(delreserve)(withdraw)(fund)
-                (migrate)(delmigrate)
-            )
-        }
 }
