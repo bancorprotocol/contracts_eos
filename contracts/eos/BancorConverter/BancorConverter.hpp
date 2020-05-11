@@ -61,7 +61,7 @@ using namespace std;
 }
 
 /*! \cond DOCS_EXCLUDE */
-class BancorConverter : public contract { /*! \endcond */
+class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
     public:
         using contract::contract;
 

@@ -4,6 +4,24 @@
     "types": [],
     "structs": [
         {
+            "name": "account_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "symbl",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                },
+                {
+                    "name": "id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
             "name": "activate",
             "base": "",
             "fields": [
@@ -18,6 +36,62 @@
                 {
                     "name": "enabled",
                     "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "converter_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "stake_enabled",
+                    "type": "bool"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "converter_v2_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol"
+                },
+                {
+                    "name": "owner",
+                    "type": "name"
+                },
+                {
+                    "name": "fee",
+                    "type": "uint64"
+                },
+                {
+                    "name": "reserve_weights",
+                    "type": "pair_symbol_code_uint64[]"
+                },
+                {
+                    "name": "reserve_balances",
+                    "type": "pair_symbol_code_extended_asset[]"
+                },
+                {
+                    "name": "protocol_features",
+                    "type": "pair_name_bool[]"
+                },
+                {
+                    "name": "metadata_json",
+                    "type": "pair_name_string[]"
                 }
             ]
         },
@@ -94,6 +168,80 @@
                 {
                     "name": "converters",
                     "type": "symbol_code[]"
+                }
+            ]
+        },
+        {
+            "name": "pair_name_bool",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "name"
+                },
+                {
+                    "name": "value",
+                    "type": "bool"
+                }
+            ]
+        },
+        {
+            "name": "pair_name_string",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "name"
+                },
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "pair_symbol_code_extended_asset",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "value",
+                    "type": "extended_asset"
+                }
+            ]
+        },
+        {
+            "name": "pair_symbol_code_uint64",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "symbol_code"
+                },
+                {
+                    "name": "value",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "reserve_t",
+            "base": "",
+            "fields": [
+                {
+                    "name": "contract",
+                    "type": "name"
+                },
+                {
+                    "name": "ratio",
+                    "type": "uint64"
+                },
+                {
+                    "name": "balance",
+                    "type": "asset"
                 }
             ]
         },
@@ -260,7 +408,43 @@
             "ricardian_contract": ""
         }
     ],
-    "tables": [],
+    "tables": [
+        {
+            "name": "accounts",
+            "type": "account_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "converter.v2",
+            "type": "converter_v2_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "converters",
+            "type": "converter_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "reserves",
+            "type": "reserve_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        },
+        {
+            "name": "settings",
+            "type": "settings_t",
+            "index_type": "i64",
+            "key_names": [],
+            "key_types": []
+        }
+    ],
     "ricardian_clauses": [],
     "variants": []
 }
