@@ -4,42 +4,20 @@
     "types": [],
     "structs": [
         {
-            "name": "account_t",
-            "base": "",
-            "fields": [
-                {
-                    "name": "symbl",
-                    "type": "symbol_code"
-                },
-                {
-                    "name": "quantity",
-                    "type": "asset"
-                },
-                {
-                    "name": "id",
-                    "type": "uint64"
-                }
-            ]
-        },
-        {
-            "name": "converter_t",
+            "name": "activate",
             "base": "",
             "fields": [
                 {
                     "name": "currency",
-                    "type": "symbol"
+                    "type": "symbol_code"
                 },
                 {
-                    "name": "owner",
+                    "name": "protocol_feature",
                     "type": "name"
                 },
                 {
-                    "name": "stake_enabled",
+                    "name": "enabled",
                     "type": "bool"
-                },
-                {
-                    "name": "fee",
-                    "type": "uint64"
                 }
             ]
         },
@@ -72,6 +50,16 @@
             ]
         },
         {
+            "name": "delmigrate",
+            "base": "",
+            "fields": [
+                {
+                    "name": "converters",
+                    "type": "symbol_code[]"
+                }
+            ]
+        },
+        {
             "name": "delreserve",
             "base": "",
             "fields": [
@@ -82,20 +70,6 @@
                 {
                     "name": "reserve",
                     "type": "symbol_code"
-                }
-            ]
-        },
-        {
-            "name": "enablestake",
-            "base": "",
-            "fields": [
-                {
-                    "name": "currency",
-                    "type": "symbol_code"
-                },
-                {
-                    "name": "enabled",
-                    "type": "bool"
                 }
             ]
         },
@@ -114,50 +88,12 @@
             ]
         },
         {
-            "name": "reserve_t",
+            "name": "migrate",
             "base": "",
             "fields": [
                 {
-                    "name": "contract",
-                    "type": "name"
-                },
-                {
-                    "name": "ratio",
-                    "type": "uint64"
-                },
-                {
-                    "name": "balance",
-                    "type": "asset"
-                }
-            ]
-        },
-        {
-            "name": "setmaxfee",
-            "base": "",
-            "fields": [
-                {
-                    "name": "maxfee",
-                    "type": "uint64"
-                }
-            ]
-        },
-        {
-            "name": "setmultitokn",
-            "base": "",
-            "fields": [
-                {
-                    "name": "multi_token",
-                    "type": "name"
-                }
-            ]
-        },
-        {
-            "name": "setnetwork",
-            "base": "",
-            "fields": [
-                {
-                    "name": "network",
-                    "type": "name"
+                    "name": "converters",
+                    "type": "symbol_code[]"
                 }
             ]
         },
@@ -184,12 +120,12 @@
             ]
         },
         {
-            "name": "setstaking",
+            "name": "setsettings",
             "base": "",
             "fields": [
                 {
-                    "name": "staking",
-                    "type": "name"
+                    "name": "params",
+                    "type": "settings_t"
                 }
             ]
         },
@@ -264,6 +200,11 @@
     ],
     "actions": [
         {
+            "name": "activate",
+            "type": "activate",
+            "ricardian_contract": ""
+        },
+        {
             "name": "create",
             "type": "create",
             "ricardian_contract": ""
@@ -274,13 +215,13 @@
             "ricardian_contract": ""
         },
         {
-            "name": "delreserve",
-            "type": "delreserve",
+            "name": "delmigrate",
+            "type": "delmigrate",
             "ricardian_contract": ""
         },
         {
-            "name": "enablestake",
-            "type": "enablestake",
+            "name": "delreserve",
+            "type": "delreserve",
             "ricardian_contract": ""
         },
         {
@@ -289,18 +230,8 @@
             "ricardian_contract": ""
         },
         {
-            "name": "setmaxfee",
-            "type": "setmaxfee",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "setmultitokn",
-            "type": "setmultitokn",
-            "ricardian_contract": ""
-        },
-        {
-            "name": "setnetwork",
-            "type": "setnetwork",
+            "name": "migrate",
+            "type": "migrate",
             "ricardian_contract": ""
         },
         {
@@ -309,8 +240,8 @@
             "ricardian_contract": ""
         },
         {
-            "name": "setstaking",
-            "type": "setstaking",
+            "name": "setsettings",
+            "type": "setsettings",
             "ricardian_contract": ""
         },
         {
@@ -329,36 +260,7 @@
             "ricardian_contract": ""
         }
     ],
-    "tables": [
-        {
-            "name": "accounts",
-            "type": "account_t",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
-        {
-            "name": "converters",
-            "type": "converter_t",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
-        {
-            "name": "reserves",
-            "type": "reserve_t",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
-        {
-            "name": "settings",
-            "type": "settings_t",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        }
-    ],
+    "tables": [],
     "ricardian_clauses": [],
     "variants": []
 }
