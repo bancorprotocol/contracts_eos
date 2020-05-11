@@ -6,8 +6,10 @@
 
 #include "../Token/Token.hpp"
 #include "BancorConverter.hpp"
+#include "migrate.cpp"
 
-ACTION BancorConverter::create(name owner, symbol_code token_code, double initial_supply) {
+[[eosio::action]]
+void BancorConverter::create(name owner, symbol_code token_code, double initial_supply) {
     require_auth(owner);
 
     check( token_code.is_valid(), "token_code is invalid");
@@ -15,9 +17,9 @@ ACTION BancorConverter::create(name owner, symbol_code token_code, double initia
     double maximum_supply = DEFAULT_MAX_SUPPLY;
 
     settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
+    const auto& st = settings_table.get();
 
-    converters converters_table(get_self(), token_symbol.code().raw());
+    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.find(token_symbol.code().raw());
 
     check(converter == converters_table.end(), "converter for the given symbol already exists");
@@ -51,92 +53,64 @@ ACTION BancorConverter::create(name owner, symbol_code token_code, double initia
         st.multi_token, "transfer"_n,
         make_tuple(get_self(), owner, initial_supply_asset, string("setup"))
     ).send();
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( token_code );
 }
 
-ACTION BancorConverter::setmaxfee(uint64_t maxfee) {
-    require_auth(get_self());
+[[eosio::action]]
+void BancorConverter::setsettings( const BancorConverter::settings_t params )
+{
+    require_auth( get_self() );
+    BancorConverter::settings _settings( get_self(), get_self().value );
+    const auto settings = _settings.get_or_default();
 
-    settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "set token contract first");
+    // validation of params
+    // maxfee
+    check(params.max_fee <= MAX_FEE, "maxfee must be lower or equal to " + to_string( MAX_FEE ));
 
-    string error = string("max fee must be lower or equal to ") + std::to_string(MAX_FEE);
-    check(maxfee <= MAX_FEE, error.c_str());
-    check(maxfee != st.max_fee, "setting same value as before");
-    settings_table.modify(st, same_payer, [&](auto& s) {
-        s.max_fee = maxfee;
-    });
+    // staking
+    if ( settings.staking ) check( params.staking == settings.staking, "staking contract already set");
+    else check( is_account( params.staking ), "staking account does not exists");
+
+    // multi_token
+    if ( settings.multi_token ) check( params.multi_token == settings.multi_token, "multi_token contract already set");
+    else check( is_account( params.multi_token ), "multi_token account does not exists");
+
+    // network
+    check( is_account( params.network ), "network account does not exists");
+
+    _settings.set( params, get_self() );
 }
 
-ACTION BancorConverter::setstaking(name staking) {
-    check(is_account(staking), "invalid staking account");
-    require_auth(get_self());
-
+[[eosio::action]]
+void BancorConverter::activate( const symbol_code currency, const name protocol_feature, const bool enabled ) {
+    converters_v2 converters_v2_table(get_self(), get_self().value);
     settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "set token contract first");
 
-    check(!is_account(st.staking), "staking contract already set");
+    const auto& st = settings_table.get();
+    const auto& converter = converters_v2_table.get(currency.raw(), "converter does not exist");
 
-    settings_table.modify(st, same_payer, [&](auto& s) {
-        s.staking = staking;
-    });
-}
-
-ACTION BancorConverter::setmultitokn(name multi_token) {
-    check(is_account(multi_token), "invalid multi-token account");
-    require_auth(get_self());
-
-    settings settings_table(get_self(), get_self().value);
-    auto st = settings_table.find("settings"_n.value);
-
-    if (st == settings_table.end()) {
-        settings_table.emplace(get_self(), [&](auto& s) {
-            s.multi_token = multi_token;
-        });
-    }
-    else {
-        check(!is_account(st->multi_token), "can only call setmultitokn once");
-        settings_table.modify(st, same_payer, [&](auto& s) {
-            s.multi_token = multi_token;
-        });
-    }
-}
-
-ACTION BancorConverter::setnetwork(name network) {
-    require_auth(get_self());
-    check(is_account(network), "network account doesn't exist");
-
-    settings settings_table(get_self(), get_self().value);
-    auto st = settings_table.find("settings"_n.value);
-
-    if (st == settings_table.end()) {
-        settings_table.emplace(get_self(), [&](auto& s) {
-            s.network = network;
-        });
-    }
-    else {
-        settings_table.modify(st, same_payer, [&](auto& s) {
-            s.network = network;
-        });
-    }
-}
-
-ACTION BancorConverter::enablestake(symbol_code currency, bool enabled) {
-    converters converters_table(get_self(), currency.raw());
-    settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
-    const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
+    // only converter owner can activate
     require_auth(converter.owner);
 
-    check(is_account(st.staking), "set staking account before enabling staking");
-    check(enabled != converter.stake_enabled, "setting same value as before");
+    // available protocol features
+    const set<name> protocol_features = set<name>{"stake"_n};
+    check( protocol_features.find( protocol_feature ) != protocol_features.end(), "invalid protocol feature");
 
-    converters_table.modify(converter, same_payer, [&](auto& c) {
-        c.stake_enabled = enabled;
+    // additional check for `stake` protocol feature
+    if ( protocol_feature == "stake"_n ) check( is_account(st.staking), "set staking account before enabling staking");
+
+    // update protocol feature
+    converters_v2_table.modify(converter, same_payer, [&](auto& row) {
+        check(row.protocol_features[protocol_feature] != enabled, "setting same value as before");
+        row.protocol_features[protocol_feature] = enabled;
     });
 }
 
-ACTION BancorConverter::updateowner(symbol_code currency, name new_owner) {
-    converters converters_table(get_self(), currency.raw());
+[[eosio::action]]
+void BancorConverter::updateowner(symbol_code currency, name new_owner) {
+    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
 
     require_auth(converter.owner);
@@ -145,13 +119,17 @@ ACTION BancorConverter::updateowner(symbol_code currency, name new_owner) {
     converters_table.modify(converter, same_payer, [&](auto& c) {
         c.owner = new_owner;
     });
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( currency );
 }
 
-ACTION BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
+[[eosio::action]]
+void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
     settings settings_table(get_self(), get_self().value);
-    converters converters_table(get_self(), currency.raw());
+    converters converters_table(get_self(), get_self().value);
 
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
+    const auto& st = settings_table.get();
     const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
 
     if (converter.stake_enabled)
@@ -167,10 +145,14 @@ ACTION BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
         });
         EMIT_CONVERSION_FEE_UPDATE_EVENT(currency, prevFee, fee);
     }
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( currency );
 }
 
-ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
-    converters converters_table(get_self(), converter_currency_code.raw());
+[[eosio::action]]
+void BancorConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
+    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     require_auth(converter.owner);
 
@@ -195,32 +177,44 @@ ACTION BancorConverter::setreserve(symbol_code converter_currency_code, symbol c
         total_ratio += reserve.ratio;
 
     check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter_currency_code );
 }
 
-ACTION BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
+[[eosio::action]]
+void BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
     check(!is_converter_active(converter),  "a reserve can only be deleted if it's converter is inactive");
     reserves reserves_table(get_self(), converter.raw());
     const auto& rsrv = reserves_table.get(reserve.raw(), "reserve not found");
 
     reserves_table.erase(rsrv);
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter );
 }
 
-ACTION BancorConverter::delconverter(symbol_code converter_currency_code) {
-    converters converters_table(get_self(), converter_currency_code.raw());
+[[eosio::action]]
+void BancorConverter::delconverter(symbol_code converter_currency_code) {
+    converters converters_table(get_self(), get_self().value);
     reserves reserves_table(get_self(), converter_currency_code.raw());
     check(reserves_table.begin() == reserves_table.end(), "delete reserves first");
 
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     converters_table.erase(converter);
+
+    // DELETE MIGRATED DATA from V2
+    delete_converters_v2( converter_currency_code );
 }
 
-ACTION BancorConverter::fund(name sender, asset quantity) {
+[[eosio::action]]
+void BancorConverter::fund(name sender, asset quantity) {
     require_auth(sender);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
 
     settings settings_table(get_self(), get_self().value);
-    converters converters_table(get_self(), quantity.symbol.code().raw());
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
+    converters converters_table(get_self(), get_self().value);
+    const auto& st = settings_table.get();
     const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
 
     check(converter.currency == quantity.symbol, "symbol mismatch");
@@ -249,11 +243,14 @@ ACTION BancorConverter::fund(name sender, asset quantity) {
         st.multi_token, "transfer"_n,
         make_tuple(get_self(), sender, quantity, string("fund"))
     ).send();
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( quantity.symbol.code() );
 }
 
 void BancorConverter::liquidate(name sender, asset quantity) {
     settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
+    const auto& st = settings_table.get();
     check(get_first_receiver() == st.multi_token, "bad origin for this transfer");
 
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
@@ -282,12 +279,19 @@ void BancorConverter::liquidate(name sender, asset quantity) {
         st.multi_token, "retire"_n,
         make_tuple(quantity, string("liquidation"))
     ).send();
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( quantity.symbol.code() );
 }
 
-ACTION BancorConverter::withdraw(name sender, asset quantity, symbol_code converter_currency_code) {
+[[eosio::action]]
+void BancorConverter::withdraw(name sender, asset quantity, symbol_code converter_currency_code) {
     require_auth(sender);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
     mod_balances(sender, -quantity, converter_currency_code, get_self());
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter_currency_code );
 }
 
 double BancorConverter::calculate_liquidate_return(double liquidation_amount, double supply, double reserve_balance, double total_ratio) {
@@ -351,7 +355,7 @@ void BancorConverter::mod_balances(name sender, asset quantity, symbol_code conv
     reserves reserves_table(get_self(), converter_currency_code.raw());
     const auto& reserve = reserves_table.get(quantity.symbol.code().raw(), "reserve doesn't exist");
 
-    converters converters_table(get_self(), converter_currency_code.raw());
+    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
 
     if (quantity.amount > 0)
@@ -373,7 +377,7 @@ void BancorConverter::mod_balances(name sender, asset quantity, symbol_code conv
 
 void BancorConverter::mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change) {
     settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
+    const auto& st = settings_table.get();
     asset supply = get_supply(st.multi_token, converter_currency.code());
     auto current_smart_supply = (supply.amount + pending_supply_change) / pow(10, converter_currency.precision());
 
@@ -393,7 +397,7 @@ void BancorConverter::mod_reserve_balance(symbol converter_currency, asset value
 
 void BancorConverter::convert(name from, asset quantity, string memo, name code) {
     settings settings_table(get_self(), get_self().value);
-    const auto& settings = settings_table.get("settings"_n.value, "settings do not exist");
+    const auto& settings = settings_table.get();
     check(from == settings.network, "converter can only receive from network contract");
 
     memo_structure memo_object = parse_memo(memo);
@@ -404,7 +408,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
     symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
-    converters converters_table(get_self(), converter_currency_code.raw());
+    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
 
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
@@ -433,6 +437,9 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
         to_return.amount / pow(10, to_return.symbol.precision()),
         fee
     );
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter_currency_code );
 }
 
 std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token) {
@@ -514,12 +521,15 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
     check(to_return.quantity.amount > 0, "below min return");
 
     settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get("settings"_n.value, "settings do not exist");
+    const auto& st = settings_table.get();
     action(
         permission_level{ get_self(), "active"_n },
         to_return.contract, "transfer"_n,
         make_tuple(get_self(), st.network, to_return.quantity, new_memo)
     ).send();
+
+    // MIGRATE DATA to V2
+    migrate_converters_v2( converter_currency.code() );
 }
 
 bool BancorConverter::is_converter_active(symbol_code converter) {
@@ -576,8 +586,10 @@ double BancorConverter::quick_convert(double balance, double in, double toBalanc
     return in / (balance + in) * toBalance;
 }
 
+[[eosio::on_notify("*::transfer")]]
 void BancorConverter::on_transfer(name from, name to, asset quantity, string memo) {
     require_auth(from);
+
     // avoid unstaking and system contract ops mishaps
     if (to != get_self() || from == get_self() ||
         from == "eosio.ram"_n || from == "eosio.stake"_n || from == "eosio.rex"_n) return;
@@ -585,25 +597,12 @@ void BancorConverter::on_transfer(name from, name to, asset quantity, string mem
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
 
     const auto& splitted_memo = split(memo, ";");
-    if (splitted_memo[0] == "fund")
-        mod_balances(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver());
-    else if (splitted_memo[0] == "liquidate")
-        liquidate(from, quantity);
 
-    else {
+    if (splitted_memo[0] == "fund") {
+        mod_balances(from, quantity, symbol_code(splitted_memo[1]), get_first_receiver());
+    } else if (splitted_memo[0] == "liquidate") {
+        liquidate(from, quantity);
+    } else {
         convert(from, quantity, memo, get_first_receiver());
     }
-}
-
-extern "C" void apply(uint64_t receiver, uint64_t code, uint64_t action) {
-    if (action == "transfer"_n.value && code != receiver)
-        eosio::execute_action(eosio::name(receiver), eosio::name(code), &BancorConverter::on_transfer);
-
-    if (code == receiver)
-        switch (action) {
-            EOSIO_DISPATCH_HELPER(BancorConverter, (create)(delconverter)
-            (setmultitokn)(setstaking)(setmaxfee)(setnetwork)
-            (updateowner)(updatefee)(enablestake)
-            (setreserve)(delreserve)(withdraw)(fund))
-        }
 }
