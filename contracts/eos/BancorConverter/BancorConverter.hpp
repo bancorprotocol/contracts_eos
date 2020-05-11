@@ -394,7 +394,7 @@ class BancorConverter : public contract { /*! \endcond */
         // Action wrappers
         using create_action = action_wrapper<"create"_n, &BancorConverter::create>;
         using close_action = action_wrapper<"delconverter"_n, &BancorConverter::delconverter>;
-        using setparams_action = action_wrapper<"setparams"_n, &BancorConverter::setparams>;
+        using setsettings_action = action_wrapper<"setsettings"_n, &BancorConverter::setsettings>;
         using updateowner_action = action_wrapper<"updateowner"_n, &BancorConverter::updateowner>;
         using updatefee_action = action_wrapper<"updatefee"_n, &BancorConverter::updatefee>;
         using setreserve_action = action_wrapper<"setreserve"_n, &BancorConverter::setreserve>;
