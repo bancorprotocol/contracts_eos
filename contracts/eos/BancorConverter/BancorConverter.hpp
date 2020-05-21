@@ -93,34 +93,34 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
                 name staking;
             }; /** @}*/
 
-        /**
-         * @defgroup BancorConverter_Reserves_Table Reserves Table
-         * @brief This table stores the reserve balances and related information for the reserves of every converter in this contract
-         * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
-         * @{
-         *//*! \cond DOCS_EXCLUDE */
-            struct [[eosio::table("reserves")]] reserve_t { /*! \endcond */
-                /**
-                 * @brief name of the account storing the token contract for this reserve's token
-                 */
-                name contract;
+        // /**
+        //  * @defgroup BancorConverter_Reserves_Table Reserves Table
+        //  * @brief This table stores the reserve balances and related information for the reserves of every converter in this contract
+        //  * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
+        //  * @{
+        //  *//*! \cond DOCS_EXCLUDE */
+        //     struct [[eosio::table("reserves")]] reserve_t { /*! \endcond */
+        //         /**
+        //          * @brief name of the account storing the token contract for this reserve's token
+        //          */
+        //         name contract;
 
-                /**
-                 * @brief reserve ratio relative to the other reserves
-                 */
-                uint64_t ratio;
+        //         /**
+        //          * @brief reserve ratio relative to the other reserves
+        //          */
+        //         uint64_t ratio;
 
-                /**
-                 * @brief amount in the reserve
-                 * @details PRIMARY KEY for this table is `balance.symbol.code().raw()`
-                 */
-                asset balance;
+        //         /**
+        //          * @brief amount in the reserve
+        //          * @details PRIMARY KEY for this table is `balance.symbol.code().raw()`
+        //          */
+        //         asset balance;
 
-                /*! \cond DOCS_EXCLUDE */
-                uint64_t primary_key() const { return balance.symbol.code().raw(); }
-                /*! \endcond */
+        //         /*! \cond DOCS_EXCLUDE */
+        //         uint64_t primary_key() const { return balance.symbol.code().raw(); }
+        //         /*! \endcond */
 
-            }; /** @}*/
+        //     }; /** @}*/
 
         /**
          * @defgroup BancorConverter_Reserves_Table Reserves Table
@@ -191,39 +191,39 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
 
             }; /** @}*/
 
-        /**
-         * @defgroup BancorConverter_Converters_Table Converters Table
-         * @brief This table stores the key information about all converters in this contract
-         * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
-         * @{
-         *//*! \cond DOCS_EXCLUDE */
-            struct [[eosio::table("converters")]] converter_t { /*! \endcond */
-                /**
-                 * @brief symbol of the smart token -- representing a share in the reserves of this converter
-                 * @details PRIMARY KEY for this table is `currency.code().raw()`
-                 */
-                symbol currency;
+        // /**
+        //  * @defgroup BancorConverter_Converters_Table Converters Table
+        //  * @brief This table stores the key information about all converters in this contract
+        //  * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
+        //  * @{
+        //  *//*! \cond DOCS_EXCLUDE */
+        //     struct [[eosio::table("converters")]] converter_t { /*! \endcond */
+        //         /**
+        //          * @brief symbol of the smart token -- representing a share in the reserves of this converter
+        //          * @details PRIMARY KEY for this table is `currency.code().raw()`
+        //          */
+        //         symbol currency;
 
-                /**
-                 * @brief creator of the converter
-                 */
-                name owner;
+        //         /**
+        //          * @brief creator of the converter
+        //          */
+        //         name owner;
 
-                /**
-                 * @brief toggle boolean to enable/disable this staking and voting for this converter
-                 */
-                bool stake_enabled;
+        //         /**
+        //          * @brief toggle boolean to enable/disable this staking and voting for this converter
+        //          */
+        //         bool stake_enabled;
 
-                /**
-                 * @brief conversion fee for this converter, applied on every hop
-                 */
-                uint64_t fee;
+        //         /**
+        //          * @brief conversion fee for this converter, applied on every hop
+        //          */
+        //         uint64_t fee;
 
-                /*! \cond DOCS_EXCLUDE */
-                uint64_t primary_key() const { return currency.code().raw(); }
-                /*! \endcond */
+        //         /*! \cond DOCS_EXCLUDE */
+        //         uint64_t primary_key() const { return currency.code().raw(); }
+        //         /*! \endcond */
 
-            }; /** @}*/
+        //     }; /** @}*/
 
         /**
          * @defgroup BancorConverter_Accounts_Table Accounts Table
@@ -295,7 +295,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         void setsettings( const BancorConverter::settings_t params );
 
         /**
-         * @brief may only set staking/voting contract for this multi-converter once
+         * @brief active protocol feature for multi-converter
          * @param currency - currency converter symbol code
          * @param protocol_feature - protocol feature
          * @param enabled - (true/false) to be enabled
@@ -372,16 +372,16 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
 
-        [[eosio::action]]
-        void migrate( const set<symbol_code> converters );
+        // [[eosio::action]]
+        // void migrate( const set<symbol_code> converters );
 
-        [[eosio::action]]
-        void delmigrate( const set<symbol_code> converters );
+        // [[eosio::action]]
+        // void delmigrate( const set<symbol_code> converters );
 
         /*! \cond DOCS_EXCLUDE */
         typedef eosio::singleton<"settings"_n, settings_t> settings;
-        typedef eosio::multi_index<"converters"_n, converter_t> converters;
-        typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
+        // typedef eosio::multi_index<"converters"_n, converter_t> converters;
+        // typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
         typedef eosio::multi_index<"accounts"_n, account_t,
             indexed_by<"bycnvrt"_n, const_mem_fun <account_t, uint128_t, &account_t::by_cnvrt >>
         > accounts;
@@ -403,11 +403,16 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         using fund_action = action_wrapper<"fund"_n, &BancorConverter::fund>;
     private:
         void convert(name from, asset quantity, string memo, name code);
-        std::tuple<asset, double> calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token);
+        std::tuple<asset, double> calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_v2_t& converter, name multi_token);
         void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
-        const reserve_t& get_reserve(symbol_code symbl, symbol_code converter_currency);
-        bool is_converter_active(symbol_code converter);
+        extended_asset get_reserve_balance(symbol_code symbl, symbol_code converter_currency);
+        uint64_t get_reserve_weight(symbol_code symbl, symbol_code converter_currency);
+        name get_reserve_contract(symbol_code symbl, symbol_code converter_currency);
+
+        bool is_converter_active(symbol_code converter_currency);
+        double asset_to_double(const asset quantity);
+        asset double_to_asset(const double amount, const symbol sym);
 
         void mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change = 0);
         void mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity);
@@ -441,8 +446,8 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         constexpr static uint8_t DEFAULT_TOKEN_PRECISION = 4;
 
         // migration
-        void migrate_converters_v1_no_scope( const symbol_code symcode );
-        void migrate_converters_v2( const symbol_code symcode );
-        void delete_converters_v2( const symbol_code symcode );
+        // void migrate_converters_v1_no_scope( const symbol_code symcode );
+        // void migrate_converters_v2( const symbol_code symcode );
+        // void delete_converters_v2( const symbol_code symcode );
 
 }; /** @}*/

@@ -6,7 +6,7 @@
 
 #include "../Token/Token.hpp"
 #include "BancorConverter.hpp"
-#include "migrate.cpp"
+// #include "migrate.cpp"
 
 [[eosio::action]]
 void BancorConverter::create(name owner, symbol_code token_code, double initial_supply) {
@@ -19,7 +19,7 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get();
 
-    converters converters_table(get_self(), get_self().value);
+    converters_v2 converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.find(token_symbol.code().raw());
 
     check(converter == converters_table.end(), "converter for the given symbol already exists");
@@ -29,7 +29,6 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
     converters_table.emplace(owner, [&](auto& c) {
         c.currency = token_symbol;
         c.owner = owner;
-        c.stake_enabled = false;
         c.fee = 0;
     });
 
@@ -53,9 +52,6 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
         st.multi_token, "transfer"_n,
         make_tuple(get_self(), owner, initial_supply_asset, string("setup"))
     ).send();
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( token_code );
 }
 
 [[eosio::action]]
@@ -85,6 +81,9 @@ void BancorConverter::setsettings( const BancorConverter::settings_t params )
 
 [[eosio::action]]
 void BancorConverter::activate( const symbol_code currency, const name protocol_feature, const bool enabled ) {
+    // disabled (protocol features have not yet been implemented within this contract)
+    check( false, "this feature is currently disabled" );
+
     converters_v2 converters_v2_table(get_self(), get_self().value);
     settings settings_table(get_self(), get_self().value);
 
@@ -110,7 +109,7 @@ void BancorConverter::activate( const symbol_code currency, const name protocol_
 
 [[eosio::action]]
 void BancorConverter::updateowner(symbol_code currency, name new_owner) {
-    converters converters_table(get_self(), get_self().value);
+    converters_v2 converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
 
     require_auth(converter.owner);
@@ -119,20 +118,17 @@ void BancorConverter::updateowner(symbol_code currency, name new_owner) {
     converters_table.modify(converter, same_payer, [&](auto& c) {
         c.owner = new_owner;
     });
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( currency );
 }
 
 [[eosio::action]]
 void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
     settings settings_table(get_self(), get_self().value);
-    converters converters_table(get_self(), get_self().value);
+    converters_v2 converters_table(get_self(), get_self().value);
 
     const auto& st = settings_table.get();
     const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
 
-    if (converter.stake_enabled)
+    if (converter.protocol_features.find("stake"_n) != converter.protocol_features.end())
         require_auth(st.staking);
     else
         require_auth(converter.owner);
@@ -145,14 +141,11 @@ void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
         });
         EMIT_CONVERSION_FEE_UPDATE_EVENT(currency, prevFee, fee);
     }
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( currency );
 }
 
 [[eosio::action]]
 void BancorConverter::setreserve(symbol_code converter_currency_code, symbol currency, name contract, uint64_t ratio) {
-    converters converters_table(get_self(), get_self().value);
+    converters_v2 converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     require_auth(converter.owner);
 
@@ -161,50 +154,40 @@ void BancorConverter::setreserve(symbol_code converter_currency_code, symbol cur
 
     check(is_account(contract), "token's contract is not an account");
     check(currency.is_valid(), "invalid reserve symbol");
+    check(converter.reserve_balances.find(currency.code()) == converter.reserve_balances.end(), "reserve already exists");
 
-    reserves reserves_table(get_self(), converter_currency_code.raw());
-    const auto reserve = reserves_table.find(currency.code().raw());
-    check(reserve == reserves_table.end(), "reserve already exists");
+    converters_table.modify(converter, converter.owner, [&](auto& r) {
+        r.reserve_balances[currency.code()] = extended_asset{asset{0, currency}, contract};
+        r.reserve_weights[currency.code()] = ratio;
 
-    reserves_table.emplace(converter.owner, [&](auto& r) {
-        r.contract = contract;
-        r.ratio = ratio;
-        r.balance = asset(0, currency);
+        // validate max ratio
+        double total_ratio = 0.0;
+        for (auto& reserve_weight : r.reserve_weights)
+            total_ratio += reserve_weight.second;
+
+        check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
     });
 
-    double total_ratio = 0.0;
-    for (auto& reserve : reserves_table)
-        total_ratio += reserve.ratio;
-
-    check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency_code );
 }
 
 [[eosio::action]]
 void BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
     check(!is_converter_active(converter),  "a reserve can only be deleted if it's converter is inactive");
-    reserves reserves_table(get_self(), converter.raw());
-    const auto& rsrv = reserves_table.get(reserve.raw(), "reserve not found");
+    converters_v2 converters_table(get_self(), get_self().value);
+    const auto& itr = converters_table.get(converter.raw(), "converter does not exist");
+    check(itr.reserve_balances.size() == 0, "reserves already empty");
 
-    reserves_table.erase(rsrv);
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter );
+    converters_table.modify(itr, get_self(), [&](auto& row) {
+        row.reserve_weights.erase(reserve);
+        row.reserve_balances.erase(reserve);
+    });
 }
 
 [[eosio::action]]
 void BancorConverter::delconverter(symbol_code converter_currency_code) {
-    converters converters_table(get_self(), get_self().value);
-    reserves reserves_table(get_self(), converter_currency_code.raw());
-    check(reserves_table.begin() == reserves_table.end(), "delete reserves first");
-
+    converters_v2 converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
-    converters_table.erase(converter);
-
-    // DELETE MIGRATED DATA from V2
-    delete_converters_v2( converter_currency_code );
+    check(converter.reserve_balances.size() == 0, "delete reserves first");
 }
 
 [[eosio::action]]
@@ -213,21 +196,20 @@ void BancorConverter::fund(name sender, asset quantity) {
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
 
     settings settings_table(get_self(), get_self().value);
-    converters converters_table(get_self(), get_self().value);
+    converters_v2 converters_table(get_self(), get_self().value);
     const auto& st = settings_table.get();
     const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
 
     check(converter.currency == quantity.symbol, "symbol mismatch");
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
-    reserves reserves_table(get_self(), quantity.symbol.code().raw());
 
-    double total_ratio = 0.0;
-    for (const auto& reserve : reserves_table)
-        total_ratio += reserve.ratio;
+    double total_weights = 0.0;
+    for (const auto& reserve_weight : converter.reserve_weights)
+        total_weights += reserve_weight.second;
 
-    for (auto& reserve : reserves_table) {
-        double amount = calculate_fund_cost(quantity.amount, supply.amount, reserve.balance.amount, total_ratio);
-        asset reserve_amount = asset(ceil(amount), reserve.balance.symbol);
+    for (const auto& reserve_balance : converter.reserve_balances) {
+        double amount = calculate_fund_cost(quantity.amount, supply.amount, reserve_balance.second.quantity.amount, total_weights);
+        asset reserve_amount = asset(ceil(amount), reserve_balance.second.quantity.symbol);
 
         mod_account_balance(sender, quantity.symbol.code(), -reserve_amount);
         mod_reserve_balance(quantity.symbol, reserve_amount);
@@ -243,9 +225,6 @@ void BancorConverter::fund(name sender, asset quantity) {
         st.multi_token, "transfer"_n,
         make_tuple(get_self(), sender, quantity, string("fund"))
     ).send();
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( quantity.symbol.code() );
 }
 
 void BancorConverter::liquidate(name sender, asset quantity) {
@@ -254,22 +233,23 @@ void BancorConverter::liquidate(name sender, asset quantity) {
     check(get_first_receiver() == st.multi_token, "bad origin for this transfer");
 
     asset supply = get_supply(st.multi_token, quantity.symbol.code());
-    reserves reserves_table(get_self(), quantity.symbol.code().raw());
+    converters_v2 converters_table(get_self(), get_self().value);
+    const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
 
-    double total_ratio = 0.0;
-    for (const auto& reserve : reserves_table)
-        total_ratio += reserve.ratio;
+    double total_weights = 0.0;
+    for (const auto& reserve_weight : converter.reserve_weights)
+        total_weights += reserve_weight.second;
 
-    for (const auto& reserve : reserves_table) {
-        double amount = calculate_liquidate_return(quantity.amount, supply.amount, reserve.balance.amount, total_ratio);
+    for (const auto& reserve_balance : converter.reserve_balances) {
+        double amount = calculate_liquidate_return(quantity.amount, supply.amount, reserve_balance.second.quantity.amount, total_weights);
         check(amount > 0, "cannot liquidate amounts less than or equal to 0");
 
-        asset reserve_amount = asset(amount, reserve.balance.symbol);
+        asset reserve_amount = asset(amount, reserve_balance.second.quantity.symbol);
 
         mod_reserve_balance(quantity.symbol, -reserve_amount);
         action(
             permission_level{ get_self(), "active"_n },
-            reserve.contract, "transfer"_n,
+            reserve_balance.second.contract, "transfer"_n,
             make_tuple(get_self(), sender, reserve_amount, string("liquidation"))
         ).send();
     }
@@ -279,9 +259,6 @@ void BancorConverter::liquidate(name sender, asset quantity) {
         st.multi_token, "retire"_n,
         make_tuple(quantity, string("liquidation"))
     ).send();
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( quantity.symbol.code() );
 }
 
 [[eosio::action]]
@@ -289,9 +266,6 @@ void BancorConverter::withdraw(name sender, asset quantity, symbol_code converte
     require_auth(sender);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
     mod_balances(sender, -quantity, converter_currency_code, get_self());
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency_code );
 }
 
 double BancorConverter::calculate_liquidate_return(double liquidation_amount, double supply, double reserve_balance, double total_ratio) {
@@ -352,18 +326,16 @@ void BancorConverter::mod_account_balance(name sender, symbol_code converter_cur
 }
 
 void BancorConverter::mod_balances(name sender, asset quantity, symbol_code converter_currency_code, name code) {
-    reserves reserves_table(get_self(), converter_currency_code.raw());
-    const auto& reserve = reserves_table.get(quantity.symbol.code().raw(), "reserve doesn't exist");
-
-    converters converters_table(get_self(), get_self().value);
+    converters_v2 converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
+    const name reserve_contract = get_reserve_contract( quantity.symbol.code(), converter_currency_code);
 
     if (quantity.amount > 0)
-        check(code == reserve.contract, "wrong origin contract for quantity");
+        check(code == reserve_contract, "wrong origin contract for quantity");
     else
         action(
             permission_level{ get_self(), "active"_n },
-            reserve.contract, "transfer"_n,
+            reserve_contract, "transfer"_n,
             make_tuple(get_self(), sender, -quantity, string("withdrawal"))
         ).send();
 
@@ -381,18 +353,23 @@ void BancorConverter::mod_reserve_balance(symbol converter_currency, asset value
     asset supply = get_supply(st.multi_token, converter_currency.code());
     auto current_smart_supply = (supply.amount + pending_supply_change) / pow(10, converter_currency.precision());
 
-    reserves reserves_table(get_self(), converter_currency.code().raw());
-    auto& reserve = reserves_table.get(value.symbol.code().raw(), "reserve not found");
-    check(reserve.balance.symbol == value.symbol, "incompatible symbols");
-    reserves_table.modify(reserve, same_payer, [&](auto& r) {
-        r.balance += value;
+    converters_v2 converters_table(get_self(), get_self().value);
+    auto& converter = converters_table.get(value.symbol.code().raw(), "reserve not found");
+
+    // reserves
+    extended_asset reserve_balance = get_reserve_balance(value.symbol.code(), converter_currency.code());
+    uint64_t reserve_weight = get_reserve_weight(value.symbol.code(), converter_currency.code());
+    check(reserve_balance.quantity.symbol == value.symbol, "incompatible symbols");
+
+    reserve_balance.quantity += value;
+    converters_table.modify(converter, same_payer, [&](auto& r) {
+        r.reserve_balances[value.symbol.code()] = reserve_balance;
     });
-    double reserve_balance = reserve.balance.amount;
-    check(reserve_balance >= 0, "insufficient amount in reserve");
-    reserve_balance /= pow(10, reserve.balance.symbol.precision());
+    check(reserve_balance.quantity.amount >= 0, "insufficient amount in reserve");
+
     EMIT_PRICE_DATA_EVENT(converter_currency.code(), current_smart_supply,
-                          reserve.contract, reserve.balance.symbol.code(),
-                          reserve_balance, reserve.ratio);
+                          reserve_balance.contract, reserve_balance.quantity.symbol.code(),
+                          asset_to_double(reserve_balance.quantity), reserve_weight);
 }
 
 void BancorConverter::convert(name from, asset quantity, string memo, name code) {
@@ -408,13 +385,15 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
     symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
-    converters converters_table(get_self(), get_self().value);
+    converters_v2 converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
+
+    const extended_asset from_reserve_balance = get_reserve_balance(from_path_currency, converter.currency.code());
 
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
     check(
         (quantity.symbol == converter.currency && code == settings.multi_token) ||
-        code == get_reserve(from_path_currency, converter.currency.code()).contract
+        code == from_reserve_balance.contract
         , "unknown 'from' contract");
 
     extended_asset from_token = extended_asset(quantity, code);
@@ -424,8 +403,8 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
         to_token = extended_symbol(converter.currency, settings.multi_token);
     }
     else {
-        const reserve_t& r = get_reserve(to_path_currency, converter.currency.code());
-        to_token = extended_symbol(r.balance.symbol, r.contract);
+        const extended_asset to_reserve_balance = get_reserve_balance(to_path_currency, converter.currency.code());
+        to_token = extended_symbol(to_reserve_balance.quantity.symbol, to_reserve_balance.contract);
     }
 
     auto [to_return, fee] = calculate_return(from_token, to_token, memo, converter, settings.multi_token);
@@ -433,16 +412,13 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
 
     EMIT_CONVERSION_EVENT(
         converter.currency.code(), memo, from_token.contract, from_path_currency, to_token.get_contract(), to_path_currency,
-        quantity.amount / pow(10, quantity.symbol.precision()),
-        to_return.amount / pow(10, to_return.symbol.precision()),
+        asset_to_double(quantity),
+        asset_to_double(to_return),
         fee
     );
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency_code );
 }
 
-std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token) {
+std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_v2_t& converter, name multi_token) {
     symbol from_symbol = from_token.quantity.symbol;
     symbol to_symbol = to_token.get_symbol();
 
@@ -450,33 +426,37 @@ std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_
     bool outgoing_smart_token = to_symbol == converter.currency;
 
     asset supply = get_supply(multi_token, converter.currency.code());
-    double current_smart_supply = supply.amount / pow(10, converter.currency.precision());
+    double current_smart_supply = asset_to_double(supply);
 
     double current_from_balance, current_to_balance;
-    reserve_t input_reserve, to_reserve;
+    extended_asset input_reserve_balance, to_reserve_balance;
+    uint64_t input_reserve_weight, to_reserve_weight;
+
     if (!incoming_smart_token) {
-        input_reserve = get_reserve(from_symbol.code(), converter.currency.code());
-        current_from_balance = input_reserve.balance.amount / pow(10, input_reserve.balance.symbol.precision());
+        input_reserve_balance = get_reserve_balance(from_symbol.code(), converter.currency.code());
+        input_reserve_weight = get_reserve_weight(from_symbol.code(), converter.currency.code());
+        current_from_balance = asset_to_double(input_reserve_balance.quantity);
     }
     if (!outgoing_smart_token) {
-        to_reserve = get_reserve(to_symbol.code(), converter.currency.code());
-        current_to_balance = to_reserve.balance.amount / pow(10, to_reserve.balance.symbol.precision());
+        to_reserve_balance = get_reserve_balance(to_symbol.code(), converter.currency.code());
+        to_reserve_weight = get_reserve_weight(to_symbol.code(), converter.currency.code());
+        current_to_balance = asset_to_double(input_reserve_balance.quantity);
     }
-    bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.ratio == to_reserve.ratio;
+    bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve_weight == to_reserve_weight;
 
-    double from_amount = from_token.quantity.amount / pow(10, from_symbol.precision());
+    double from_amount = asset_to_double(from_token.quantity);
     double to_amount;
     if (quick_conversion) { // Reserve --> Reserve
         to_amount = quick_convert(current_from_balance, from_amount, current_to_balance);
     }
     else {
         if (!incoming_smart_token) { // Reserve --> Smart
-            to_amount = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, input_reserve.ratio);
+            to_amount = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, input_reserve_weight);
             current_smart_supply += to_amount;
             from_amount = to_amount;
         }
         if (!outgoing_smart_token) { // Smart --> Reserve
-            to_amount = calculate_sale_return(current_to_balance, from_amount, current_smart_supply, to_reserve.ratio);
+            to_amount = calculate_sale_return(current_to_balance, from_amount, current_smart_supply, to_reserve_weight);
         }
     }
 
@@ -485,7 +465,7 @@ std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_
     to_amount -= fee;
 
     return std::tuple(
-        asset(to_amount * pow(10, to_symbol.precision()), to_symbol),
+        double_to_asset( to_amount, to_symbol ),
         to_fixed(fee, to_symbol.precision())
     );
 }
@@ -527,26 +507,38 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
         to_return.contract, "transfer"_n,
         make_tuple(get_self(), st.network, to_return.quantity, new_memo)
     ).send();
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency.code() );
 }
 
-bool BancorConverter::is_converter_active(symbol_code converter) {
-    reserves reserves_table(get_self(), converter.raw());
+bool BancorConverter::is_converter_active(symbol_code converter_currency) {
+    converters_v2 converters_table(get_self(), get_self().value);
+    const auto converter = converters_table.get(converter_currency.raw(), "converter not found");
 
-    for (auto& reserve : reserves_table) {
-        if (reserve.balance.amount == 0)
+    for (auto& reserve_balance : converter.reserve_balances) {
+        if (reserve_balance.second.quantity.amount == 0)
             return false;
     }
     return true;
 }
 
 // returns a reserve object, can also be called for the smart token itself
-const BancorConverter::reserve_t& BancorConverter::get_reserve(symbol_code symbl, symbol_code converter_currency) {
-    reserves reserves_table(get_self(), converter_currency.raw());
-    const auto& reserve = reserves_table.get(symbl.raw(), "reserve not found");
-    return reserve;
+extended_asset BancorConverter::get_reserve_balance(symbol_code symbl, symbol_code converter_currency) {
+    converters_v2 converters_table(get_self(), get_self().value);
+    const auto converter = converters_table.get(converter_currency.raw(), "converter not found");
+    const auto reserve_balance = converter.reserve_balances.find(symbl);
+    check( reserve_balance != converter.reserve_balances.end(), "reserve not found" );
+    return reserve_balance->second;
+}
+
+name BancorConverter::get_reserve_contract(symbol_code symbl, symbol_code converter_currency) {
+    return get_reserve_balance(symbl, converter_currency).contract;
+}
+
+uint64_t BancorConverter::get_reserve_weight(symbol_code symbl, symbol_code converter_currency) {
+    converters_v2 converters_table(get_self(), get_self().value);
+    const auto converter = converters_table.get(converter_currency.raw(), "converter not found");
+    const auto reserve_weight = converter.reserve_weights.find(symbl);
+    check( reserve_weight != converter.reserve_weights.end(), "reserve not found" );
+    return reserve_weight->second;
 }
 
 // returns a token supply
@@ -584,6 +576,15 @@ double BancorConverter::calculate_sale_return(double balance, double sell_amount
 
 double BancorConverter::quick_convert(double balance, double in, double toBalance) {
     return in / (balance + in) * toBalance;
+}
+
+double BancorConverter::asset_to_double( const asset quantity ) {
+    if ( quantity.amount == 0 ) return 0.0;
+    return quantity.amount / pow(10, quantity.symbol.precision());
+}
+
+asset BancorConverter::double_to_asset( const double amount, const symbol sym ) {
+    return asset{ static_cast<int64_t>(amount * pow(10, sym.precision())), sym };
 }
 
 [[eosio::on_notify("*::transfer")]]
