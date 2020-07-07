@@ -3,14 +3,14 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     const auto& settings = settings_table.get();
     check(from == settings.network, "converter can only receive from network contract");
 
-    memo_structure memo_object = parse_memo(memo);
+    const memo_structure memo_object = parse_memo(memo);
     check(memo_object.path.size() > 1, "invalid memo format");
     check(memo_object.converters[0].account == get_self(), "wrong converter");
 
-    symbol_code from_path_currency = quantity.symbol.code();
-    symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
+    const symbol_code from_path_currency = quantity.symbol.code();
+    const symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
-    symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
+    const symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
     converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
 
@@ -20,7 +20,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
         code == get_reserve(from_path_currency, converter.currency.code()).contract
         , "unknown 'from' contract");
 
-    extended_asset from_token = extended_asset(quantity, code);
+    const extended_asset from_token = extended_asset(quantity, code);
     extended_symbol to_token;
     if (to_path_currency == converter.currency.code()) {
         check(memo_object.path.size() == 2, "smart token must be final currency");
@@ -46,13 +46,13 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
 }
 
 std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token) {
-    symbol from_symbol = from_token.quantity.symbol;
-    symbol to_symbol = to_token.get_symbol();
+    const symbol from_symbol = from_token.quantity.symbol;
+    const symbol to_symbol = to_token.get_symbol();
 
-    bool incoming_smart_token = from_symbol == converter.currency;
-    bool outgoing_smart_token = to_symbol == converter.currency;
+    const bool incoming_smart_token = from_symbol == converter.currency;
+    const bool outgoing_smart_token = to_symbol == converter.currency;
 
-    asset supply = get_supply(multi_token, converter.currency.code());
+    const asset supply = get_supply(multi_token, converter.currency.code());
     double current_smart_supply = supply.amount / pow(10, converter.currency.precision());
 
     double current_from_balance, current_to_balance;
@@ -65,7 +65,7 @@ std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_
         to_reserve = get_reserve(to_symbol.code(), converter.currency.code());
         current_to_balance = asset_to_double(to_reserve.balance);
     }
-    bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.ratio == to_reserve.ratio;
+    const bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.ratio == to_reserve.ratio;
 
     double from_amount = asset_to_double(from_token.quantity);
     double to_amount;
@@ -83,8 +83,8 @@ std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_
         }
     }
 
-    uint8_t magnitude = incoming_smart_token || outgoing_smart_token ? 1 : 2;
-    double fee = calculate_fee(to_amount, converter.fee, magnitude);
+    const uint8_t magnitude = incoming_smart_token || outgoing_smart_token ? 1 : 2;
+    const double fee = calculate_fee(to_amount, converter.fee, magnitude);
     to_amount -= fee;
 
     return std::tuple(

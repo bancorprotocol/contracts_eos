@@ -4,7 +4,7 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
 
     check( token_code.is_valid(), "token_code is invalid");
     symbol token_symbol = symbol(token_code, DEFAULT_TOKEN_PRECISION);
-    double maximum_supply = DEFAULT_MAX_SUPPLY;
+    const double maximum_supply = DEFAULT_MAX_SUPPLY;
 
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get();
