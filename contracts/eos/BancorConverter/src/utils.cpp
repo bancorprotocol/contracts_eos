@@ -51,3 +51,12 @@ double BancorConverter::calculate_sale_return(double balance, double sell_amount
 double BancorConverter::quick_convert(double balance, double in, double toBalance) {
     return in / (balance + in) * toBalance;
 }
+
+double BancorConverter::asset_to_double( const asset quantity ) {
+    if ( quantity.amount == 0 ) return 0.0;
+    return quantity.amount / pow(10, quantity.symbol.precision());
+}
+
+asset BancorConverter::double_to_asset( const double amount, const symbol sym ) {
+    return asset{ static_cast<int64_t>(amount * pow(10, sym.precision())), sym };
+}

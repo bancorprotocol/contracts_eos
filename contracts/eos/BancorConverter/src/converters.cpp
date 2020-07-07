@@ -23,8 +23,8 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
         c.fee = 0;
     });
 
-    asset initial_supply_asset = asset(initial_supply * pow(10, token_symbol.precision()) , token_symbol);
-    asset maximum_supply_asset = asset(maximum_supply * pow(10, token_symbol.precision()) , token_symbol);
+    const asset initial_supply_asset = double_to_asset(initial_supply, token_symbol);
+    const asset maximum_supply_asset = double_to_asset(maximum_supply, token_symbol);
 
     action(
         permission_level{ st.multi_token, "active"_n },
