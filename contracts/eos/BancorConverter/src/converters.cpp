@@ -4,7 +4,7 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
 
     check( token_code.is_valid(), "token_code is invalid");
     symbol token_symbol = symbol(token_code, DEFAULT_TOKEN_PRECISION);
-    double maximum_supply = DEFAULT_MAX_SUPPLY;
+    const double maximum_supply = DEFAULT_MAX_SUPPLY;
 
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get();
@@ -23,8 +23,8 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
         c.fee = 0;
     });
 
-    asset initial_supply_asset = asset(initial_supply * pow(10, token_symbol.precision()) , token_symbol);
-    asset maximum_supply_asset = asset(maximum_supply * pow(10, token_symbol.precision()) , token_symbol);
+    const asset initial_supply_asset = double_to_asset(initial_supply, token_symbol);
+    const asset maximum_supply_asset = double_to_asset(maximum_supply, token_symbol);
 
     action(
         permission_level{ st.multi_token, "active"_n },

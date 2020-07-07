@@ -440,6 +440,10 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         constexpr static double DEFAULT_MAX_SUPPLY = 10000000000.0000;
         constexpr static uint8_t DEFAULT_TOKEN_PRECISION = 4;
 
+        // utils
+        double asset_to_double( const asset quantity );
+        asset double_to_asset( const double amount, const symbol sym );
+
         // migration
         void migrate_converters_v1_no_scope( const symbol_code symcode );
         void migrate_converters_v2( const symbol_code symcode );

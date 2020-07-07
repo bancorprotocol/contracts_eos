@@ -53,7 +53,7 @@ void BancorConverter::fund(name sender, asset quantity) {
     const auto& converter = converters_table.get(quantity.symbol.code().raw(), "converter does not exist");
 
     check(converter.currency == quantity.symbol, "symbol mismatch");
-    asset supply = get_supply(st.multi_token, quantity.symbol.code());
+    const asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
 
     double total_ratio = 0.0;
@@ -112,7 +112,7 @@ void BancorConverter::liquidate(name sender, asset quantity) {
     const auto& st = settings_table.get();
     check(get_first_receiver() == st.multi_token, "bad origin for this transfer");
 
-    asset supply = get_supply(st.multi_token, quantity.symbol.code());
+    const asset supply = get_supply(st.multi_token, quantity.symbol.code());
     reserves reserves_table(get_self(), quantity.symbol.code().raw());
 
     double total_ratio = 0.0;
