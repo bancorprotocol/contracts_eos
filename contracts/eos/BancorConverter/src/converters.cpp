@@ -26,11 +26,8 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
     const asset initial_supply_asset = double_to_asset(initial_supply, token_symbol);
     const asset maximum_supply_asset = double_to_asset(maximum_supply, token_symbol);
 
-    Token::transfer_action transfer( to_return.contract, { get_self(), "active"_n });
-    transfer.send(get_self(), st.network, to_return.quantity, new_memo);
-
     // create
-    Token::create_action create( st.multi_token, { get_self(), "active"_n });
+    Token::create_action create( st.multi_token, { st.multi_token, "active"_n });
     create.send(get_self(), maximum_supply_asset);
 
     // issue
