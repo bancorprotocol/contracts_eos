@@ -341,10 +341,10 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
          * @details inline action to record log events
          * @param event - emit event
          * @param version - emit event version
-         * @param payload - emit event payload
+         * @param data - emit event data
          */
         [[eosio::action]]
-        void log( const string event, const string version, const map<string, string> payload );
+        void log( const string event, const string version, const map<string, string> data );
 
         [[eosio::action]]
         void migrate( const set<symbol_code> converters );
