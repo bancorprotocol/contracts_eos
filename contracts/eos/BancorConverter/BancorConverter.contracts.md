@@ -85,3 +85,11 @@ title: Activate
 summary: Active protocol feature for multi-converter.
 icon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3
 ---
+
+<h1 class="contract">log</h1>
+---
+spec-version: 0.2.0
+title: Log
+summary: Log event
+icon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3
+---

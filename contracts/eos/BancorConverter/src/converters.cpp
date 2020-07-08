@@ -26,23 +26,20 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
     const asset initial_supply_asset = double_to_asset(initial_supply, token_symbol);
     const asset maximum_supply_asset = double_to_asset(maximum_supply, token_symbol);
 
-    action(
-        permission_level{ st.multi_token, "active"_n },
-        st.multi_token, "create"_n,
-        make_tuple(get_self(), maximum_supply_asset)
-    ).send();
+    Token::transfer_action transfer( to_return.contract, { get_self(), "active"_n });
+    transfer.send(get_self(), st.network, to_return.quantity, new_memo);
 
-    action(
-        permission_level{ get_self(), "active"_n },
-        st.multi_token, "issue"_n,
-        make_tuple(get_self(), initial_supply_asset, string("setup"))
-    ).send();
+    // create
+    Token::create_action create( st.multi_token, { get_self(), "active"_n });
+    create.send(get_self(), maximum_supply_asset);
 
-    action(
-        permission_level{ get_self(), "active"_n },
-        st.multi_token, "transfer"_n,
-        make_tuple(get_self(), owner, initial_supply_asset, string("setup"))
-    ).send();
+    // issue
+    Token::issue_action issue( st.multi_token, { get_self(), "active"_n });
+    issue.send(get_self(), initial_supply_asset, "setup");
+
+    // transfer
+    Token::transfer_action transfer( st.multi_token, { get_self(), "active"_n });
+    transfer.send(get_self(), owner, initial_supply_asset, "setup");
 
     // MIGRATE DATA to V2
     migrate_converters_v2( token_code );

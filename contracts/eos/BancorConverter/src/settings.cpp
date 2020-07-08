@@ -11,7 +11,7 @@ void BancorConverter::setsettings( const BancorConverter::settings_t params )
 
     // staking
     if ( settings.staking ) check( params.staking == settings.staking, "staking contract already set");
-    else check( is_account( params.staking ), "staking account does not exists");
+    else if ( params.staking ) check( is_account( params.staking ), "staking account does not exists");
 
     // multi_token
     if ( settings.multi_token ) check( params.multi_token == settings.multi_token, "multi_token contract already set");
@@ -59,7 +59,7 @@ void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
         converters_table.modify(converter, same_payer, [&](auto& c) {
             c.fee = fee;
         });
-        EMIT_CONVERSION_FEE_UPDATE_EVENT(currency, prevFee, fee);
+        emit_conversion_fee_update_event(currency, prevFee, fee);
     }
 
     // MIGRATE DATA to V2

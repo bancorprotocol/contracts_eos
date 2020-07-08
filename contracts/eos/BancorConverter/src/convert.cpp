@@ -34,7 +34,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     auto [to_return, fee] = calculate_return(from_token, to_token, memo, converter, settings.multi_token);
     apply_conversion(memo_object, from_token, extended_asset(to_return, to_token.get_contract()), converter.currency);
 
-    EMIT_CONVERSION_EVENT(
+    emit_conversion_event(
         converter.currency.code(), memo, from_token.contract, from_path_currency, to_token.get_contract(), to_path_currency,
         asset_to_double(quantity),
         asset_to_double(to_return),
@@ -101,20 +101,14 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
     auto new_memo = build_memo(memo_object);
 
     if (from_token.quantity.symbol == converter_currency) {
-        action(
-            permission_level{ get_self(), "active"_n },
-            from_token.contract, "retire"_n,
-            make_tuple(from_token.quantity, string("destroy on conversion"))
-        ).send();
+        Token::retire_action retire( from_token.contract, { get_self(), "active"_n });
+        retire.send(from_token.quantity, "destroy on conversion");
         mod_reserve_balance(converter_currency, -to_return.quantity, -from_token.quantity.amount);
     }
     else if (to_return.quantity.symbol == converter_currency) {
         mod_reserve_balance(converter_currency, from_token.quantity, to_return.quantity.amount);
-        action(
-            permission_level{ get_self(), "active"_n },
-            to_return.contract, "issue"_n,
-            make_tuple(get_self(), to_return.quantity, new_memo)
-        ).send();
+        Token::issue_action issue( to_return.contract, { get_self(), "active"_n });
+        issue.send(get_self(), to_return.quantity, new_memo);
     }
     else {
         mod_reserve_balance(converter_currency, from_token.quantity);
@@ -125,11 +119,8 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
 
     settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get();
-    action(
-        permission_level{ get_self(), "active"_n },
-        to_return.contract, "transfer"_n,
-        make_tuple(get_self(), st.network, to_return.quantity, new_memo)
-    ).send();
+    Token::transfer_action transfer( to_return.contract, { get_self(), "active"_n });
+    transfer.send(get_self(), st.network, to_return.quantity, new_memo);
 
     // MIGRATE DATA to V2
     migrate_converters_v2( converter_currency.code() );

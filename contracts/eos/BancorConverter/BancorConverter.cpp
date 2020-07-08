@@ -15,3 +15,4 @@
 #include "src/reserves.cpp"
 #include "src/settings.cpp"
 #include "src/utils.cpp"
+#include "src/log.cpp"
