@@ -11,7 +11,7 @@ void BancorConverter::setsettings( const BancorConverter::settings_t params )
 
     // staking
     if ( settings.staking ) check( params.staking == settings.staking, "staking contract already set");
-    else check( is_account( params.staking ), "staking account does not exists");
+    else if ( params.staking ) check( is_account( params.staking ), "staking account does not exists");
 
     // multi_token
     if ( settings.multi_token ) check( params.multi_token == settings.multi_token, "multi_token contract already set");
