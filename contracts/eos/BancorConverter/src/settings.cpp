@@ -59,7 +59,7 @@ void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
         converters_table.modify(converter, same_payer, [&](auto& c) {
             c.fee = fee;
         });
-        EMIT_CONVERSION_FEE_UPDATE_EVENT(currency, prevFee, fee);
+        emit_conversion_fee_update_event(currency, prevFee, fee);
     }
 
     // MIGRATE DATA to V2

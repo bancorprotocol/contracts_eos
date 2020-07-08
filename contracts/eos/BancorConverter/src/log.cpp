@@ -3,7 +3,7 @@ void BancorConverter::log( const string event, const string version, const map<s
     require_auth( get_self() );
 }
 
-void BancorConverter::EMIT_CONVERSION_EVENT(
+void BancorConverter::emit_conversion_event(
     const symbol_code converter_currency_symbol,
     const string memo,
     const name from_contract,
@@ -31,7 +31,7 @@ void BancorConverter::EMIT_CONVERSION_EVENT(
     log.send("conversion", "1.4", data);
 }
 
-void BancorConverter::EMIT_PRICE_DATA_EVENT(
+void BancorConverter::emit_price_data_event(
     const symbol_code converter_currency_symbol,
     const double smart_supply,
     const name reserve_contract,
@@ -53,7 +53,7 @@ void BancorConverter::EMIT_PRICE_DATA_EVENT(
     log.send("price_data", "1.5", data);
 }
 
-void BancorConverter::EMIT_CONVERSION_FEE_UPDATE_EVENT(
+void BancorConverter::emit_conversion_fee_update_event(
     const symbol_code converter_currency_symbol,
     const uint64_t prev_fee,
     const uint64_t new_fee

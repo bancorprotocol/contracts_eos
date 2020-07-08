@@ -58,7 +58,7 @@ void BancorConverter::mod_reserve_balance(symbol converter_currency, asset value
     double reserve_balance = reserve.balance.amount;
     check(reserve_balance >= 0, "insufficient amount in reserve");
     reserve_balance /= pow(10, reserve.balance.symbol.precision());
-    EMIT_PRICE_DATA_EVENT(converter_currency.code(), current_smart_supply,
+    emit_price_data_event(converter_currency.code(), current_smart_supply,
                           reserve.contract, reserve.balance.symbol.code(),
                           reserve_balance, reserve.ratio);
 }

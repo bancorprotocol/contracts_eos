@@ -420,7 +420,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         asset double_to_asset( const double amount, const symbol sym );
 
         // log
-        void EMIT_CONVERSION_EVENT(
+        void emit_conversion_event(
             const symbol_code converter_currency_symbol,
             const string memo,
             const name from_contract,
@@ -431,7 +431,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
             const double to_return,
             const double conversion_fee
         );
-        void EMIT_PRICE_DATA_EVENT(
+        void emit_price_data_event(
             const symbol_code converter_currency_symbol,
             const double smart_supply,
             const name reserve_contract,
@@ -439,7 +439,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
             const double reserve_balance,
             const double reserve_ratio
         );
-        void EMIT_CONVERSION_FEE_UPDATE_EVENT(
+        void emit_conversion_fee_update_event(
             const symbol_code converter_currency_symbol,
             const uint64_t prev_fee,
             const uint64_t new_fee

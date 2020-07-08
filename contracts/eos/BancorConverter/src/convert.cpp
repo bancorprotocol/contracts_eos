@@ -34,7 +34,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     auto [to_return, fee] = calculate_return(from_token, to_token, memo, converter, settings.multi_token);
     apply_conversion(memo_object, from_token, extended_asset(to_return, to_token.get_contract()), converter.currency);
 
-    EMIT_CONVERSION_EVENT(
+    emit_conversion_event(
         converter.currency.code(), memo, from_token.contract, from_path_currency, to_token.get_contract(), to_path_currency,
         asset_to_double(quantity),
         asset_to_double(to_return),
