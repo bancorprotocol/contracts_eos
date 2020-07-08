@@ -33,12 +33,8 @@ void BancorConverter::mod_balances(name sender, asset quantity, symbol_code conv
     if (quantity.amount > 0)
         check(code == reserve.contract, "wrong origin contract for quantity");
     else
-        action(
-            permission_level{ get_self(), "active"_n },
-            reserve.contract, "transfer"_n,
-            make_tuple(get_self(), sender, -quantity, string("withdrawal"))
-        ).send();
-
+        Token::transfer_action transfer( reserve.contract, { get_self(), "active"_n });
+        transfer.send(get_self(), sender, -quantity, "withdrawal");
     if (is_converter_active(converter_currency_code))
         mod_account_balance(sender, converter_currency_code, quantity);
     else {
