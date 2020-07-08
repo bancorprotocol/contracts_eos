@@ -68,16 +68,12 @@ void BancorConverter::fund(name sender, asset quantity) {
         mod_reserve_balance(quantity.symbol, reserve_amount);
     }
 
-    action( // issue new smart tokens to the issuer
-        permission_level{ get_self(), "active"_n },
-        st.multi_token, "issue"_n,
-        make_tuple(get_self(), quantity, string("fund"))
-    ).send();
-    action(
-        permission_level{ get_self(), "active"_n },
-        st.multi_token, "transfer"_n,
-        make_tuple(get_self(), sender, quantity, string("fund"))
-    ).send();
+    // issue new smart tokens to the issuer
+    Token::issue_action issue( st.multi_token, { get_self(), "active"_n });
+    issue.send(get_self(), quantity, "fund");
+
+    Token::transfer_action transfer( st.multi_token, { get_self(), "active"_n });
+    transfer.send(get_self(), sender, quantity, "fund");
 
     // MIGRATE DATA to V2
     migrate_converters_v2( quantity.symbol.code() );
@@ -126,18 +122,13 @@ void BancorConverter::liquidate(name sender, asset quantity) {
         asset reserve_amount = asset(amount, reserve.balance.symbol);
 
         mod_reserve_balance(quantity.symbol, -reserve_amount);
-        action(
-            permission_level{ get_self(), "active"_n },
-            reserve.contract, "transfer"_n,
-            make_tuple(get_self(), sender, reserve_amount, string("liquidation"))
-        ).send();
+        Token::transfer_action transfer( reserve.contract, { get_self(), "active"_n });
+        transfer.send(get_self(), sender, reserve_amount, "liquidation");
     }
 
-    action( // remove smart tokens from circulation
-        permission_level{ get_self(), "active"_n },
-        st.multi_token, "retire"_n,
-        make_tuple(quantity, string("liquidation"))
-    ).send();
+    // remove smart tokens from circulation
+    Token::retire_action retire( st.multi_token, { get_self(), "active"_n });
+    retire.send(quantity, "liquidation");
 
     // MIGRATE DATA to V2
     migrate_converters_v2( quantity.symbol.code() );
