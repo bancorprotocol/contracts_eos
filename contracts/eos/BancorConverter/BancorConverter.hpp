@@ -24,42 +24,6 @@ using namespace std;
  * @{
 */
 
-/// triggered when a conversion between two tokens occurs
-#define EMIT_CONVERSION_EVENT(converter_currency_symbol, memo, from_contract, from_symbol, to_contract, to_symbol, from_amount, to_amount, fee_amount){ \
-    START_EVENT("conversion", "1.4") \
-    EVENTKV("converter_currency_symbol", converter_currency_symbol) \
-    EVENTKV("memo", memo) \
-    EVENTKV("from_contract", from_contract) \
-    EVENTKV("from_symbol", from_symbol) \
-    EVENTKV("to_contract", to_contract) \
-    EVENTKV("to_symbol", to_symbol) \
-    EVENTKV("amount", from_amount) \
-    EVENTKV("return", to_amount) \
-    EVENTKVL("conversion_fee", fee_amount) \
-    END_EVENT() \
-}
-
-/// triggered after a conversion with new tokens price data
-#define EMIT_PRICE_DATA_EVENT(converter_currency_symbol, smart_supply, reserve_contract, reserve_symbol, reserve_balance, reserve_ratio) { \
-    START_EVENT("price_data", "1.5") \
-    EVENTKV("converter_currency_symbol", converter_currency_symbol) \
-    EVENTKV("smart_supply", smart_supply) \
-    EVENTKV("reserve_contract", reserve_contract) \
-    EVENTKV("reserve_symbol", reserve_symbol) \
-    EVENTKV("reserve_balance", reserve_balance) \
-    EVENTKVL("reserve_ratio", reserve_ratio) \
-    END_EVENT() \
-}
-
-/// triggered after a fee update occurs for a converter
-#define EMIT_CONVERSION_FEE_UPDATE_EVENT(converter_currency_symbol, prev_fee, new_fee) { \
-    START_EVENT("conversion_fee_update", "1.2") \
-    EVENTKV("converter_currency_symbol", converter_currency_symbol) \
-    EVENTKV("prev_fee", prev_fee) \
-    EVENTKVL("new_fee", new_fee) \
-    END_EVENT() \
-}
-
 /*! \cond DOCS_EXCLUDE */
 class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
     public:
@@ -372,6 +336,16 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         [[eosio::on_notify("*::transfer")]]
         void on_transfer(name from, name to, asset quantity, string memo);
 
+        /**
+         * @brief log event
+         * @details inline action to record log events
+         * @param event - emit event
+         * @param version - emit event version
+         * @param data - emit event data
+         */
+        [[eosio::action]]
+        void log( const string event, const string version, const map<string, string> data );
+
         [[eosio::action]]
         void migrate( const set<symbol_code> converters );
 
@@ -392,6 +366,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         /*! \endcond */
 
         // Action wrappers
+        using log_action = action_wrapper<"log"_n, &BancorConverter::log>;
         using create_action = action_wrapper<"create"_n, &BancorConverter::create>;
         using close_action = action_wrapper<"delconverter"_n, &BancorConverter::delconverter>;
         using setsettings_action = action_wrapper<"setsettings"_n, &BancorConverter::setsettings>;
@@ -439,6 +414,36 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
 
         constexpr static double DEFAULT_MAX_SUPPLY = 10000000000.0000;
         constexpr static uint8_t DEFAULT_TOKEN_PRECISION = 4;
+
+        // utils
+        double asset_to_double( const asset quantity );
+        asset double_to_asset( const double amount, const symbol sym );
+
+        // log
+        void emit_conversion_event(
+            const symbol_code converter_currency_symbol,
+            const string memo,
+            const name from_contract,
+            const symbol_code from_symbol,
+            const name to_contract,
+            const symbol_code to_symbol,
+            const double amount,
+            const double to_return,
+            const double conversion_fee
+        );
+        void emit_price_data_event(
+            const symbol_code converter_currency_symbol,
+            const double smart_supply,
+            const name reserve_contract,
+            const symbol_code reserve_symbol,
+            const double reserve_balance,
+            const double reserve_ratio
+        );
+        void emit_conversion_fee_update_event(
+            const symbol_code converter_currency_symbol,
+            const uint64_t prev_fee,
+            const uint64_t new_fee
+        );
 
         // migration
         void migrate_converters_v1_no_scope( const symbol_code symcode );
