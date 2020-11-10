@@ -30,6 +30,31 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         using contract::contract;
 
         /**
+         * ## STRUCT `reserve`
+         *
+         * ### params
+         *
+         * - `{name} contract` - reserve token contract
+         * - `{uint64_t} weight` - reserve weight relative to the other reserves
+         * - `{asset} balance` - amount in the reserve
+         *
+         * ### example
+         *
+         * ```json
+         * {
+         *     "contract": "eosio.token",
+         *     "weight": 500000
+         *     "balance": "58647.1775 EOS",
+         * }
+         * ```
+         */
+        struct reserve {
+            name        contract;
+            uint64_t    weight;
+            asset       balance;
+        };
+
+        /**
          * @defgroup BancorConverter_Settings_Table Settings Table
          * @brief This table stores the global settings affecting all the converters in this contract
          * @details Both SCOPE and PRIMARY KEY are `_self`, so this table is effectively a singleton
@@ -381,7 +406,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         std::tuple<asset, double> calculate_return(const extended_asset from_token, const extended_symbol to_token, const string memo, const symbol currency, const uint64_t fee, const name multi_token);
         void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
-        const reserve_t& get_reserve(symbol_code symbl, symbol_code converter_currency);
+        BancorConverter::reserve get_reserve( const symbol_code currency, const symbol_code reserve );
         bool is_converter_active(symbol_code converter);
 
         void mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change = 0);

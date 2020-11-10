@@ -8,11 +8,15 @@ bool BancorConverter::is_converter_active(symbol_code converter) {
     return true;
 }
 
-// returns a reserve object, can also be called for the smart token itself
-const BancorConverter::reserve_t& BancorConverter::get_reserve(symbol_code symbl, symbol_code converter_currency) {
-    reserves reserves_table(get_self(), converter_currency.raw());
-    const auto& reserve = reserves_table.get(symbl.raw(), "reserve not found");
-    return reserve;
+BancorConverter::reserve BancorConverter::get_reserve( const symbol_code currency, const symbol_code reserve )
+{
+    BancorConverter::converters_v2 _converter( get_self(), get_self().value );
+    auto row = _converter.get( currency.raw(), "BancorConverter: currency symbol does not exist");
+    check(row.reserve_balances.count(reserve), "BancorConverter: reserve balance symbol does not exist");
+    check(row.reserve_weights.count(reserve), "BancorConverter: reserve weights symbol does not exist");
+
+    const extended_asset balance = row.reserve_balances.at(reserve);
+    return BancorConverter::reserve{ balance.contract, row.reserve_weights.at(reserve), balance.quantity };
 }
 
 // returns a token supply

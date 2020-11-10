@@ -27,7 +27,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
         to_token = extended_symbol(converter.currency, settings.multi_token);
     }
     else {
-        const reserve_t& r = get_reserve(to_path_currency, converter.currency.code());
+        const BancorConverter::reserve r = get_reserve(to_path_currency, converter.currency.code());
         to_token = extended_symbol(r.balance.symbol, r.contract);
     }
 
@@ -53,7 +53,7 @@ std::tuple<asset, double> BancorConverter::calculate_return(const extended_asset
     double current_smart_supply = supply.amount / pow(10, currency.precision());
 
     double current_from_balance, current_to_balance;
-    reserve_t input_reserve, to_reserve;
+    BancorConverter::reserve input_reserve, to_reserve;
     if (!incoming_smart_token) {
         input_reserve = get_reserve(from_symbol.code(), currency.code());
         current_from_balance = asset_to_double(input_reserve.balance);
@@ -62,7 +62,7 @@ std::tuple<asset, double> BancorConverter::calculate_return(const extended_asset
         to_reserve = get_reserve(to_symbol.code(), currency.code());
         current_to_balance = asset_to_double(to_reserve.balance);
     }
-    const bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.ratio == to_reserve.ratio;
+    const bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.weight == to_reserve.weight;
 
     double from_amount = asset_to_double(from_token.quantity);
     double to_amount;
@@ -71,12 +71,12 @@ std::tuple<asset, double> BancorConverter::calculate_return(const extended_asset
     }
     else {
         if (!incoming_smart_token) { // Reserve --> Smart
-            to_amount = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, input_reserve.ratio);
+            to_amount = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, input_reserve.weight);
             current_smart_supply += to_amount;
             from_amount = to_amount;
         }
         if (!outgoing_smart_token) { // Smart --> Reserve
-            to_amount = calculate_sale_return(current_to_balance, from_amount, current_smart_supply, to_reserve.ratio);
+            to_amount = calculate_sale_return(current_to_balance, from_amount, current_smart_supply, to_reserve.weight);
         }
     }
 
