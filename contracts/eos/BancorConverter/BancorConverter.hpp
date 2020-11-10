@@ -378,7 +378,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         using fund_action = action_wrapper<"fund"_n, &BancorConverter::fund>;
     private:
         void convert(name from, asset quantity, string memo, name code);
-        std::tuple<asset, double> calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token);
+        std::tuple<asset, double> calculate_return(const extended_asset from_token, const extended_symbol to_token, const string memo, const symbol currency, const uint64_t fee, const name multi_token);
         void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
         const reserve_t& get_reserve(symbol_code symbl, symbol_code converter_currency);
