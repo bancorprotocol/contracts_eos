@@ -40,9 +40,6 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
         asset_to_double(to_return),
         fee
     );
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency_code );
 }
 
 std::tuple<asset, double> BancorConverter::calculate_return(const extended_asset from_token, const extended_symbol to_token, const string memo, const symbol currency, const uint64_t fee, const name multi_token) {
@@ -121,7 +118,4 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
     const auto& st = settings_table.get();
     Token::transfer_action transfer( to_return.contract, { get_self(), "active"_n });
     transfer.send(get_self(), st.network, to_return.quantity, new_memo);
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency.code() );
 }

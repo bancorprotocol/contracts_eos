@@ -347,10 +347,10 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         void log( const string event, const string version, const map<string, string> data );
 
         [[eosio::action]]
-        void migrate( const set<symbol_code> converters );
+        void migrate( const set<symbol_code> currencies );
 
         [[eosio::action]]
-        void delmigrate( const set<symbol_code> converters );
+        void cleartables( const set<symbol_code> currencies );
 
         /*! \cond DOCS_EXCLUDE */
         typedef eosio::singleton<"settings"_n, settings_t> settings;
@@ -446,8 +446,12 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         );
 
         // migration
-        void migrate_converters_v1_no_scope( const symbol_code symcode );
-        void migrate_converters_v2( const symbol_code symcode );
-        void delete_converters_v2( const symbol_code symcode );
+        void erase_converters_v1( const symbol_code symcode );
+        void erase_reserves_v1( const symbol_code symcode );
+        void erase_converters_v1_scoped( const symbol_code symcode );
+
+        template <typename T>
+        void clear_table( T& table );
+
 
 }; /** @}*/

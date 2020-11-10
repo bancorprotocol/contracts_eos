@@ -25,9 +25,6 @@ void BancorConverter::setreserve(symbol_code converter_currency_code, symbol cur
         total_ratio += reserve.ratio;
 
     check(total_ratio <= MAX_RATIO, "total ratio cannot exceed the maximum ratio");
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency_code );
 }
 
 [[eosio::action]]
@@ -37,9 +34,6 @@ void BancorConverter::delreserve(symbol_code converter, symbol_code reserve) {
     const auto& rsrv = reserves_table.get(reserve.raw(), "reserve not found");
 
     reserves_table.erase(rsrv);
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter );
 }
 
 [[eosio::action]]
@@ -74,9 +68,6 @@ void BancorConverter::fund(name sender, asset quantity) {
 
     Token::transfer_action transfer( st.multi_token, { get_self(), "active"_n });
     transfer.send(get_self(), sender, quantity, "fund");
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( quantity.symbol.code() );
 }
 
 [[eosio::action]]
@@ -84,9 +75,6 @@ void BancorConverter::withdraw(name sender, asset quantity, symbol_code converte
     require_auth(sender);
     check(quantity.is_valid() && quantity.amount > 0, "invalid quantity");
     mod_balances(sender, -quantity, converter_currency_code, get_self());
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency_code );
 }
 
 double BancorConverter::calculate_fund_cost(double funding_amount, double supply, double reserve_balance, double total_ratio) {
@@ -129,9 +117,6 @@ void BancorConverter::liquidate(name sender, asset quantity) {
     // remove smart tokens from circulation
     Token::retire_action retire( st.multi_token, { get_self(), "active"_n });
     retire.send(quantity, "liquidation");
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( quantity.symbol.code() );
 }
 
 double BancorConverter::calculate_liquidate_return(double liquidation_amount, double supply, double reserve_balance, double total_ratio) {

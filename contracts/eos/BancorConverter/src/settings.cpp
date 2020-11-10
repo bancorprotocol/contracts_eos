@@ -35,9 +35,6 @@ void BancorConverter::updateowner(symbol_code currency, name new_owner) {
     converters_table.modify(converter, same_payer, [&](auto& c) {
         c.owner = new_owner;
     });
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( currency );
 }
 
 [[eosio::action]]
@@ -61,7 +58,4 @@ void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
         });
         emit_conversion_fee_update_event(currency, prevFee, fee);
     }
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( currency );
 }

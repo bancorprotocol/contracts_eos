@@ -37,9 +37,6 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
     // transfer
     Token::transfer_action transfer( st.multi_token, { get_self(), "active"_n });
     transfer.send(get_self(), owner, initial_supply_asset, "setup");
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( token_code );
 }
 
 [[eosio::action]]
@@ -75,7 +72,4 @@ void BancorConverter::delconverter(symbol_code converter_currency_code) {
 
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
     converters_table.erase(converter);
-
-    // DELETE MIGRATED DATA from V2
-    delete_converters_v2( converter_currency_code );
 }
