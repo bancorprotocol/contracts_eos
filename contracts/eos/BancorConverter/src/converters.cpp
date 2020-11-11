@@ -65,11 +65,13 @@ void BancorConverter::activate( const symbol_code currency, const name protocol_
 }
 
 [[eosio::action]]
-void BancorConverter::delconverter(symbol_code converter_currency_code) {
-    converters converters_table(get_self(), get_self().value);
-    reserves reserves_table(get_self(), converter_currency_code.raw());
-    check(reserves_table.begin() == reserves_table.end(), "delete reserves first");
+void BancorConverter::delconverter( const symbol_code converter_currency_code ) {
+    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
+    const auto itr = _converters.find( converter_currency_code.raw() );
 
-    const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
-    converters_table.erase(converter);
+    check( itr != _converters.end(), "converter not found");
+    check( itr->reserve_balances.size() == 0, "delete reserves first");
+    check( itr->reserve_weights.size() == 0, "delete reserves first");
+
+    _converters.erase( itr );
 }

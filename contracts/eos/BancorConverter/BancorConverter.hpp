@@ -326,7 +326,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
          * @param currency - reserve token currency code
          */
         [[eosio::action]]
-        void delreserve(symbol_code converter, symbol_code reserve);
+        void delreserve(const symbol_code converter, const symbol_code reserve);
 
         /**
          * @brief called by liquidity providers withdrawing "temporary balances" before `fund`ing them into the reserve
@@ -346,7 +346,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
          * @param quantity - amount to increase the supply by (in the smart token)
          */
         [[eosio::action]]
-        void fund(name sender, asset quantity);
+        void fund(const name sender, const asset quantity);
 
         /**
          * @brief transfer intercepts with standard transfer args
@@ -407,7 +407,9 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
         BancorConverter::reserve get_reserve( const symbol_code currency, const symbol_code reserve );
-        bool is_converter_active(symbol_code converter);
+        std::vector<BancorConverter::reserve> get_reserves( const symbol_code currency );
+
+        bool is_converter_active( const symbol_code converter );
 
         void mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change = 0);
         void mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity);
@@ -420,7 +422,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
          * can only be called if the max total weight is exactly 100%
          * note that the function can also be called if conversions are disabled
         */
-        void liquidate(name sender, asset quantity); // quantity to decrease the supply by (in the smart token)
+        void liquidate( const name sender, const asset quantity ); // quantity to decrease the supply by (in the smart token)
 
         asset get_supply(name contract, symbol_code sym);
 
@@ -433,7 +435,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
            return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
         }
-        constexpr static double MAX_RATIO = 1000000.0;
+        constexpr static double MAX_WEIGHT = 1000000.0;
         constexpr static double MAX_FEE = 1000000.0;
         constexpr static double MAX_INITIAL_MAXIMUM_SUPPLY_RATIO = 0.1;
 
