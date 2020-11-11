@@ -47,9 +47,9 @@ void BancorConverter::mod_balances( name sender, asset quantity, symbol_code con
 
 void BancorConverter::mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change) {
     // settings
-    BancorConverter::settings settings_table( get_self(), get_self().value );
+    BancorConverter::settings _settings( get_self(), get_self().value );
     BancorConverter::converters_v2 _converters( get_self(), get_self().value );
-    const name multi_token = settings_table.get().multi_token;
+    const name multi_token = _settings.get().multi_token;
     const symbol_code reserve_symcode = value.symbol.code();
 
     // supply

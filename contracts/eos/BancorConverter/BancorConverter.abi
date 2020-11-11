@@ -40,6 +40,16 @@
             ]
         },
         {
+            "name": "cleartables",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currencies",
+                    "type": "symbol_code[]"
+                }
+            ]
+        },
+        {
             "name": "converter_t",
             "base": "",
             "fields": [
@@ -124,16 +134,6 @@
             ]
         },
         {
-            "name": "delmigrate",
-            "base": "",
-            "fields": [
-                {
-                    "name": "converters",
-                    "type": "symbol_code[]"
-                }
-            ]
-        },
-        {
             "name": "delreserve",
             "base": "",
             "fields": [
@@ -162,11 +162,29 @@
             ]
         },
         {
+            "name": "log",
+            "base": "",
+            "fields": [
+                {
+                    "name": "event",
+                    "type": "string"
+                },
+                {
+                    "name": "version",
+                    "type": "string"
+                },
+                {
+                    "name": "data",
+                    "type": "pair_string_string[]"
+                }
+            ]
+        },
+        {
             "name": "migrate",
             "base": "",
             "fields": [
                 {
-                    "name": "converters",
+                    "name": "currencies",
                     "type": "symbol_code[]"
                 }
             ]
@@ -192,6 +210,20 @@
                 {
                     "name": "key",
                     "type": "name"
+                },
+                {
+                    "name": "value",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "pair_string_string",
+            "base": "",
+            "fields": [
+                {
+                    "name": "key",
+                    "type": "string"
                 },
                 {
                     "name": "value",
@@ -353,6 +385,11 @@
             "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Activate\nsummary: Active protocol feature for multi-converter.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
         },
         {
+            "name": "cleartables",
+            "type": "cleartables",
+            "ricardian_contract": ""
+        },
+        {
             "name": "create",
             "type": "create",
             "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Create converter\nsummary: Initializes a new converter.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
@@ -363,11 +400,6 @@
             "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Delete converter\nsummary: Deletes a converter with empty reserves.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
         },
         {
-            "name": "delmigrate",
-            "type": "delmigrate",
-            "ricardian_contract": ""
-        },
-        {
             "name": "delreserve",
             "type": "delreserve",
             "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Delete reserve\nsummary: Deletes an empty reserve in the converter.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
@@ -376,6 +408,11 @@
             "name": "fund",
             "type": "fund",
             "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Fund\nsummary: Buys smart tokens with all connector tokens using the same percentage.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+        },
+        {
+            "name": "log",
+            "type": "log",
+            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Log\nsummary: Log event\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
         },
         {
             "name": "migrate",

@@ -1,8 +1,8 @@
 void BancorConverter::convert(name from, asset quantity, string memo, name code) {
-    BancorConverter::settings settings_table(get_self(), get_self().value);
-    BancorConverter::converters_v2 converters_table( get_self(), get_self().value );
+    BancorConverter::settings _settings(get_self(), get_self().value);
+    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
 
-    const auto& settings = settings_table.get();
+    const auto& settings = _settings.get();
     check(from == settings.network, "converter can only receive from network contract");
 
     const memo_structure memo_object = parse_memo(memo);
@@ -13,7 +13,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     const symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
     const symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
-    const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
+    const auto& converter = _converters.get(converter_currency_code.raw(), "converter does not exist");
 
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
     check(
@@ -115,8 +115,8 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
 
     check(to_return.quantity.amount > 0, "below min return");
 
-    settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get();
+    BancorConverter::settings _settings(get_self(), get_self().value);
+    const auto settings = _settings.get();
     Token::transfer_action transfer( to_return.contract, { get_self(), "active"_n });
-    transfer.send(get_self(), st.network, to_return.quantity, new_memo);
+    transfer.send(get_self(), settings.network, to_return.quantity, new_memo);
 }

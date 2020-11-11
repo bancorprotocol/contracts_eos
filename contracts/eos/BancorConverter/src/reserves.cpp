@@ -1,21 +1,17 @@
 [[eosio::action]]
 void BancorConverter::setreserve( const symbol_code converter_currency_code, const symbol currency, const name contract, const uint64_t ratio ) {
-    // tables
     BancorConverter::converters_v2 _converters( get_self(), get_self().value );
-    BancorConverter::settings settings_table( get_self(), get_self().value );
-
-    // converter
-    const auto itr = _converters.find( converter_currency_code.raw() );
+    const auto converter = _converters.find( converter_currency_code.raw() );
 
     // validate input
-    require_auth( itr->owner );
-    check( itr != _converters.end(), "converter does not exist");
+    require_auth( converter->owner );
+    check( converter != _converters.end(), "converter does not exist");
     check( ratio > 0 && ratio <= MAX_WEIGHT, "weight must be between 1 and " + std::to_string(MAX_WEIGHT));
     check( is_account(contract), "token contract is not an account");
     check( currency.is_valid(), "invalid reserve symbol");
-    check( !itr->reserve_balances.count( currency.code() ), "reserve already exists");
+    check( !converter->reserve_balances.count( currency.code() ), "reserve already exists");
 
-    _converters.modify(itr, same_payer, [&](auto& row) {
+    _converters.modify(converter, same_payer, [&](auto& row) {
         row.reserve_balances[currency.code()] = {{0, currency}, contract};
         row.reserve_weights[currency.code()] = ratio;
 
@@ -48,10 +44,10 @@ void BancorConverter::fund( const name sender, const asset quantity ) {
 
     // tables
     BancorConverter::converters_v2 _converters( get_self(), get_self().value );
-    BancorConverter::settings settings_table( get_self(), get_self().value );
+    BancorConverter::settings _settings( get_self(), get_self().value );
 
     // settings
-    const name multi_token = settings_table.get().multi_token;
+    const name multi_token = _settings.get().multi_token;
 
     // converter
     const symbol_code converter = quantity.symbol.code();
@@ -111,9 +107,9 @@ double BancorConverter::calculate_fund_cost(double funding_amount, double supply
 }
 
 void BancorConverter::liquidate( const name sender, const asset quantity) {
-    BancorConverter::settings settings_table(get_self(), get_self().value);
+    BancorConverter::settings _settings(get_self(), get_self().value);
 
-    const name multi_token = settings_table.get().multi_token;
+    const name multi_token = _settings.get().multi_token;
     check( get_first_receiver() == multi_token, "bad origin for this transfer");
 
     const symbol_code converter = quantity.symbol.code();
