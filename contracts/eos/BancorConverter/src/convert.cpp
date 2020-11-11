@@ -1,5 +1,7 @@
 void BancorConverter::convert(name from, asset quantity, string memo, name code) {
-    settings settings_table(get_self(), get_self().value);
+    BancorConverter::settings settings_table(get_self(), get_self().value);
+    BancorConverter::converters_v2 converters_table( get_self(), get_self().value );
+
     const auto& settings = settings_table.get();
     check(from == settings.network, "converter can only receive from network contract");
 
@@ -11,7 +13,6 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     const symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
     const symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
-    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
 
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");

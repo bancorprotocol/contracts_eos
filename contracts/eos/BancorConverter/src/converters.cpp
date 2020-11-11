@@ -1,15 +1,16 @@
 [[eosio::action]]
-void BancorConverter::create(name owner, symbol_code token_code, double initial_supply) {
+void BancorConverter::create(const name owner, const symbol_code token_code, const double initial_supply) {
     require_auth(owner);
+
+    BancorConverter::settings settings_table(get_self(), get_self().value);
+    BancorConverter::converters_v2 converters_table(get_self(), get_self().value);
+
 
     check( token_code.is_valid(), "token_code is invalid");
     symbol token_symbol = symbol(token_code, DEFAULT_TOKEN_PRECISION);
     const double maximum_supply = DEFAULT_MAX_SUPPLY;
-
-    settings settings_table(get_self(), get_self().value);
     const auto& st = settings_table.get();
 
-    converters converters_table(get_self(), get_self().value);
     const auto& converter = converters_table.find(token_symbol.code().raw());
 
     check(converter == converters_table.end(), "converter for the given symbol already exists");
@@ -19,7 +20,7 @@ void BancorConverter::create(name owner, symbol_code token_code, double initial_
     converters_table.emplace(owner, [&](auto& c) {
         c.currency = token_symbol;
         c.owner = owner;
-        c.stake_enabled = false;
+        c.protocol_features["stake"_n] = false;
         c.fee = 0;
     });
 
