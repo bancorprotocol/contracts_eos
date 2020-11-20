@@ -6,7 +6,7 @@ void BancorConverter::setreserve( const symbol_code converter_currency_code, con
     // validate input
     require_auth( converter->owner );
     check( converter != _converters.end(), "converter does not exist");
-    check( ratio > 0 && ratio <= MAX_WEIGHT, "weight must be between 1 and " + std::to_string(MAX_WEIGHT));
+    check( ratio > 0 && ratio <= PPM_RESOLUTION, "weight must be between 1 and " + std::to_string(PPM_RESOLUTION));
     check( is_account(contract), "token contract is not an account");
     check( currency.is_valid(), "invalid reserve symbol");
     check( !converter->reserve_balances.count( currency.code() ), "reserve already exists");
@@ -19,7 +19,7 @@ void BancorConverter::setreserve( const symbol_code converter_currency_code, con
         for ( const auto item : row.reserve_weights ) {
             total_ratio += item.second;
         }
-        check(total_ratio <= MAX_WEIGHT, "total ratio cannot exceed the maximum ratio");
+        check(total_ratio <= PPM_RESOLUTION, "total ratio cannot exceed the maximum ratio");
     });
 }
 
@@ -141,7 +141,7 @@ double BancorConverter::calculate_liquidate_return( const double liquidation_amo
     check(supply > 0, "supply must be greater than zero");
     check(reserve_balance > 0, "reserve_balance must be greater than zero");
     check(liquidation_amount <= supply, "liquidation_amount must be less than or equal to the supply");
-    check(total_weight > 1 && total_weight <= MAX_WEIGHT * 2, "total_weight not in range");
+    check(total_weight > 1 && total_weight <= PPM_RESOLUTION * 2, "total_weight not in range");
 
     if (liquidation_amount == 0)
         return 0;
@@ -149,8 +149,8 @@ double BancorConverter::calculate_liquidate_return( const double liquidation_amo
     if (liquidation_amount == supply)
         return reserve_balance;
 
-    if (total_weight == MAX_WEIGHT)
+    if (total_weight == PPM_RESOLUTION)
         return liquidation_amount * reserve_balance / supply;
 
-    return reserve_balance * (1.0 - pow(((supply - liquidation_amount) / supply), (MAX_WEIGHT / total_weight)));
+    return reserve_balance * (1.0 - pow(((supply - liquidation_amount) / supply), (PPM_RESOLUTION / total_weight)));
 }

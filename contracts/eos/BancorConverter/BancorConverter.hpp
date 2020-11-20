@@ -435,7 +435,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
            return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
         }
-        constexpr static double MAX_WEIGHT = 1000000.0;
+        constexpr static double PPM_RESOLUTION = 1000000.0;
         constexpr static double MAX_FEE = 1000000.0;
         constexpr static double MAX_INITIAL_MAXIMUM_SUPPLY_RATIO = 0.1;
 
