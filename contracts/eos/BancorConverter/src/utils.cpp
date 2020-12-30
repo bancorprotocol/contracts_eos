@@ -8,7 +8,7 @@ bool BancorConverter::is_converter_active( const symbol_code converter) {
     return true;
 }
 
-BancorConverter::reserve BancorConverter::get_reserve( const symbol_code currency, const symbol_code reserve )
+BancorConverter::reserve BancorConverter::get_reserve( const symbol_code reserve, const symbol_code currency )
 {
     BancorConverter::converters_v2 _converter( get_self(), get_self().value );
     auto row = _converter.get( currency.raw(), "BancorConverter: currency symbol does not exist");
@@ -26,7 +26,7 @@ std::vector<BancorConverter::reserve> BancorConverter::get_reserves( const symbo
 
     auto row = _converter.get( currency.raw(), "BancorConverter: currency symbol does not exist");
     for ( const auto itr : row.reserve_balances ) {
-        reserves.push_back( BancorConverter::get_reserve( currency, itr.first ) );
+        reserves.push_back( BancorConverter::get_reserve( itr.first, currency ) );
     }
     return reserves;
 }
