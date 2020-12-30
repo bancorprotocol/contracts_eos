@@ -18,7 +18,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
     check(
         (quantity.symbol == converter.currency && code == settings.multi_token) ||
-        code == get_reserve(from_path_currency, converter.currency.code()).contract
+        code == get_reserve(converter.currency.code(), from_path_currency).contract
         , "unknown 'from' contract");
 
     const extended_asset from_token = extended_asset(quantity, code);
@@ -28,7 +28,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
         to_token = extended_symbol(converter.currency, settings.multi_token);
     }
     else {
-        const BancorConverter::reserve r = get_reserve(to_path_currency, converter.currency.code());
+        const BancorConverter::reserve r = get_reserve(converter.currency.code(), to_path_currency);
         to_token = extended_symbol(r.balance.symbol, r.contract);
     }
 
@@ -56,11 +56,11 @@ std::tuple<asset, double> BancorConverter::calculate_return(const extended_asset
     double current_from_balance, current_to_balance;
     BancorConverter::reserve input_reserve, to_reserve;
     if (!incoming_smart_token) {
-        input_reserve = get_reserve(from_symbol.code(), currency.code());
+        input_reserve = get_reserve(currency.code(), from_symbol.code());
         current_from_balance = asset_to_double(input_reserve.balance);
     }
     if (!outgoing_smart_token) {
-        to_reserve = get_reserve(to_symbol.code(), currency.code());
+        to_reserve = get_reserve(currency.code(), to_symbol.code());
         current_to_balance = asset_to_double(to_reserve.balance);
     }
     const bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.weight == to_reserve.weight;

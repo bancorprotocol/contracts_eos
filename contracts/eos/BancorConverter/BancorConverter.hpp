@@ -406,7 +406,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         std::tuple<asset, double> calculate_return(const extended_asset from_token, const extended_symbol to_token, const string memo, const symbol currency, const uint64_t fee, const name multi_token);
         void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
-        BancorConverter::reserve get_reserve( const symbol_code reserve, const symbol_code currency );
+        BancorConverter::reserve get_reserve( const symbol_code currency, const symbol_code reserve );
         std::vector<BancorConverter::reserve> get_reserves( const symbol_code currency );
 
         bool is_converter_active( const symbol_code converter );
