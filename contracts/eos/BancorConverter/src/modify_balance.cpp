@@ -28,7 +28,7 @@ void BancorConverter::mod_balances( name sender, asset quantity, symbol_code con
     const auto converter = _converters.get( converter_currency_code.raw(), "converter not found");
     check( converter.reserve_balances.count( quantity.symbol.code() ), "reserve balance not found");
 
-    const BancorConverter::reserve reserve = get_reserve( quantity.symbol.code(), converter_currency_code );
+    const BancorConverter::reserve reserve = get_reserve( converter_currency_code, quantity.symbol.code() );
 
     if (quantity.amount > 0)
         check(code == reserve.contract, "wrong origin contract for quantity");
@@ -69,7 +69,7 @@ void BancorConverter::mod_reserve_balance(symbol converter_currency, asset value
     });
 
     // log event
-    auto reserve = get_reserve( reserve_symcode, converter_currency.code() );
+    auto reserve = get_reserve( converter_currency.code(), reserve_symcode );
     double reserve_balance = reserve.balance.amount / pow(10, reserve.balance.symbol.precision());
     emit_price_data_event(converter_currency.code(), current_smart_supply,
                         reserve.contract, reserve.balance.symbol.code(),
