@@ -1,6 +1,8 @@
 void BancorConverter::convert(name from, asset quantity, string memo, name code) {
-    settings settings_table(get_self(), get_self().value);
-    const auto& settings = settings_table.get();
+    BancorConverter::settings _settings(get_self(), get_self().value);
+    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
+
+    const auto& settings = _settings.get();
     check(from == settings.network, "converter can only receive from network contract");
 
     const memo_structure memo_object = parse_memo(memo);
@@ -11,8 +13,7 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
     const symbol_code to_path_currency = symbol_code(memo_object.path[1].c_str());
 
     const symbol_code converter_currency_code = symbol_code(memo_object.converters[0].sym);
-    converters converters_table(get_self(), get_self().value);
-    const auto& converter = converters_table.get(converter_currency_code.raw(), "converter does not exist");
+    const auto& converter = _converters.get(converter_currency_code.raw(), "converter does not exist");
 
     check(from_path_currency != to_path_currency, "cannot convert equivalent currencies");
     check(
@@ -27,11 +28,11 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
         to_token = extended_symbol(converter.currency, settings.multi_token);
     }
     else {
-        const reserve_t& r = get_reserve(to_path_currency, converter.currency.code());
+        const BancorConverter::reserve r = get_reserve(to_path_currency, converter.currency.code());
         to_token = extended_symbol(r.balance.symbol, r.contract);
     }
 
-    auto [to_return, fee] = calculate_return(from_token, to_token, memo, converter, settings.multi_token);
+    auto [to_return, fee] = calculate_return(from_token, to_token, memo, converter.currency, converter.fee, settings.multi_token);
     apply_conversion(memo_object, from_token, extended_asset(to_return, to_token.get_contract()), converter.currency);
 
     emit_conversion_event(
@@ -40,32 +41,29 @@ void BancorConverter::convert(name from, asset quantity, string memo, name code)
         asset_to_double(to_return),
         fee
     );
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency_code );
 }
 
-std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token) {
+std::tuple<asset, double> BancorConverter::calculate_return(const extended_asset from_token, const extended_symbol to_token, const string memo, const symbol currency, const uint64_t fee, const name multi_token) {
     const symbol from_symbol = from_token.quantity.symbol;
     const symbol to_symbol = to_token.get_symbol();
 
-    const bool incoming_smart_token = from_symbol == converter.currency;
-    const bool outgoing_smart_token = to_symbol == converter.currency;
+    const bool incoming_smart_token = from_symbol == currency;
+    const bool outgoing_smart_token = to_symbol == currency;
 
-    const asset supply = get_supply(multi_token, converter.currency.code());
-    double current_smart_supply = supply.amount / pow(10, converter.currency.precision());
+    const asset supply = get_supply(multi_token, currency.code());
+    double current_smart_supply = supply.amount / pow(10, currency.precision());
 
     double current_from_balance, current_to_balance;
-    reserve_t input_reserve, to_reserve;
+    BancorConverter::reserve input_reserve, to_reserve;
     if (!incoming_smart_token) {
-        input_reserve = get_reserve(from_symbol.code(), converter.currency.code());
+        input_reserve = get_reserve(from_symbol.code(), currency.code());
         current_from_balance = asset_to_double(input_reserve.balance);
     }
     if (!outgoing_smart_token) {
-        to_reserve = get_reserve(to_symbol.code(), converter.currency.code());
+        to_reserve = get_reserve(to_symbol.code(), currency.code());
         current_to_balance = asset_to_double(to_reserve.balance);
     }
-    const bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.ratio == to_reserve.ratio;
+    const bool quick_conversion = !incoming_smart_token && !outgoing_smart_token && input_reserve.weight == to_reserve.weight;
 
     double from_amount = asset_to_double(from_token.quantity);
     double to_amount;
@@ -74,22 +72,22 @@ std::tuple<asset, double> BancorConverter::calculate_return(extended_asset from_
     }
     else {
         if (!incoming_smart_token) { // Reserve --> Smart
-            to_amount = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, input_reserve.ratio);
+            to_amount = calculate_purchase_return(current_from_balance, from_amount, current_smart_supply, input_reserve.weight);
             current_smart_supply += to_amount;
             from_amount = to_amount;
         }
         if (!outgoing_smart_token) { // Smart --> Reserve
-            to_amount = calculate_sale_return(current_to_balance, from_amount, current_smart_supply, to_reserve.ratio);
+            to_amount = calculate_sale_return(current_to_balance, from_amount, current_smart_supply, to_reserve.weight);
         }
     }
 
     const uint8_t magnitude = incoming_smart_token || outgoing_smart_token ? 1 : 2;
-    const double fee = calculate_fee(to_amount, converter.fee, magnitude);
-    to_amount -= fee;
+    const double calculated_fee = calculate_fee(to_amount, fee, magnitude);
+    to_amount -= calculated_fee;
 
     return std::tuple(
         double_to_asset(to_amount, to_symbol),
-        to_fixed(fee, to_symbol.precision())
+        to_fixed(calculated_fee, to_symbol.precision())
     );
 }
 
@@ -117,11 +115,8 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
 
     check(to_return.quantity.amount > 0, "below min return");
 
-    settings settings_table(get_self(), get_self().value);
-    const auto& st = settings_table.get();
+    BancorConverter::settings _settings(get_self(), get_self().value);
+    const auto settings = _settings.get();
     Token::transfer_action transfer( to_return.contract, { get_self(), "active"_n });
-    transfer.send(get_self(), st.network, to_return.quantity, new_memo);
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( converter_currency.code() );
+    transfer.send(get_self(), settings.network, to_return.quantity, new_memo);
 }

@@ -30,6 +30,31 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         using contract::contract;
 
         /**
+         * ## STRUCT `reserve`
+         *
+         * ### params
+         *
+         * - `{name} contract` - reserve token contract
+         * - `{uint64_t} weight` - reserve weight relative to the other reserves
+         * - `{asset} balance` - amount in the reserve
+         *
+         * ### example
+         *
+         * ```json
+         * {
+         *     "contract": "eosio.token",
+         *     "weight": 500000
+         *     "balance": "58647.1775 EOS",
+         * }
+         * ```
+         */
+        struct reserve {
+            name        contract;
+            uint64_t    weight;
+            asset       balance;
+        };
+
+        /**
          * @defgroup BancorConverter_Settings_Table Settings Table
          * @brief This table stores the global settings affecting all the converters in this contract
          * @details Both SCOPE and PRIMARY KEY are `_self`, so this table is effectively a singleton
@@ -301,7 +326,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
          * @param currency - reserve token currency code
          */
         [[eosio::action]]
-        void delreserve(symbol_code converter, symbol_code reserve);
+        void delreserve(const symbol_code converter, const symbol_code reserve);
 
         /**
          * @brief called by liquidity providers withdrawing "temporary balances" before `fund`ing them into the reserve
@@ -321,7 +346,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
          * @param quantity - amount to increase the supply by (in the smart token)
          */
         [[eosio::action]]
-        void fund(name sender, asset quantity);
+        void fund(const name sender, const asset quantity);
 
         /**
          * @brief transfer intercepts with standard transfer args
@@ -347,10 +372,10 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         void log( const string event, const string version, const map<string, string> data );
 
         [[eosio::action]]
-        void migrate( const set<symbol_code> converters );
+        void migrate( const set<symbol_code> currencies );
 
         [[eosio::action]]
-        void delmigrate( const set<symbol_code> converters );
+        void cleartables( const set<symbol_code> currencies );
 
         /*! \cond DOCS_EXCLUDE */
         typedef eosio::singleton<"settings"_n, settings_t> settings;
@@ -378,11 +403,13 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         using fund_action = action_wrapper<"fund"_n, &BancorConverter::fund>;
     private:
         void convert(name from, asset quantity, string memo, name code);
-        std::tuple<asset, double> calculate_return(extended_asset from_token, extended_symbol to_token, string memo, const converter_t& converter, name multi_token);
+        std::tuple<asset, double> calculate_return(const extended_asset from_token, const extended_symbol to_token, const string memo, const symbol currency, const uint64_t fee, const name multi_token);
         void apply_conversion(memo_structure memo_object, extended_asset from_token, extended_asset to_return, symbol converter_currency);
 
-        const reserve_t& get_reserve(symbol_code symbl, symbol_code converter_currency);
-        bool is_converter_active(symbol_code converter);
+        BancorConverter::reserve get_reserve( const symbol_code currency, const symbol_code reserve );
+        std::vector<BancorConverter::reserve> get_reserves( const symbol_code currency );
+
+        bool is_converter_active( const symbol_code converter );
 
         void mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change = 0);
         void mod_account_balance(name sender, symbol_code converter_currency_code, asset quantity);
@@ -395,7 +422,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
          * can only be called if the max total weight is exactly 100%
          * note that the function can also be called if conversions are disabled
         */
-        void liquidate(name sender, asset quantity); // quantity to decrease the supply by (in the smart token)
+        void liquidate( const name sender, const asset quantity ); // quantity to decrease the supply by (in the smart token)
 
         asset get_supply(name contract, symbol_code sym);
 
@@ -408,7 +435,7 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         static uint128_t _by_cnvrt( asset balance, symbol_code converter_currency_code ) {
            return ( uint128_t{ balance.symbol.code().raw() } << 64 ) | converter_currency_code.raw();
         }
-        constexpr static double MAX_RATIO = 1000000.0;
+        constexpr static double PPM_RESOLUTION = 1000000.0;
         constexpr static double MAX_FEE = 1000000.0;
         constexpr static double MAX_INITIAL_MAXIMUM_SUPPLY_RATIO = 0.1;
 
@@ -446,8 +473,12 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         );
 
         // migration
-        void migrate_converters_v1_no_scope( const symbol_code symcode );
-        void migrate_converters_v2( const symbol_code symcode );
-        void delete_converters_v2( const symbol_code symcode );
+        void erase_converters_v1( const symbol_code symcode );
+        void erase_reserves_v1( const symbol_code symcode );
+        void erase_converters_v1_scoped( const symbol_code symcode );
+
+        template <typename T>
+        void clear_table( T& table );
+
 
 }; /** @}*/

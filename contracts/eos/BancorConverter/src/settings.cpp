@@ -26,29 +26,26 @@ void BancorConverter::setsettings( const BancorConverter::settings_t params )
 
 [[eosio::action]]
 void BancorConverter::updateowner(symbol_code currency, name new_owner) {
-    converters converters_table(get_self(), get_self().value);
-    const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
+    BancorConverter::converters_v2 _converters(get_self(), get_self().value);
+    const auto& converter = _converters.get(currency.raw(), "converter does not exist");
 
     require_auth(converter.owner);
     check(is_account(new_owner), "new owner is not an account");
     check(new_owner != converter.owner, "setting same owner as before");
-    converters_table.modify(converter, same_payer, [&](auto& c) {
+    _converters.modify(converter, same_payer, [&](auto& c) {
         c.owner = new_owner;
     });
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( currency );
 }
 
 [[eosio::action]]
 void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
-    settings settings_table(get_self(), get_self().value);
-    converters converters_table(get_self(), get_self().value);
+    BancorConverter::settings _settings(get_self(), get_self().value);
+    BancorConverter::converters_v2 _converters(get_self(), get_self().value);
 
-    const auto& st = settings_table.get();
-    const auto& converter = converters_table.get(currency.raw(), "converter does not exist");
+    const auto& st = _settings.get();
+    const auto& converter = _converters.get(currency.raw(), "converter does not exist");
 
-    if (converter.stake_enabled)
+    if (converter.protocol_features.at("stake"_n))
         require_auth(st.staking);
     else
         require_auth(converter.owner);
@@ -56,12 +53,9 @@ void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
     check(fee <= st.max_fee, "fee must be lower or equal to the maximum fee");
     if (converter.fee != fee) {
         uint64_t prevFee = converter.fee;
-        converters_table.modify(converter, same_payer, [&](auto& c) {
+        _converters.modify(converter, same_payer, [&](auto& c) {
             c.fee = fee;
         });
         emit_conversion_fee_update_event(currency, prevFee, fee);
     }
-
-    // MIGRATE DATA to V2
-    migrate_converters_v2( currency );
 }
