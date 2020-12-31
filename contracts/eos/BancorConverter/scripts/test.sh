@@ -24,7 +24,13 @@ cleos transfer myaccount bancorcnvrtr "500.0000000000 BNT" "fund;EOSBNT" --contr
 cleos transfer myaccount bancorcnvrtr "500.0000 EOS" "fund;EOSBNT"
 cleos push action bancorcnvrtr fund '["myaccount", "500.0000 EOSBNT"]' -p myaccount
 
+# liquidate
+cleos transfer myaccount bancorcnvrtr "500.0000 EOSBNT" "liquidate" --contract smarttokens1
+
 # convert
 cleos transfer myaccount thisisbancor "10.0000 EOS" "1,bancorcnvrtr:EOSBNT BNT,0.0,myaccount"
 cleos transfer myaccount thisisbancor "9.8360655737 BNT" "1,bancorcnvrtr:EOSBNT EOS,0.0,myaccount" --contract bntbntbntbnt
 # //=> should return 10 EOS (9.9999 EOS)
+
+# sync (MIGRATION)
+cleos push action bancorcnvrtr synctables '[["EOSBNT"]]' -p bancorcnvrtr

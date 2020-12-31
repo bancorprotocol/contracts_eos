@@ -40,6 +40,10 @@ void BancorConverter::create(const name owner, const symbol_code token_code, con
     // transfer
     Token::transfer_action transfer( multi_token, { get_self(), "active"_n });
     transfer.send(get_self(), owner, initial_supply_asset, "setup");
+
+    // sync (MIGRATION ONLY)
+    BancorConverter::synctable_action synctable( get_self(), { get_self(), "active"_n });
+    synctable.send( token_code );
 }
 
 [[eosio::action]]
