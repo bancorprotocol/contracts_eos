@@ -43,6 +43,10 @@ void BancorConverter::mod_balances( name sender, asset quantity, symbol_code con
         check(sender == converter.owner, "only converter owner may fund/withdraw prior to activation");
         mod_reserve_balance(converter.currency, quantity);
     }
+
+    // sync (MIGRATION ONLY)
+    BancorConverter::synctable_action synctable( get_self(), { get_self(), "active"_n });
+    synctable.send( converter_currency_code );
 }
 
 void BancorConverter::mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change) {

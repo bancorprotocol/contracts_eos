@@ -83,6 +83,10 @@ void BancorConverter::fund( const name sender, const asset quantity ) {
 
     Token::transfer_action transfer( multi_token, { get_self(), "active"_n });
     transfer.send(get_self(), sender, quantity, "fund");
+
+    // sync (MIGRATION ONLY)
+    BancorConverter::synctable_action synctable( get_self(), { get_self(), "active"_n });
+    synctable.send( converter );
 }
 
 [[eosio::action]]
@@ -135,6 +139,10 @@ void BancorConverter::liquidate( const name sender, const asset quantity) {
     // remove smart tokens from circulation
     Token::retire_action retire( multi_token, { get_self(), "active"_n });
     retire.send(quantity, "liquidation");
+
+    // sync (MIGRATION ONLY)
+    BancorConverter::synctable_action synctable( get_self(), { get_self(), "active"_n });
+    synctable.send( converter );
 }
 
 double BancorConverter::calculate_liquidate_return( const double liquidation_amount, const double supply, const double reserve_balance, const double total_weight) {
