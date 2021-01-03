@@ -50,28 +50,6 @@
             ]
         },
         {
-            "name": "converter_t",
-            "base": "",
-            "fields": [
-                {
-                    "name": "currency",
-                    "type": "symbol"
-                },
-                {
-                    "name": "owner",
-                    "type": "name"
-                },
-                {
-                    "name": "stake_enabled",
-                    "type": "bool"
-                },
-                {
-                    "name": "fee",
-                    "type": "uint64"
-                }
-            ]
-        },
-        {
             "name": "converter_v2_t",
             "base": "",
             "fields": [
@@ -260,24 +238,6 @@
             ]
         },
         {
-            "name": "reserve_t",
-            "base": "",
-            "fields": [
-                {
-                    "name": "contract",
-                    "type": "name"
-                },
-                {
-                    "name": "ratio",
-                    "type": "uint64"
-                },
-                {
-                    "name": "balance",
-                    "type": "asset"
-                }
-            ]
-        },
-        {
             "name": "setreserve",
             "base": "",
             "fields": [
@@ -332,6 +292,26 @@
             ]
         },
         {
+            "name": "synctable",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currency",
+                    "type": "symbol_code"
+                }
+            ]
+        },
+        {
+            "name": "synctables",
+            "base": "",
+            "fields": [
+                {
+                    "name": "currencies",
+                    "type": "symbol_code[]"
+                }
+            ]
+        },
+        {
             "name": "updatefee",
             "base": "",
             "fields": [
@@ -382,7 +362,7 @@
         {
             "name": "activate",
             "type": "activate",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Activate\nsummary: Active protocol feature for multi-converter.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         },
         {
             "name": "cleartables",
@@ -392,27 +372,27 @@
         {
             "name": "create",
             "type": "create",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Create converter\nsummary: Initializes a new converter.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         },
         {
             "name": "delconverter",
             "type": "delconverter",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Delete converter\nsummary: Deletes a converter with empty reserves.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         },
         {
             "name": "delreserve",
             "type": "delreserve",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Delete reserve\nsummary: Deletes an empty reserve in the converter.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         },
         {
             "name": "fund",
             "type": "fund",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Fund\nsummary: Buys smart tokens with all connector tokens using the same percentage.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         },
         {
             "name": "log",
             "type": "log",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Log\nsummary: Log event\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         },
         {
             "name": "migrate",
@@ -422,27 +402,37 @@
         {
             "name": "setreserve",
             "type": "setreserve",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Set reserve\nsummary: Initializes a new reserve in the converter. This updates the converter settings and can only be called by the converter owner after creation.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         },
         {
             "name": "setsettings",
             "type": "setsettings",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Set settings\nsummary: Set the multi-converter settings.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
+        },
+        {
+            "name": "synctable",
+            "type": "synctable",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "synctables",
+            "type": "synctables",
+            "ricardian_contract": ""
         },
         {
             "name": "updatefee",
             "type": "updatefee",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Update fee\nsummary: Updates the converter fee. This updates the converter settings and can only be called by the converter owner after creation.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         },
         {
             "name": "updateowner",
             "type": "updateowner",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Update owner\nsummary: Change the converter's owner. This updates the converter settings and can only be called by the converter owner after creation.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         },
         {
             "name": "withdraw",
             "type": "withdraw",
-            "ricardian_contract": "---\nspec-version: 0.2.0\ntitle: Withdraw\nsummary: Called by liquidity providers withdrawing \"temporary balances\" before `fund`ing them into the reserve.\nicon: https://raw.githubusercontent.com/bancorprotocol/contracts_eos/master/contracts/eos/icons/BNT.png#d3256c071ba33edc38d8a8b151a00c432afa3d908ee313621b6ff3baa2c6f0b3\n---"
+            "ricardian_contract": ""
         }
     ],
     "tables": [
@@ -462,14 +452,7 @@
         },
         {
             "name": "converters",
-            "type": "converter_t",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
-        {
-            "name": "reserves",
-            "type": "reserve_t",
+            "type": "converter_v2_t",
             "index_type": "i64",
             "key_names": [],
             "key_types": []
