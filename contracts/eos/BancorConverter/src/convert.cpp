@@ -1,6 +1,6 @@
 void BancorConverter::convert(name from, asset quantity, string memo, name code) {
     BancorConverter::settings _settings(get_self(), get_self().value);
-    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
+    BancorConverter::converters _converters( get_self(), get_self().value );
 
     const auto& settings = _settings.get();
     check(from == settings.network, "converter can only receive from network contract");
@@ -119,8 +119,4 @@ void BancorConverter::apply_conversion(memo_structure memo_object, extended_asse
     const auto settings = _settings.get();
     Token::transfer_action transfer( to_return.contract, { get_self(), "active"_n });
     transfer.send(get_self(), settings.network, to_return.quantity, new_memo);
-
-    // sync (MIGRATION ONLY)
-    BancorConverter::synctable_action synctable( get_self(), { get_self(), "active"_n });
-    synctable.send( converter_currency.code() );
 }

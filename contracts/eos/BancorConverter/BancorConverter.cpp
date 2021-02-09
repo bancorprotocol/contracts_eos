@@ -9,7 +9,6 @@
 
 #include "src/convert.cpp"
 #include "src/converters.cpp"
-#include "src/migrate.cpp"
 #include "src/modify_balance.cpp"
 #include "src/on_notify.cpp"
 #include "src/reserves.cpp"

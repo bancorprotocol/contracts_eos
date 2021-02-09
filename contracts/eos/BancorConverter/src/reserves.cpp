@@ -1,6 +1,6 @@
 [[eosio::action]]
 void BancorConverter::setreserve( const symbol_code converter_currency_code, const symbol currency, const name contract, const uint64_t ratio ) {
-    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
+    BancorConverter::converters _converters( get_self(), get_self().value );
     const auto converter = _converters.find( converter_currency_code.raw() );
 
     // validate input
@@ -27,7 +27,7 @@ void BancorConverter::setreserve( const symbol_code converter_currency_code, con
 void BancorConverter::delreserve( const symbol_code converter, const symbol_code reserve ) {
     check(!is_converter_active(converter),  "a reserve can only be deleted if it's converter is inactive");
 
-    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
+    BancorConverter::converters _converters( get_self(), get_self().value );
     const auto itr = _converters.find( converter.raw() );
     check( itr != _converters.end(), "converter not found");
     check( itr->reserve_balances.count( reserve ), "reserve balance not found");
@@ -43,7 +43,7 @@ void BancorConverter::fund( const name sender, const asset quantity ) {
     require_auth( sender );
 
     // tables
-    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
+    BancorConverter::converters _converters( get_self(), get_self().value );
     BancorConverter::settings _settings( get_self(), get_self().value );
 
     // settings
@@ -83,10 +83,6 @@ void BancorConverter::fund( const name sender, const asset quantity ) {
 
     Token::transfer_action transfer( multi_token, { get_self(), "active"_n });
     transfer.send(get_self(), sender, quantity, "fund");
-
-    // sync (MIGRATION ONLY)
-    BancorConverter::synctable_action synctable( get_self(), { get_self(), "active"_n });
-    synctable.send( converter );
 }
 
 [[eosio::action]]
@@ -139,10 +135,6 @@ void BancorConverter::liquidate( const name sender, const asset quantity) {
     // remove smart tokens from circulation
     Token::retire_action retire( multi_token, { get_self(), "active"_n });
     retire.send(quantity, "liquidation");
-
-    // sync (MIGRATION ONLY)
-    BancorConverter::synctable_action synctable( get_self(), { get_self(), "active"_n });
-    synctable.send( converter );
 }
 
 double BancorConverter::calculate_liquidate_return( const double liquidation_amount, const double supply, const double reserve_balance, const double total_weight) {

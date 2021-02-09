@@ -26,7 +26,7 @@ void BancorConverter::setsettings( const BancorConverter::settings_t params )
 
 [[eosio::action]]
 void BancorConverter::updateowner(symbol_code currency, name new_owner) {
-    BancorConverter::converters_v2 _converters(get_self(), get_self().value);
+    BancorConverter::converters _converters(get_self(), get_self().value);
     const auto& converter = _converters.get(currency.raw(), "converter does not exist");
 
     require_auth(converter.owner);
@@ -40,7 +40,7 @@ void BancorConverter::updateowner(symbol_code currency, name new_owner) {
 [[eosio::action]]
 void BancorConverter::updatefee(symbol_code currency, uint64_t fee) {
     BancorConverter::settings _settings(get_self(), get_self().value);
-    BancorConverter::converters_v2 _converters(get_self(), get_self().value);
+    BancorConverter::converters _converters(get_self(), get_self().value);
 
     const auto& st = _settings.get();
     const auto& converter = _converters.get(currency.raw(), "converter does not exist");

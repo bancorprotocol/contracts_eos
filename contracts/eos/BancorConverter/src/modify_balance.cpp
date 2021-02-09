@@ -24,7 +24,7 @@ void BancorConverter::mod_account_balance(name sender, symbol_code converter_cur
 }
 
 void BancorConverter::mod_balances( name sender, asset quantity, symbol_code converter_currency_code, name code ) {
-    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
+    BancorConverter::converters _converters( get_self(), get_self().value );
     const auto converter = _converters.get( converter_currency_code.raw(), "converter not found");
     check( converter.reserve_balances.count( quantity.symbol.code() ), "reserve balance not found");
 
@@ -43,16 +43,12 @@ void BancorConverter::mod_balances( name sender, asset quantity, symbol_code con
         check(sender == converter.owner, "only converter owner may fund/withdraw prior to activation");
         mod_reserve_balance(converter.currency, quantity);
     }
-
-    // sync (MIGRATION ONLY)
-    BancorConverter::synctable_action synctable( get_self(), { get_self(), "active"_n });
-    synctable.send( converter_currency_code );
 }
 
 void BancorConverter::mod_reserve_balance(symbol converter_currency, asset value, int64_t pending_supply_change) {
     // settings
     BancorConverter::settings _settings( get_self(), get_self().value );
-    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
+    BancorConverter::converters _converters( get_self(), get_self().value );
     const name multi_token = _settings.get().multi_token;
     const symbol_code reserve_symcode = value.symbol.code();
 
