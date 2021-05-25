@@ -4,7 +4,7 @@ void BancorConverter::create(const name owner, const symbol_code token_code, con
 
     // tables
     BancorConverter::settings _settings(get_self(), get_self().value);
-    BancorConverter::converters_v2 _converters(get_self(), get_self().value);
+    BancorConverter::converters _converters(get_self(), get_self().value);
 
     // token supply
     check( token_code.is_valid(), "token_code is invalid");
@@ -40,15 +40,11 @@ void BancorConverter::create(const name owner, const symbol_code token_code, con
     // transfer
     Token::transfer_action transfer( multi_token, { get_self(), "active"_n });
     transfer.send(get_self(), owner, initial_supply_asset, "setup");
-
-    // sync (MIGRATION ONLY)
-    BancorConverter::synctable_action synctable( get_self(), { get_self(), "active"_n });
-    synctable.send( token_code );
 }
 
 [[eosio::action]]
 void BancorConverter::activate( const symbol_code currency, const name protocol_feature, const bool enabled ) {
-    BancorConverter::converters_v2 _converters(get_self(), get_self().value);
+    BancorConverter::converters _converters(get_self(), get_self().value);
     BancorConverter::settings _settings(get_self(), get_self().value);
 
     const auto settings = _settings.get();
@@ -74,7 +70,7 @@ void BancorConverter::activate( const symbol_code currency, const name protocol_
 
 [[eosio::action]]
 void BancorConverter::delconverter( const symbol_code converter_currency_code ) {
-    BancorConverter::converters_v2 _converters( get_self(), get_self().value );
+    BancorConverter::converters _converters( get_self(), get_self().value );
     const auto itr = _converters.find( converter_currency_code.raw() );
 
     check( itr != _converters.end(), "converter not found");

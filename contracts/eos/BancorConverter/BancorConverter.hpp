@@ -82,42 +82,13 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
                 name staking;
             }; /** @}*/
 
-        // /**
-        //  * @defgroup BancorConverter_Reserves_Table Reserves Table
-        //  * @brief This table stores the reserve balances and related information for the reserves of every converter in this contract
-        //  * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
-        //  * @{
-        //  *//*! \cond DOCS_EXCLUDE */
-        //     struct [[eosio::table("reserves")]] reserve_t { /*! \endcond */
-        //         /**
-        //          * @brief name of the account storing the token contract for this reserve's token
-        //          */
-        //         name contract;
-
-        //         /**
-        //          * @brief reserve ratio relative to the other reserves
-        //          */
-        //         uint64_t ratio;
-
-        //         /**
-        //          * @brief amount in the reserve
-        //          * @details PRIMARY KEY for this table is `balance.symbol.code().raw()`
-        //          */
-        //         asset balance;
-
-        //         /*! \cond DOCS_EXCLUDE */
-        //         uint64_t primary_key() const { return balance.symbol.code().raw(); }
-        //         /*! \endcond */
-
-        //     }; /** @}*/
-
         /**
          * @defgroup BancorConverter_Reserves_Table Reserves Table
          * @brief This table stores the reserve balances and related information for the reserves of every converter in this contract
          * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
          * @{
          *//*! \cond DOCS_EXCLUDE */
-            struct [[eosio::table("converter.v2")]] converter_v2_t {
+            struct [[eosio::table("converters")]] converters_t {
                 /**
                  * @brief symbol of the smart token -- representing a share in the reserves of this converter
                  * @details PRIMARY KEY for this table is `currency.code().raw()`
@@ -179,40 +150,6 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
                 /*! \endcond */
 
             }; /** @}*/
-
-        // /**
-        //  * @defgroup BancorConverter_Converters_Table Converters Table
-        //  * @brief This table stores the key information about all converters in this contract
-        //  * @details SCOPE of this table is the converters' smart token symbol's `code().raw()` values
-        //  * @{
-        //  *//*! \cond DOCS_EXCLUDE */
-        //     struct [[eosio::table("converters")]] converter_t { /*! \endcond */
-        //         /**
-        //          * @brief symbol of the smart token -- representing a share in the reserves of this converter
-        //          * @details PRIMARY KEY for this table is `currency.code().raw()`
-        //          */
-        //         symbol currency;
-
-        //         /**
-        //          * @brief creator of the converter
-        //          */
-        //         name owner;
-
-        //         /**
-        //          * @brief toggle boolean to enable/disable this staking and voting for this converter
-        //          */
-        //         bool stake_enabled;
-
-        //         /**
-        //          * @brief conversion fee for this converter, applied on every hop
-        //          */
-        //         uint64_t fee;
-
-        //         /*! \cond DOCS_EXCLUDE */
-        //         uint64_t primary_key() const { return currency.code().raw(); }
-        //         /*! \endcond */
-
-        //     }; /** @}*/
 
         /**
          * @defgroup BancorConverter_Accounts_Table Accounts Table
@@ -371,30 +308,12 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         [[eosio::action]]
         void log( const string event, const string version, const map<string, string> data );
 
-        [[eosio::action]]
-        void synctable( const symbol_code currency );
-
-        [[eosio::action]]
-        void synctables( const set<symbol_code> currencies );
-
-        [[eosio::action]]
-        void migrate( const set<symbol_code> currencies );
-
-        [[eosio::action]]
-        void cleartables( const set<symbol_code> currencies );
-
         /*! \cond DOCS_EXCLUDE */
         typedef eosio::singleton<"settings"_n, settings_t> settings;
         typedef eosio::multi_index<"accounts"_n, account_t,
             indexed_by<"bycnvrt"_n, const_mem_fun <account_t, uint128_t, &account_t::by_cnvrt >>
         > accounts;
-
-        // deprecated tables
-        // typedef eosio::multi_index<"reserves"_n, reserve_t> reserves;
-
-        // migration tables
-        typedef eosio::multi_index<"converters"_n, converter_v2_t> converters;
-        typedef eosio::multi_index<"converter.v2"_n, converter_v2_t> converters_v2;
+        typedef eosio::multi_index<"converters"_n, converters_t> converters;
 
         /*! \endcond */
 
@@ -409,10 +328,6 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
         using delreserve_action = action_wrapper<"delreserve"_n, &BancorConverter::delreserve>;
         using withdraw_action = action_wrapper<"withdraw"_n, &BancorConverter::withdraw>;
         using fund_action = action_wrapper<"fund"_n, &BancorConverter::fund>;
-
-        // migration
-        using synctable_action = action_wrapper<"synctable"_n, &BancorConverter::synctable>;
-        using synctables_action = action_wrapper<"synctables"_n, &BancorConverter::synctables>;
     private:
         void convert(name from, asset quantity, string memo, name code);
         std::tuple<asset, double> calculate_return(const extended_asset from_token, const extended_symbol to_token, const string memo, const symbol currency, const uint64_t fee, const name multi_token);
@@ -483,15 +398,4 @@ class [[eosio::contract]] BancorConverter : public contract { /*! \endcond */
             const uint64_t prev_fee,
             const uint64_t new_fee
         );
-
-        // migration
-        // void erase_converters_v1( const symbol_code symcode );
-        // void erase_reserves_v1( const symbol_code symcode );
-        // void erase_converters_v1_scoped( const symbol_code symcode );
-        void sync_table( const symbol_code currency );
-
-        template <typename T>
-        void clear_table( T& table );
-
-
 }; /** @}*/
